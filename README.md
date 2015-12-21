@@ -12,7 +12,7 @@ Othe programs needed for this pipeline:
 
   * You will need <a href="http://mummer.sourceforge.net/">MUMmer</a>,  <a href="https://github.com/arq5x/bedtools2/blob/master/README.md">bedtools</a> , and <a href="http://www.repeatmasker.org/"> Repeatmasker</a> to use this pipeline. Additionally, the program fasplitter from <a href = "https://github.com/mahulchak/Assembly-utils">Assembly-utils</a> is required to split the fasta file.
 
-  * You need to have a reference fasta file and a query genome assembly (in fasta file format). The program will report the sequences that are single copy in the reference genome but >1 copy in the query genome.
+  * You need to have a reference and a query genome assembly (in fasta file format). The program will report the sequences that are single copy in the reference genome but >1 copy in the query genome.
 
 Here is an example of how to use svMUM pipeline to obtain a list of duplicates sequences from whole gnome alignment.
 
