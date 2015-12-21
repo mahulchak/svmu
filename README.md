@@ -29,7 +29,8 @@ Using the 'Y' switch in fasplitter will ensure that the new fasta files have '.f
 	ls *.fa > list_of_fa
 
  ```
- TIP: to avoid listing the reference assembly fasta file in the list, use ".fasta" as the file extension for the reference assembly.
+
+  TIP: to avoid listing the reference assembly fasta file in the list, use ".fasta" as the file extension for the reference assembly.
 
 3. Run scriptmaker to generate duplicate calling scripts for all the component fasta files.
 
@@ -91,5 +92,13 @@ Using the 'Y' switch in fasplitter will ensure that the new fasta files have '.f
 
 	sort -k1,1 -k2,2n TE.bed |bedtools subtract -A -a name_all_hits -b stdin |bedtools merge  -i stdin |awk '{if ($3-$2>100) print $0}' > name_all_predicted_dups
  ```
- Replace 'name' with a unique identifier.
+ 
+  Replace 'name' with a unique identifier for the query genome.
+
+  Explanations of the avove mentioned steps:
+
+   * In the first step, only duplicates longer than 100 bp are kept. Only the unique duplicates are kept.
+   * In the second step,the reference segments corresponding to the duplicated regions are merged (under the assumption that two overlapping reference segments are part of the same parental sequence that got duplicated in the query genome).
+   * In the third step, reference segments corresponding to TE are removed from the calls.
+ 
 
