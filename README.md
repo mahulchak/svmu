@@ -67,9 +67,9 @@ Using the 'Y' switch in fasplitter will ensure that the new fasta files have '.f
 
 7. The output tsv file has following columns -
  
-```
+ ```
 	REF_NAME REF_ST REF_END Q_NAME1 Q_ST1 Q_END1 Q_ST2 Q_NAME2 Q_ST2 Q_END2
-```
+ ```
   REF_NAME:reference chromosome where the parental gene is located.
 
   REF_ST: start coordinate of the reference genome segment that is duplicated.
