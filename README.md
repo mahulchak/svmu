@@ -19,7 +19,7 @@ Here is an example of how to use svMUM pipeline to obtain a list of duplicates s
 1. Run fasplitter on the reference genome to split the contigs/chromosomes/scaffolds into component fasta files. This is necessary because mummer can be run on a single reference sequence at a time.
 
  ``` 
-	fasplitter ref.fasta Y
+	fasplitter your_assembly.fasta Y
  ```
 Using the 'Y' switch in fasplitter will ensure that the new fasta files have '.fa' in their names.
 
