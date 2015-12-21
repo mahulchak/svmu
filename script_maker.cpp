@@ -9,7 +9,7 @@ int main(int argc, char * argv[])
 {
 	if ((argc == 1) || (argc <2))
 	{
-		cerr<<"Usage: "<<argv[0]<<" reference.fasta list_of_query_fasta"<<endl;;
+		cerr<<"Usage: "<<argv[0]<<" your_assembly.fasta list_of_query_fasta"<<endl;;
 		exit(EXIT_FAILURE);
 	} 
 size_t pos;
@@ -22,8 +22,8 @@ fin.open(argv[2]);
 		pos = str.find(".fa");
 		name =	str.substr(0,pos); // name is chromosome name
 		script_file = "job_"+name;
-		fout.open(script_file);	//script file is named after the chrom name
-		fout<<"mummer -b -l 20 "<<argv[1]<<" "<<str<<" | mgaps -l 100 -d 5 -f .12 -s 200 > "<<name<<".mgaps"<<endl;
+		fout.open(script_file.c_str());	//script file is named after the chrom name
+		fout<<"mummer -b -l 20 "<<str<<" "<<argv[1]<<" | mgaps -l 100 -d 5 -f .12 -s 200 > "<<name<<".mgaps"<<endl;
 		fout<<"sed -i 's/^ //g' "<<name<<".mgaps"<<endl;
 		fout<<"sed -i 's/^ //g' "<<name<<".mgaps"<<endl;
 		fout<<"sed -i 's/^ //g' "<<name<<".mgaps"<<endl;
