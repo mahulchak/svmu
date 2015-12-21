@@ -6,7 +6,7 @@ int main(int argc, char * argv[])
 
 	if(argc<3)
 	{
-	cerr<<"Usage: "<<argv[0]<<"foo.mgaps mumTobed.Chr.bed chrom"<<endl;
+	cerr<<"Usage: "<<argv[0]<<" foo.mgaps mumTobed.Chr.bed chrom"<<endl;
 	exit(EXIT_FAILURE);
 	}
 	ifstream fin;
@@ -15,9 +15,11 @@ int main(int argc, char * argv[])
 	fin.open(argv[1]);
 	fout.open(argv[2]);
 	
-	string str,name,temp;
-	int ref_st1,ref_st2,ref_end,aln_len,q_st1,q_st2,q_end,ctMum;
-
+	string str,name,temp,outFileName;
+	int ref_st1,ref_st2,ref_end,aln_len,q_st1,q_st2,q_end,ctMum,totAln;
+	
+	mgapC cluster;
+	
 	map<int,vector<int>> Mref; // the first element would be the start coordinate of a master cluster
 	map<int,vector<int>> Qref; //the first element would be the start and the 2nd elements would be master query
 	map<int,string> ref_name;
@@ -37,26 +39,22 @@ int main(int argc, char * argv[])
 			if(ctMum ==0)  //the first match.the only match when a cluster has a single match
 			{
 				temp = xtractcol(str,'\t',1);
-//cout<<temp<<endl;
 				ref_st1 = stoi(temp,nullptr);
-//cout<<ref_st1<<endl;
 				temp = xtractcol(str,'\t',3);
 				aln_len = stoi(temp,nullptr);
-//cout<<aln_len<<endl;
 				temp = xtractcol(str,'\t',2);
-				q_st1 = stoi(temp,nullptr);
-//cout<<q_st1<<endl;
+				q_st1 = stoi(temp,nullptr);		
+				totAln = aln_len;
 			}
 			else
 			{
-//cout<<str<<endl;
 				temp = xtractcol(str,'\t',1);
                        		ref_st2 = stoi(temp,nullptr);
 				temp = xtractcol(str,'\t',3);
 				aln_len = stoi(temp,nullptr);
 				temp = xtractcol(str,'\t',2);
 				q_st2 = stoi(temp,nullptr);
-//cout<<q_st2<<endl;
+				totAln = aln_len+totAln;
 			}	
 		ctMum++; //counts total mums inside a cluster		
 		if(!fin.eof())
@@ -74,8 +72,8 @@ int main(int argc, char * argv[])
 			ref_end = ref_st2 + aln_len;
 			q_end = q_st2 + aln_len;
 		}
-		fout<<string(argv[3])<<"\t"<<ref_st1<<"\t"<<ref_end<<"\t"<<q_st1<<"\t"<<q_end<<"\t"<<name<<endl;
-
+		fout<<string(argv[3])<<"\t"<<ref_st1<<"\t"<<ref_end<<"\t"<<q_st1<<"\t"<<q_end<<"\t"<<name<<"\t"<<totAln<<"\t"<<(ref_end-ref_st1)<<endl;
+		
 		if(str[0] == '>' && !fin.eof()) //this is to extract the name when getline reads a seq names within the second while loop
 		{
 			name=str.substr(1); //remove > from the string
@@ -85,38 +83,47 @@ int main(int argc, char * argv[])
 		ref_end = 0;
 		q_st1 = 0;
 		q_end = 0;
+		totAln = 0;
 	}
 	fout.close();
 	fin.close();
-//cout<<"crossed first hurdle"<<endl;
-//may be add a system command here for bedtools?
+
 	fin.open(argv[2]);
 	ctMum = 0; //reset ctMum
 		while(getline(fin,str))
 		{
 			if(ctMum>0)
 			{
-			ref_name[ctMum] = xtractcol(str,'\t',1);
+			cluster.refName[ctMum] = xtractcol(str,'\t',1);
 			temp = xtractcol(str,'\t',6);
-			q_name[ctMum] = temp.substr(1);
+			cluster.qName[ctMum] = temp.substr(1);
 			temp = xtractcol(str,'\t',2);
-			Mref[ctMum].push_back(stoi(temp,nullptr));
-//cout<<Mref[ctMum][0]<<endl;
+			cluster.refClust[ctMum].push_back(stoi(temp,nullptr));
 			temp = xtractcol(str,'\t',3);
-			Mref[ctMum].push_back(stoi(temp,nullptr));
+			cluster.refClust[ctMum].push_back(stoi(temp,nullptr));
 			temp = xtractcol(str,'\t',4);
-			Qref[ctMum].push_back(stoi(temp,nullptr));
+			cluster.qClust[ctMum].push_back(stoi(temp,nullptr));
 			temp = xtractcol(str,'\t',5);
-			Qref[ctMum].push_back(stoi(temp,nullptr));
+			cluster.qClust[ctMum].push_back(stoi(temp,nullptr));
 			}
 		ctMum++;
 		}
-	comparClust(ref_name,q_name,Mref,Qref);
-//2. store the cluster data in a map
-//3. generate a merged cluster
-//4.compare 2 with 3 and call duplicates. if the query clusters don't overlap but reference clusters do. May be use a gap of 100bp between the query clusters
-//write the results
-//generate a formatted delta output that can be used by bedtools
+	name = string(argv[3]);
+	comparClust(cluster);
+	outFileName = "SV_report."+ name +".tsv";
+	fout.open(outFileName.c_str());
+	filterDup(cluster);
+	for(unsigned int k=0;k<cluster.dupCord.size();k++)
+	{
+		if(cluster.dupCord[k][0] != 0)
+		{
+			fout<<cluster.dupName[k][0]<<"\t"<<cluster.dupCord[k][0]<<"\t"<<cluster.dupCord[k][1]<<"\t"<<cluster.dupName[k][1]<<"\t"<<cluster.dupCord[k][2]<<"\t"<<cluster.dupCord[k][3]<<"\t"<<cluster.dupName[k][2]<<"\t"<<cluster.dupCord[k][4]<<"\t"<<cluster.dupCord[k][5]<<endl;
+		}
+	}
+	fin.close();
+	fout.close();
+
+
 
 return 0;
 }

@@ -10,7 +10,9 @@ Download and compile the programs -
 
 Othe programs needed for this pipeline:
 
- You will need <a href="http://mummer.sourceforge.net/">MUMmer</a>,  <a href="https://github.com/arq5x/bedtools2/blob/master/README.md">bedtools</a> , and <a href="http://www.repeatmasker.org/"> Repeatmasker</a> to use this pipeline. Additionally, the program fasplitter from <a href = "https://github.com/mahulchak/Assembly-utils">Assembly-utils</a> is required to split the fasta file.
+  * You will need <a href="http://mummer.sourceforge.net/">MUMmer</a>,  <a href="https://github.com/arq5x/bedtools2/blob/master/README.md">bedtools</a> , and <a href="http://www.repeatmasker.org/"> Repeatmasker</a> to use this pipeline. Additionally, the program fasplitter from <a href = "https://github.com/mahulchak/Assembly-utils">Assembly-utils</a> is required to split the fasta file.
+
+  * You need to have a reference fasta file and a query genome assembly (in fasta file format). The program will report the sequences that are single copy in the reference genome but >1 copy in the query genome.
 
 Here is an example of how to use svMUM pipeline to obtain a list of duplicates sequences from whole gnome alignment.
 
@@ -62,7 +64,22 @@ Using the 'Y' switch in fasplitter will ensure that the new fasta files have '.f
 	cat *.tsv > all_chrom.tsv
  ```
 
-7. The 'all_chrom.tsv' file has both TE and duplicates in it. To separate TE from duplicates, you will need <a href="https://github.com/arq5x/bedtools2/blob/master/README.md">bedtools</a> and a file with TE annotations for the reference genome.
+7. The output tsv file has following columns -
+ 
+```
+	REF_NAME REF_ST REF_END Q_NAME1 Q_ST1 Q_END1 Q_ST2 Q_NAME2 Q_ST2 Q_END2
+```
+  REF_NAME:reference chromosome where the parental gene is located.
+
+  REF_ST: start coordinate of the reference genome segment that is duplicated.
+
+  REF_END: end coordinate of the reference genome segment that is duplicated.
+
+  Q_NAME1, Q_ST1, Q_END1: chromosome name, start and end coordinates of one of the copies in the query genome. 
+
+  Q_NAME2, Q_ST2, Q_END2: chromosome name, start and end coordinates of the second copy in the query genome.
+
+8. The 'all_chrom.tsv' file has both TE and duplicates in it. To separate TE from duplicates, you will need <a href="https://github.com/arq5x/bedtools2/blob/master/README.md">bedtools</a> and a file with TE annotations for the reference genome.
  TIP: You can use Repeatmasker to generate the TE annotation file if you already don't have a TE annotation file.
 
  After you get the TE annotation file, you can use the following commands to obtain the list of sequences that are single copy in the reference genome but more than one copy in the other genome.

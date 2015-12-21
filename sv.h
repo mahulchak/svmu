@@ -10,15 +10,23 @@
 using namespace std;
 string xtractcol(string str, char c, int n); //str: the string substring will be lifted, c: delimiting character, n = # of col
 
-class repeats {
+class mgapC {
 
 public:
-vector<int> masterRepeat; //reference sequences that correspond to the repeats
-vector<int> childRepeat; //query sequences that correspond to the repeats
+map<int,string> refName;
+map<int,string> qName;
+map<int,vector<int> > refClust; //stores all the clusters from the reference sequence
+map<int,vector<int> > qClust; //stores all the clsuters from the query sequence
+map<int,vector<int> > dupList;
+map<int,vector<string> > dupName; //stores names of dup reference, query 1, query 2 
+map<int,vector<int> > dupCord; //stores ends of dups in reference ,query1,query 2,coordinates
+map<int,vector<int> > filterList;
+//map<string,int> dupCount;
 };
 
-void comparClust(map<int,string>& ref_name,map<int,string>& q_name, map<int,vector<int> >& mRef, map<int,vector<int> >& mQ);
+void comparClust(mgapC & cluster);
 int overlapD(vector<int>& rv, vector<int>& mRef);
-//void chkOvl(map<int,string>& ref_name,map<int,string>& q_name,map<int,vector<int> >& mRef, map<int,vector<int> >& mQ, vector<int> & rv,vector<int> & qv, string & name, ofstream & fout);
-
+//void checkTE(mgapC & cluster);
+vector<int> findDupEnds(int & ref_st1, int & ref_end1,int & ref_st2, int & ref_end2, int & q_st1,int & q_end1, int & q_st2, int & q_end2);
+void filterDup(mgapC & cluster);
 #endif
