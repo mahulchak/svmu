@@ -1,5 +1,4 @@
 # svMum
-A pipeline to call duplicates from whole genome alignment.
 
 Download and compile the programs -
 
@@ -8,11 +7,11 @@ Download and compile the programs -
 	g++ -Wall script_maker.cpp -o scriptmaker
  ```
 
-Othe programs needed for this pipeline:
+Other programs needed for this pipeline:
 
   * You will need <a href="http://mummer.sourceforge.net/">MUMmer</a>,  <a href="https://github.com/arq5x/bedtools2/blob/master/README.md">bedtools</a> , and <a href="http://www.repeatmasker.org/"> Repeatmasker</a> to use this pipeline. Additionally, the program fasplitter from <a href = "https://github.com/mahulchak/Assembly-utils">Assembly-utils</a> is required to split the fasta file.
 
-  * You need to have a reference and a query genome assembly (in fasta file format). The program will report the sequences that are single copy in the reference genome but >1 copy in the query genome.
+  * You need to have a reference and a query genome assembly (in fasta file format). If desired, the assemblies could be processed through repeatmasker before running the pipeline. The program will report the sequences that are single copy in the reference genome but >1 copy in the query genome.
 
 Here is an example of how to use svMUM pipeline to obtain a list of duplicates sequences from whole gnome alignment.
 
@@ -47,12 +46,12 @@ Using the 'Y' switch in fasplitter will ensure that the new fasta files have '.f
 
  ```
 
-5. Now run all the job scripts in parallel or serial mode depending on how many cores you have. If you are running in serial mode (i.e. want to use 1 core) , do -
+5. Now run all the job scripts in parallel or serial mode depending on how many cores you have. If you are running in serial mode (i.e. want to use single processor) , do -
 
  ```
 	bash list_of_jobs
  ```
- For using the parallel mode, you can use GNU parallel -
+ For using the parallel mode, you can use <a href="http://www.gnu.org/software/parallel/">GNU parallel</a> -
 
  ```
 	cat list_of_jobs | parallel -j NPROC
@@ -65,7 +64,7 @@ Using the 'Y' switch in fasplitter will ensure that the new fasta files have '.f
 	cat *.tsv > all_chrom.tsv
  ```
 
-7. The output tsv file has following columns -
+7. The output tsv file has the following columns -
  
  ```
 	REF_NAME REF_ST REF_END Q_NAME1 Q_ST1 Q_END1 Q_ST2 Q_NAME2 Q_ST2 Q_END2
@@ -80,7 +79,8 @@ Using the 'Y' switch in fasplitter will ensure that the new fasta files have '.f
 
   Q_NAME2, Q_ST2, Q_END2: chromosome name, start and end coordinates of the second copy in the query genome.
 
-8. The 'all_chrom.tsv' file has both TE and duplicates in it. To separate TE from duplicates, you will need <a href="https://github.com/arq5x/bedtools2/blob/master/README.md">bedtools</a> and a file with TE annotations for the reference genome.
+8. The 'all_chrom.tsv' file has both TE (if repeatmasker was not used on the assembly) and duplicates in it. To separate TE from duplicates, you will need <a href="https://github.com/arq5x/bedtools2/blob/master/README.md">bedtools</a> and a file with TE annotations for the reference genome.
+ 
  TIP: You can use Repeatmasker to generate the TE annotation file if you already don't have a TE annotation file.
 
  After you get the TE annotation file, you can use the following commands to obtain the list of sequences that are single copy in the reference genome but more than one copy in the other genome.
