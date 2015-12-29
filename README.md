@@ -1,6 +1,6 @@
 # svMum
 
-This pipeline is currently under development. Because it's under development, older parts of the pipeline may be incompatible with the newly added parts. If you are planning to use this pipeline before a validated, final version is released, please contact me at mchakrab@uci.edu. I might be able to offer you some sugestions on how to modify this incomplete pipeline for your use.
+svMum is a pipeline to call duplicates from whole genome alignments using mummer. Although major part of the pipeline has been worked out and validated, the pipeline still needs some more validations and optimization. Also, because it's under active development, older parts of the pipeline may be incompatible with the newly added parts. If you think that this pipeline in its current form (until a fully validated final version is released) might be useful to you, please contact me at mchakrab@uci.edu. I might be able to offer you some sugestions on how to modify this incomplete pipeline for your use.
 
 Download and compile the programs -
 
