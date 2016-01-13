@@ -87,7 +87,8 @@ int main(int argc, char * argv[])
 	}
 	fout.close();
 	fin.close();
-
+cout<<"completed mgap to bed conversion"<<endl;
+cout<<"Reading the bed file"<<endl;
 	fin.open(argv[2]);
 	ctMum = 0; //reset ctMum
 		while(getline(fin,str))
@@ -109,10 +110,14 @@ int main(int argc, char * argv[])
 		ctMum++;
 		}
 	name = string(argv[3]);
+cout<<"Bed file reading done. Now extracting abnormal clusters...."<<endl;
 	comparClust(cluster);
+cout<<"Extracted all abnormal clusters. This includes TEs and duplications"<<endl;
 	outFileName = "SV_report."+ name +".tsv";
 	fout.open(outFileName.c_str());
+cout<<"Filtering false positives due to duplications in the reference sequence"<<endl;
 	filterDup(cluster);
+cout<<"Filtering done. Writing the output now"<<endl;
 	for(unsigned int k=0;k<cluster.dupCord.size();k++)
 	{
 		if(cluster.dupCord[k][0] != 0)

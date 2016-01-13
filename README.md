@@ -88,9 +88,9 @@ Using the 'Y' switch in fasplitter will ensure that the new fasta files have '.f
  ```
 	cat all_chrom.tsv| awk '{if($10-$9 >100) print $0}' | sort -u -k9,9 |sort -k1,1 -k2,2n >name_all_singleton
 
-	cat name_all_singleton |sort -u -k2,2n| awk '{print $1"\t"$2"\t"$3}' |sort -k2,2n |bedtools merge -i stdin >name_all_hits
+	cat name_all_singleton | sort -k1,1 -k2,2n |bedtools subtract -A -a stdin -b TE.bed > list_of_all_dups
 
-	sort -k1,1 -k2,2n TE.bed |bedtools subtract -A -a name_all_hits -b stdin |bedtools merge  -i stdin |awk '{if ($3-$2>100) print $0}' > name_all_predicted_dups
+	awk '{ if ($3-$2>100 && $4 == $7) print $0}' name_all_singleton | sort -k1,1 -k2,2n |bedtools subtract -A -a stdin -b TE.bed |bedtools merge -i stdin >list_of_TD
  ```
  
   Replace 'name' with a unique identifier for the query genome.
@@ -98,7 +98,12 @@ Using the 'Y' switch in fasplitter will ensure that the new fasta files have '.f
   Explanations of the avove mentioned steps:
 
    * In the first step, only duplicates longer than 100 bp are kept. Only the unique duplicates are kept.
-   * In the second step,the reference segments corresponding to the duplicated regions are merged (under the assumption that two overlapping reference segments are part of the same parental sequence that got duplicated in the query genome).
-   * In the third step, reference segments corresponding to TE are removed from the calls.
+   * The second command filters all TEs from the duplicate calls and reports all duplicates.
+   * The third command does the same thing as the second command but reports only duplicates within same chromosome or contig.
+
+  These are provided only as examples. Other commands could also be used to partition the duplicate calls.
+
+
+
  
 
