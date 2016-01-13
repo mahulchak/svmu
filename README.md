@@ -83,7 +83,11 @@ Using the 'Y' switch in fasplitter will ensure that the new fasta files have '.f
 
 8. The 'all_chrom.tsv' file has both TE (if repeatmasker was not used on the assembly) and duplicates in it. To separate TE from duplicates, you will need <a href="https://github.com/arq5x/bedtools2/blob/master/README.md">bedtools</a> and a file with TE annotations for the reference genome.
  
- TIP: You can use Repeatmasker to generate the TE annotation file if you already don't have a TE annotation file.
+ TIP: You can use Repeatmasker to generate the TE annotation file if you already don't have a TE annotation file. The TE annotation file needs to be in this format:
+ 
+ ```
+	CHROM_NAME	TE_START	TE_END
+ ```
 
  After you get the TE annotation file, you can use the following commands to obtain the list of sequences that are single copy in the reference genome but more than one copy in the other genome.
 
