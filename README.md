@@ -31,8 +31,10 @@ Using the 'Y' switch in fasplitter will ensure that the new fasta files have '.f
 
  ```
 
-  TIP: to avoid listing the reference assembly fasta file in the list, use ".fasta" as the file extension for the reference assembly.
-
+  TIP: to avoid listing the reference assembly fasta file in the list, use ".fasta" as the file extension for the reference assembly. 
+       
+       Edit the list if you don't want to use certain sequences for SV detection.E.g. you could ignore sequences that are < 50 kb long and hence remove sequence names which correspond to sequences <50kb.
+ 
 3. Run scriptmaker to generate duplicate calling scripts for all the component fasta files.
 
  ```   
