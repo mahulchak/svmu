@@ -24,7 +24,7 @@ int main(int argc, char * argv[])
 	map<int,vector<int>> Qref; //the first element would be the start and the 2nd elements would be master query
 	map<int,string> ref_name;
 	map<int,string> q_name;
-
+cout<<"Reading mgap alignment.."<<endl;
 	while(getline(fin,str))
 	{
 		if(str[0] == '>')
@@ -87,8 +87,7 @@ int main(int argc, char * argv[])
 	}
 	fout.close();
 	fin.close();
-cout<<"completed mgap to bed conversion"<<endl;
-cout<<"Reading the bed file"<<endl;
+cout<<"Finished converting mgap to bed conversion"<<endl;
 	fin.open(argv[2]);
 	ctMum = 0; //reset ctMum
 		while(getline(fin,str))
@@ -109,15 +108,16 @@ cout<<"Reading the bed file"<<endl;
 			}
 		ctMum++;
 		}
+cout<<"Finished reading the bed file"<<endl;
 	name = string(argv[3]);
-cout<<"Bed file reading done. Now extracting abnormal clusters...."<<endl;
+cout<<"Extracting abnormal clusters"<<endl;
 	comparClust(cluster);
-cout<<"Extracted all abnormal clusters. This includes TEs and duplications"<<endl;
+cout<<"Finished recording the abnormal clusters"<<endl;
 	outFileName = "SV_report."+ name +".tsv";
+cout<<"Filtering false positives now..."<<endl;
 	fout.open(outFileName.c_str());
-cout<<"Filtering false positives due to duplications in the reference sequence"<<endl;
 	filterDup(cluster);
-cout<<"Filtering done. Writing the output now"<<endl;
+cout<<"Finished filtering false positives. Now writing the SV in tsv format"<<endl;
 	for(unsigned int k=0;k<cluster.dupCord.size();k++)
 	{
 		if(cluster.dupCord[k][0] != 0)
