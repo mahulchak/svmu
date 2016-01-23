@@ -21,8 +21,8 @@ for(unsigned int i=0;i<str.size() && count<n;i++)
 return elem;
 }
 
-//////////////////////////////////////////////////////////////////////////////////
-//this function compares the terminal coordinates of a cluster (v1 = ref cords, v2 = query cords)  with exisiting list of clusters (the first two arguments). Need to be rewritten with a better data structure
+
+//this function compares the terminal coordinates of a cluster (v1 = ref cords, v2 = query cords)  with exisiting list of clusters (the first two arguments)
 void comparClust(mgapC & cluster)
 {
 vector<int> rv;
@@ -33,17 +33,18 @@ string name;
 int refD; //qD
 int dupCt = 0;
 int filterCt = 0;
-int dup_length_Ref,dup_length_Q1,dup_length_Q2;
+int dup_length_Ref,dup_length_Q1,dup_length_Q2,countCopy;
 
 	for(unsigned int i =1; i<cluster.refName.size();i++)
 	{
 		rv = cluster.refClust[i];
 		qv = cluster.qClust[i];
 		name = cluster.qName[i];
-		
+		countCopy = 0; //reset countCopy for each range
 		for(unsigned int j=1;j<cluster.refClust.size();j++)
 		{
 			refD = cluster.refClust[j][1] - cluster.refClust[j][0];//the length of the cluster
+
 			if((!(rv[1]<cluster.refClust[j][0]) && !(rv[0]>cluster.refClust[j][1])) && (refD>100))
 			{
 				if(((qv[1] < (cluster.qClust[j][0]+5)) ||(qv[0] >(cluster.qClust[j][1]-5))) && (overlapD(rv,cluster.refClust[j])>50)) //if the qv cluster falls completely outside the master query cluster range;5 is added for random matches
@@ -67,6 +68,7 @@ int dup_length_Ref,dup_length_Q1,dup_length_Q2;
 							cluster.dupCord[dupCt].push_back(dup_term[4]);
 							cluster.dupCord[dupCt].push_back(dup_term[5]);
 							dupCt++;
+							countCopy++; //countCopy is incremented eveery time a new hit is found
 						}
 					}
 					
@@ -80,7 +82,6 @@ int dup_length_Ref,dup_length_Q1,dup_length_Q2;
 					filter_term = findDupEnds(qv[0],qv[1],cluster.qClust[j][0],cluster.qClust[j][1],rv[0],rv[1],cluster.refClust[j][0],cluster.refClust[j][1]);
 					if(!filter_term.empty())
 					{
-
 						cluster.filterName[filterCt] = cluster.qName[j]; // there is only one reference so storing query name
 						cluster.filterList[filterCt].push_back(filter_term[0]);
 						cluster.filterList[filterCt].push_back(filter_term[1]);
@@ -92,11 +93,18 @@ int dup_length_Ref,dup_length_Q1,dup_length_Q2;
 					}
 				}
 			}
+//do the same thing for clusters that are duplicated in reference but single copy in query (to remove FPs due to duplicated gene segments)			
  		}
+			if(countCopy > 3)
+			{
+				for (int k = (dupCt-countCopy);k<dupCt;k++) //if the query hits more than 3 times then mark all the hits as false positives
+				{
+					cluster.dupCord[k][0] = 0;
+				}
+			}
 	}
 }
 	 
-//////////////////////////////////////////////////////////////////////////////
 	
 int overlapD(vector<int>& rv, vector<int>& mRef) //computes overlap between two sequence ranges but does not check if there is an overlap
 {
@@ -119,8 +127,6 @@ int D;
 	}
 return D;
 }
-
-///////////////////////////////////////////////////////////////////////////////////
 
 vector<int> findDupEnds(int & ref_st1, int & ref_end1,int & ref_st2, int & ref_end2, int & q_st1,int & q_end1, int & q_st2, int & q_end2) //reports the conservative estimate of the duplicate span 
 {
@@ -181,8 +187,6 @@ vector<int> findDupEnds(int & ref_st1, int & ref_end1,int & ref_st2, int & ref_e
 	return dup_ends;
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 bool ovlChk(vector<int> &v1, vector<int> & v2)
 {
 	if((!(v2[1]<v1[0])) && (!(v2[0]>v1[1])))
@@ -194,8 +198,6 @@ bool ovlChk(vector<int> &v1, vector<int> & v2)
 		return 0;
 	}
 }
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void filterDup(mgapC & cluster) // this will compare the reciprocal calls to remove false calls from the dup calls list
 {
@@ -232,7 +234,7 @@ void filterDup(mgapC & cluster) // this will compare the reciprocal calls to rem
 				qMasterFilter2[1] = cluster.dupCord[j][5];
 				masterRefDist = cluster.dupCord[j][1] - cluster.dupCord[j][0];
 				
-				if(((((ovlChk(tempFilter1,masterDup) == 1) && (abs(masterRefDist-refDist1)<int(masterRefDist*.1))) || ((ovlChk(tempFilter2,masterDup) == 1) && (abs(masterRefDist-refDist2)<int(masterRefDist*.1)))) && ((cluster.dupName[j][1] == qName)&& (cluster.dupName[j][2] == qName))))
+				if(((((ovlChk(tempFilter1,masterDup) == 1) && (abs(masterRefDist-refDist1)<int(masterRefDist*.1))) || ((ovlChk(tempFilter2,masterDup) == 1) && (abs(masterRefDist-refDist2)<int(masterRefDist*.1))))))
 				{
 					if((ovlChk(qFilterChk1,qMasterFilter1) == 1) || (ovlChk(qFilterChk1,qMasterFilter2) == 1))
 					{
