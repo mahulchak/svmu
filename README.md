@@ -1,6 +1,6 @@
 # svMum
 
-svMum is a pipeline to call duplicates from whole genome alignments using mummer. The pipeline is under development. For issues and bugs, please contact me at mchakrab@uci.edu.
+svMum is a pipeline to call duplicates from whole genome alignments using mummer. For issues, comments, and help please contact me at mchakrab@uci.edu.
 
 Download and compile the programs -
 
@@ -11,7 +11,7 @@ Download and compile the programs -
 
 Other programs needed for this pipeline:
 
-  * You will need <a href="http://mummer.sourceforge.net/">MUMmer</a>,  <a href="https://github.com/arq5x/bedtools2/blob/master/README.md">bedtools</a> , and <a href="http://www.repeatmasker.org/"> Repeatmasker</a> to use this pipeline. Additionally, the program fasplitter from <a href = "https://github.com/mahulchak/Assembly-utils">Assembly-utils</a> is required to split the fasta file.
+  * <a href="http://mummer.sourceforge.net/">MUMmer</a>,  <a href="https://github.com/arq5x/bedtools2/blob/master/README.md">bedtools</a> , and <a href="http://www.repeatmasker.org/"> Repeatmasker</a>. Additionally, a program is needed to split the chromosomes into individual fasta files. The program fasplitter from <a href = "https://github.com/mahulchak/Assembly-utils">Assembly-utils</a> can be used.
 
   * You need to have a reference and a query genome assembly (in fasta file format). If desired, the assemblies could be processed through repeatmasker before running the pipeline. The program will report the sequences that are single copy in the reference genome but >1 copy in the query genome.
 
@@ -32,7 +32,7 @@ Using the 'Y' switch in fasplitter will ensure that the new fasta files have '.f
  ```
 
   TIP: to avoid listing the reference assembly fasta file in the list, use ".fasta" as the file extension for the reference assembly. 
-  Edit the list if you don't want to use certain sequences for SV detection.E.g. you could ignore sequences that are < 50 kb long and hence remove sequence names which correspond to sequences <50kb.
+  This list can be edited to remove chromosomes you don't want to use for duplicate finding.
  
 3. Run scriptmaker to generate duplicate calling scripts for all the component fasta files.
 
