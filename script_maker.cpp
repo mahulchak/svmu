@@ -30,7 +30,7 @@ fin.open(argv[2]);
 		fout<<"sed -i 's/^> />/g' "<<name<<".mgaps"<<endl;
 		fout<<"sed -i 's/Reverse//g' "<<name<<".mgaps"<<endl;
 		fout<<"gawk '{print $1\"\\t\"$2\"\\t\"$3\"\\t\"$4\"\\t\"$5\"\\t\"$6}' "<<name<<".mgaps > "<<name<<".awk.mgaps"<<endl;
-		fout<<"./svmum "<<name<<".awk.mgaps mumToBed."<<name<<".bed "<<name<<endl; // check if the last name should be query contig or reference contig name
+		fout<<"./svmu "<<name<<".awk.mgaps mumToBed."<<name<<".bed "<<name<<endl; // check if the last name should be query contig or reference contig name
 		fout.close();
 	}
 fin.close();

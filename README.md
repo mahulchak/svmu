@@ -1,11 +1,11 @@
-# svMum
+# svmu
 
-svMum is a pipeline to call duplicates from whole genome alignments using mummer. For issues, comments, and help please contact me at mchakrab@uci.edu.
+svmu is a pipeline to call duplicates from whole genome alignments using MUMmer. For issues, comments, and help please contact me at mchakrab@uci.edu.
 
 Download and compile the programs -
 
  ```
-	g++ -Wall -std=c++0x mlib.cpp svmum.cpp -o svmum
+	g++ -Wall -std=c++0x mlib.cpp svmu.cpp -o svmu
 	g++ -Wall script_maker.cpp -o scriptmaker
  ```
 
@@ -15,7 +15,7 @@ Other programs needed for this pipeline:
 
   * You need to have a reference and a query genome assembly (in fasta file format). If desired, the assemblies could be processed through repeatmasker before running the pipeline. The program will report the sequences that are single copy in the reference genome but >1 copy in the query genome.
 
-Here is an example of how to use svMUM pipeline to obtain a list of duplicates sequences from whole gnome alignment.
+Here is an example of how to use svmu pipeline to obtain a list of duplicates sequences from whole gnome alignment.
 
 1. Run fasplitter on the reference genome to split the contigs/chromosomes/scaffolds into component fasta files. This is necessary because mummer can be run on a single reference sequence at a time.
 
