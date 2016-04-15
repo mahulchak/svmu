@@ -70,7 +70,7 @@ Using the 'Y' switch in fasplitter will ensure that the new fasta files have '.f
 7. The output tsv file has the following columns -
  
  ```
-	REF_NAME REF_ST REF_END Q_NAME1 Q_ST1 Q_END1 Q_ST2 Q_NAME2 Q_ST2 Q_END2
+	REF_NAME REF_ST REF_END Q_NAME1 Q_ST1 Q_END1 Q_ST2 Q_NAME2 Q_ST2 Q_END2	HITS FP
  ```
   REF_NAME:reference chromosome where the parental gene is located.
 
@@ -81,6 +81,10 @@ Using the 'Y' switch in fasplitter will ensure that the new fasta files have '.f
   Q_NAME1, Q_ST1, Q_END1: chromosome name, start and end coordinates of one of the copies in the query genome. 
 
   Q_NAME2, Q_ST2, Q_END2: chromosome name, start and end coordinates of the second copy in the query genome.
+  
+  HITS: total hits for the reference genomic region
+  
+  FP: Total false positive hits. If this is >0 then filter this duplicate call as false positive.
 
 8. The 'all_chrom.tsv' file has both TE (if repeatmasker was not used on the assembly) and duplicates in it. To separate TE from duplicates, you will need <a href="https://github.com/arq5x/bedtools2/blob/master/README.md">bedtools</a> and a file with TE annotations for the reference genome.
  
@@ -97,7 +101,7 @@ Using the 'Y' switch in fasplitter will ensure that the new fasta files have '.f
 
 	cat name_all_singleton | sort -k1,1 -k2,2n |bedtools subtract -A -a stdin -b TE.bed > list_of_all_dups
 
-	awk '{ if ($3-$2>100 && $4 == $7) print $0}' name_all_singleton | sort -k1,1 -k2,2n |bedtools subtract -A -a stdin -b TE.bed |bedtools merge -i stdin >list_of_TD
+	awk '{ if ($11==0 && $4 == $7) print $0}' name_all_singleton | sort -k1,1 -k2,2n |bedtools subtract -A -a stdin -b TE.bed |bedtools merge -i stdin >list_of_TD
  ```
  
   Replace 'name' with a unique identifier for the query genome.
@@ -106,7 +110,7 @@ Using the 'Y' switch in fasplitter will ensure that the new fasta files have '.f
 
    * In the first step, only duplicates longer than 100 bp are kept. Only the unique duplicates are kept.
    * The second command filters all TEs from the duplicate calls and reports all duplicates.
-   * The third command does the same thing as the second command but reports only duplicates within same chromosome or contig.
+   * The third command does the same thing as the second command but adds an additional filter for false positives and reports only duplicates within same chromosome or contig.
 
   These are provided only as examples. Other commands could also be used to partition the duplicate calls.
 
