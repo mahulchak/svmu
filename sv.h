@@ -33,4 +33,5 @@ int overlapD(vector<int>& rv, vector<int>& mRef);
 vector<int> findDupEnds(int & ref_st1, int & ref_end1,int & ref_st2, int & ref_end2, int & q_st1,int & q_end1, int & q_st2, int & q_end2);
 void filterDup(mgapC & cluster);
 bool ovlChk(vector<int> &v1, vector<int> & v2);
+void removeExactDups(mgapC & cluster);
 #endif

@@ -113,16 +113,21 @@ cout<<"Finished reading the bed file"<<endl;
 cout<<"Extracting abnormal clusters"<<endl;
 	comparClust(cluster);
 cout<<"Finished recording the abnormal clusters"<<endl;
-	outFileName = "SV_report."+ name +".tsv";
+	outFileName = "SV_report.75."+ name +".tsv";
 cout<<"Filtering false positives now..."<<endl;
 	fout.open(outFileName.c_str());
 	filterDup(cluster);
+	//cout<<"Now filtering the exact entries, i.e. more false stuffs..argh"<<endl;
+	//removeExactDups(cluster);
+	
+	//fout<<"Refchr"<<"\t"<<"start"<<"\t"<<"end"<<"\t"<<"DupChr1"<<"\t"<<"start1"<<"\t"<<"end1"<<"\t"<<"DupChr2"<<"\t"<<"start2"<<"\t"<<"end2"<<"\t"<<"Copies"<<endl;
 cout<<"Finished filtering false positives. Now writing the SV in tsv format"<<endl;
+	
 	for(unsigned int k=0;k<cluster.dupCord.size();k++)
 	{
 		if(cluster.dupCord[k][0] != 0)
 		{
-			fout<<cluster.dupName[k][0]<<"\t"<<cluster.dupCord[k][0]<<"\t"<<cluster.dupCord[k][1]<<"\t"<<cluster.dupName[k][1]<<"\t"<<cluster.dupCord[k][2]<<"\t"<<cluster.dupCord[k][3]<<"\t"<<cluster.dupName[k][2]<<"\t"<<cluster.dupCord[k][4]<<"\t"<<cluster.dupCord[k][5]<<endl;
+			fout<<cluster.dupName[k][0]<<"\t"<<cluster.dupCord[k][0]<<"\t"<<cluster.dupCord[k][1]<<"\t"<<cluster.dupName[k][1]<<"\t"<<cluster.dupCord[k][2]<<"\t"<<cluster.dupCord[k][3]<<"\t"<<cluster.dupName[k][2]<<"\t"<<cluster.dupCord[k][4]<<"\t"<<cluster.dupCord[k][5]<<"\t"<<cluster.dupCord[k][6]<<"\t"<<cluster.dupCord[k][7]<<endl;
 		}
 	}
 	fin.close();
