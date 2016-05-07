@@ -1,6 +1,8 @@
 # svmu
 
-svmu is a pipeline to call duplicates from whole genome alignments using MUMmer. The program is still under development. For issues, comments, and help please contact me at mchakrab@uci.edu.
+svmu is a pipeline to call duplicates from whole genome alignments using MUMmer. The program has been under development for some time. The first release (which is not yet available on github) is coming out soon with some inbuilt rigorous validation methods. If you want to test the new version before it comes out on github please email me at mchakrab@uci.edu. 
+
+Note: svmu is not a read mapping based copy number variation detection tool. It calls duplicates and TEs from whole genome alignment.
 
 Download and compile the programs -
 
