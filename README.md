@@ -1,6 +1,6 @@
 # svmu
 
-The long molecule technologies have ushered in the era of extremely contiguous genome assemblies. Such assemblies will empower us to attain the goal of detecting all structural variants present in a genome, a feat that can be accomplished via alignment of the two  genome assemblies. Towards that goal, we present SVMU (Structural Variants from MUmmer): a pipeline to call duplicates from whole genome alignments using MUMmer. It is still under development. The first release is coming out soon with some inbuilt rigorous validation methods. If you want to test the new version before it comes out on github please email me at mchakrab@uci.edu. 
+The long molecule technologies have ushered in the era of extremely contiguous genome assemblies. Such assemblies are empowering us to attain the goal of detecting all structural variants present in a genome, a feat that can be accomplished via alignment of the two  genome assemblies. Towards that goal, we present SVMU (Structural Variants from MUmmer): a pipeline to call duplicates from whole genome alignments using MUMmer. It is still under development. For questions and comments, please email me at mchakrab@uci.edu. 
 
 Note: svmu is not a read mapping based copy number variation detection tool. It calls duplicates and TEs from alignments between two genome assemblies.
 
