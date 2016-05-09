@@ -1,19 +1,22 @@
 # svmu
 
-svmu is a pipeline to call duplicates from whole genome alignments using MUMmer. For issues, comments, and help please contact me at mchakrab@uci.edu.
+The long molecule technologies have ushered in the era of extremely contiguous genome assemblies. Such assemblies are empowering us to detect all structural variants present in a genome, a feat that can be accomplished via alignment of the two  genome assemblies. Towards that goal, we present SVMU (Structural Variants from MUmmer): a pipeline to call duplicates from whole genome alignments using MUMmer. It is still under development. For questions and comments, please email me at mchakrab@uci.edu. 
+
+Note: svmu is not a read mapping based copy number variation detection tool. It calls duplicates and TEs from alignments between two genome assemblies.
 
 Download and compile the programs -
 
  ```
 	g++ -Wall -std=c++0x mlib.cpp svmu.cpp -o svmu
 	g++ -Wall script_maker.cpp -o scriptmaker
+	g++ -Wall cnvlib.cpp ccnv.cpp -o checkCN
  ```
 
 Other programs needed for this pipeline:
 
-  * <a href="http://mummer.sourceforge.net/">MUMmer</a>,  <a href="https://github.com/arq5x/bedtools2/blob/master/README.md">bedtools</a> , and <a href="http://www.repeatmasker.org/"> Repeatmasker</a>. Additionally, a program is needed to split the chromosomes into individual fasta files. The program fasplitter from <a href = "https://github.com/mahulchak/Assembly-utils">Assembly-utils</a> can be used.
+  * <a href="http://mummer.sourceforge.net/">MUMmer</a>,  and <a href="https://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download/"> BLAST</a>. Additionally, a program is needed to split the chromosomes into individual fasta files. The program fasplitter from <a href = "https://github.com/mahulchak/Assembly-utils">Assembly-utils</a> can be used. BLAST and MUMmer should be in your path.
 
-  * You need to have a reference and a query genome assembly (in fasta file format). If desired, the assemblies could be processed through repeatmasker before running the pipeline. The program will report the sequences that are single copy in the reference genome but >1 copy in the query genome.
+  * You need to have a reference and a query genome assembly (in fasta file format). The program will report the sequences that are n copy in the reference genome but >n copy in the query genome.
 
 Here is an example of how to use svmu pipeline to obtain a list of duplicates sequences from whole gnome alignment.
 
@@ -32,7 +35,7 @@ Using the 'Y' switch in fasplitter will ensure that the new fasta files have '.f
  ```
 
   TIP: to avoid listing the reference assembly fasta file in the list, use ".fasta" as the file extension for the reference assembly. 
-  This list can be edited to remove chromosomes you don't want to use for duplicate finding.
+  This list can be edited to remove chromosomes/contigs you don't want to use for duplicate finding.
  
 3. Run scriptmaker to generate duplicate calling scripts for all the component fasta files.
 
@@ -70,7 +73,7 @@ Using the 'Y' switch in fasplitter will ensure that the new fasta files have '.f
 7. The output tsv file has the following columns -
  
  ```
-	REF_NAME REF_ST REF_END Q_NAME1 Q_ST1 Q_END1 Q_ST2 Q_NAME2 Q_ST2 Q_END2	HITS FP
+	REF_NAME REF_ST REF_END Q_NAME1 Q_ST1 Q_END1 Q_NAME2 Q_ST2 Q_END2 Q_NAME2 HITS
  ```
   REF_NAME:reference chromosome where the parental gene is located.
 
@@ -84,37 +87,41 @@ Using the 'Y' switch in fasplitter will ensure that the new fasta files have '.f
   
   HITS: total hits for the reference genomic region
   
-  FP: Total false positive hits. If this is >0 then filter this duplicate call as false positive.
 
-8. The 'all_chrom.tsv' file has both TE (if repeatmasker was not used on the assembly) and duplicates in it. To separate TE from duplicates, you will need <a href="https://github.com/arq5x/bedtools2/blob/master/README.md">bedtools</a> and a file with TE annotations for the reference genome.
- 
- TIP: You can use Repeatmasker to generate the TE annotation file if you already don't have a TE annotation file. The TE annotation file needs to be in this format:
+8. The 'all_chrom.tsv' file has both TE and duplicates in it. It also has false positives because ancestral duplicates may often be marked as polymorphic duplicate by svmu. These false positives are inevitable because aligning two genomes, especially at complex repeat regions, is not always perfect. To filter the false positives, we will use nucmer and a second program called checkCN. Next, extract reference names and reference coordinates from "all_chrom.tsv" to create a list of coordinates that can be mined using BLAST. You can use other tools or your own script.
  
  ```
-	CHROM_NAME	TE_START	TE_END
+	awk '{print $1" "$2"-"$3}' all_chrom.tsv|sort -k1,1 -k2,2n -u > blast.query.list
  ```
 
- After you get the TE annotation file, you can use the following commands to obtain the list of sequences that are single copy in the reference genome but more than one copy in the other genome.
+9. Obtain the sequences corresponding to these reference coordinates using BLAST.
 
  ```
-	cat all_chrom.tsv| awk '{if($10-$9 >100) print $0}' | sort -u -k9,9 |sort -k1,1 -k2,2n >name_all_singleton
-
-	cat name_all_singleton | sort -k1,1 -k2,2n |bedtools subtract -A -a stdin -b TE.bed > list_of_all_dups
-
-	awk '{ if ($11==0 && $4 == $7) print $0}' name_all_singleton | sort -k1,1 -k2,2n |bedtools subtract -A -a stdin -b TE.bed |bedtools merge -i stdin >list_of_TD
+	blastdbcmd -db REF_BLAST_DB -dbtype nucl -entry_batch blast.query.list -out nucmer.query.fasta
  ```
  
-  Replace 'name' with a unique identifier for the query genome.
+10. Align all sequences in nucmer.query.fasta to the query genome and the reference genome using nucmer.
 
-  Explanations of the avove mentioned steps:
+ ```
+	nucmer -mumreference -prefix out.q nucmer.query.fasta your_assembly.fasta
+	
+	nucmer -mumreference -prefix out.r nucmer.query.fasta reference_assembly.fasta
+ ```
 
-   * In the first step, only duplicates longer than 100 bp are kept. Only the unique duplicates are kept.
-   * The second command filters all TEs from the duplicate calls and reports all duplicates.
-   * The third command does the same thing as the second command but adds an additional filter for false positives and reports only duplicates within same chromosome or contig.
+11. Reformat the blast.query.list and then check the differences in copy number for each sequence using the program checkCN.
 
-  These are provided only as examples. Other commands could also be used to partition the duplicate calls.
+ ```
+	sed -i 's/ /:/g' blast.query.list
+	
+	./checkCN -d1 out.q.delta -d2 out.r.delta -q blast.query.list > my_cnvs.raw
+ ```
 
-
-
+ The first column is the name of the CNV (the name contains the reference sequence name and the coordinates), the second column is the copy number in the query genome and the third column is the copy number in reference genome.
  
+12.  And the final filter which retains only those sequences which show more copies in the query genome.
 
+ ```
+	awk '{if($3<$2) print $0}' my_cnvs.raw > my_cnvs.filtered
+ ```
+
+Now you can use your own cutoff for copy number to separate  duplicates from TEs or you can use TE annotations in your reference genome to identify the TEs. You can get the sequences of the different copies in the query genome from the "all_chrom.tsv" file.
