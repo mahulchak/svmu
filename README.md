@@ -7,6 +7,7 @@ Note: svmu is not a read mapping based copy number variation detection tool. It 
 Download and compile the programs -
 
  ```
+ 	g++ -Wall -std=c++0x fasplitter.cpp -o fasplitter
 	g++ -Wall -std=c++0x mlib.cpp svmu.cpp -o svmu
 	g++ -Wall script_maker.cpp -o scriptmaker
 	g++ -Wall cnvlib.cpp ccnv.cpp -o checkCN
@@ -14,7 +15,7 @@ Download and compile the programs -
 
 Other programs needed for this pipeline:
 
-  * <a href="http://mummer.sourceforge.net/">MUMmer</a>,  and <a href="https://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download/"> BLAST</a>. Additionally, a program is needed to split the chromosomes into individual fasta files. The program fasplitter from <a href = "https://github.com/mahulchak/Assembly-utils">Assembly-utils</a> can be used. BLAST and MUMmer should be in your path.
+  * <a href="http://mummer.sourceforge.net/">MUMmer</a>,  and <a href="https://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download/"> BLAST</a>. Additionally, a program is needed to split the chromosomes into individual fasta files. BLAST and MUMmer should be in your path.
 
   * You need to have a reference and a query genome assembly (in fasta file format). The program will report the sequences that are n copy in the reference genome but >n copy in the query genome.
 
