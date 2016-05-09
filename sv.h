@@ -24,6 +24,7 @@ map<int,vector<string> > dupName; //stores names of dup reference, query 1, quer
 map<int,vector<int> > dupCord; //stores ends of dups in reference ,query1,query 2,coordinates
 map<int,vector<int> > filterList; //first four coordinates are reference, last four are query
 map<int,string> filterName; // stores the name of the query
+map<int,vector<int> > len; // stores the length of each cluster
 //map<string,int> dupCount;
 };
 
