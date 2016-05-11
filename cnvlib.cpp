@@ -33,7 +33,7 @@ void countCopy(string & str, asmMerge & merge)
 		{
 			for(unsigned int j=0;j<merge.ref_st[tempname].size();j++)
 			{
-				if((merge.ref_end[tempname][j] - merge.ref_st[tempname][j]) > int(merge.ref_len[tempname]*0.5)) //the length of the duplicates have to be at least half
+				if((merge.ref_end[tempname][j] - merge.ref_st[tempname][j]) > int(merge.ref_len[tempname]*0.75)) //the length of the duplicates have to be at least half
 				{
 					//tot_count = merge.ref_st[tempname].size() + tot_count;
 					tot_count++;
