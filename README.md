@@ -1,8 +1,8 @@
 # svmu
 
-The long molecule technologies have ushered in the era of extremely contiguous genome assemblies. Such assemblies are empowering us to detect all structural variants present in a genome, a feat that can be accomplished via alignment of the two  genome assemblies. Towards that goal, we present SVMU (Structural Variants from MUmmer): a pipeline to call duplicates from whole genome alignments using MUMmer. It is still under development. For questions and comments, please email me at mchakrab@uci.edu. 
+The long molecule technologies have ushered in the era of extremely contiguous genome assemblies. Such assemblies are empowering us to detect all structural variants present in a genome, a feat that can be accomplished via alignment of two  genome assemblies. Towards that goal, we present SVMU (Structural Variants from MUmmer): a pipeline to call duplicates from whole genome alignments using MUMmer. It is still under development. For questions and comments, please email me at mchakrab@uci.edu. 
 
-Note: svmu is not a read mapping based copy number variation detection tool. It calls duplicates and TEs from alignments between two genome assemblies.
+Note: svmu is not a read mapping based copy number variation detection tool. It calls duplicates and TEs from alignments between two genome assemblies. A manuscript describing SVMU is under preparation but if you are publishing results obtained with this pipeline, please cite SVMU as "https://github.com/mahulchak/svmu".
 
 Download and compile the programs -
 
@@ -63,7 +63,7 @@ Using the 'Y' switch in fasplitter will ensure that the new fasta files have '.f
  ```
 	cat list_of_jobs | parallel -j NPROC
  ```
- Replace 'NPROC' with the number of processors you want to use. If you have 4 processors, use 4.
+ TIP: Replace 'NPROC' with the number of processors you want to use. If you have 4 processors, use 4.
 
 6. Concatenate all the output files.
 
@@ -95,7 +95,9 @@ Using the 'Y' switch in fasplitter will ensure that the new fasta files have '.f
 	awk '{print $1" "$2"-"$3}' all_chrom.tsv|sort -k1,1 -k2,2n -u > blast.query.list
  ```
 
-9. Obtain the sequences corresponding to these reference coordinates using BLAST.
+ TIP: If you wish to save on computation time, you can run bedtools merge on the "all_chrom.tsv" to merge overlapping coordinates before you create the blast query list..
+
+9. Obtain the sequences corresponding to these reference coordinates using BLAST. Please see the BLAST manual to create a local BLAST database for your genome assemblies.
 
  ```
 	blastdbcmd -db REF_BLAST_DB -dbtype nucl -entry_batch blast.query.list -out nucmer.query.fasta
