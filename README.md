@@ -9,8 +9,8 @@ Download and compile the programs -
  ```
  	g++ -Wall -std=c++0x fasplitter.cpp -o fasplitter
 	g++ -Wall -std=c++0x mlib.cpp svmu.cpp -o svmu
-	g++ -Wall script_maker.cpp -o scriptmaker
-	g++ -Wall cnvlib.cpp ccnv.cpp -o checkCN
+	g++ -Wall -std=c++0x script_maker.cpp -o scriptmaker
+	g++ -Wall -std=c++0x cnvlib.cpp ccnv.cpp -o checkCN
  ```
 
 Other programs needed for this pipeline:
@@ -106,9 +106,9 @@ Using the 'Y' switch in fasplitter will ensure that the new fasta files have '.f
 10. Align all sequences in nucmer.query.fasta to the query genome and the reference genome using nucmer.
 
  ```
-	nucmer -mumreference -prefix out.q nucmer.query.fasta your_assembly.fasta
+	nucmer -maxmatch -prefix out.q nucmer.query.fasta your_assembly.fasta
 	
-	nucmer -mumreference -prefix out.r nucmer.query.fasta reference_assembly.fasta
+	nucmer -maxmatch -prefix out.r nucmer.query.fasta reference_assembly.fasta
  ```
 
 11. Reformat the blast.query.list and then check the differences in copy number for each sequence using the program checkCN.
