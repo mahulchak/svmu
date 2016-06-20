@@ -25,12 +25,10 @@ map<int,vector<int> > dupCord; //stores ends of dups in reference ,query1,query 
 map<int,vector<int> > filterList; //first four coordinates are reference, last four are query
 map<int,string> filterName; // stores the name of the query
 map<int,vector<int> > len; // stores the length of each cluster
-//map<string,int> dupCount;
 };
 
 void comparClust(mgapC & cluster);
 int overlapD(vector<int>& rv, vector<int>& mRef);
-//void checkTE(mgapC & cluster);
 vector<int> findDupEnds(int & ref_st1, int & ref_end1,int & ref_st2, int & ref_end2, int & q_st1,int & q_end1, int & q_st2, int & q_end2);
 void filterDup(mgapC & cluster);
 bool ovlChk(vector<int> &v1, vector<int> & v2);

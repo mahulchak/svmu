@@ -1,5 +1,5 @@
 #include<iostream>
-#include "qmerge.h"
+#include "val.h"
 
 string xtractcol(string str, char c, int n)
 {
@@ -40,6 +40,13 @@ void countCopy(string & str, asmMerge & merge)
 					//tot_count = merge.ref_st[tempname].size() + tot_count;
 					tot_count++;
 				}
+				else
+				{
+					merge.ref_end[tempname][j] = 0; // experimental
+					merge.ref_st[tempname][j] = 0;
+					merge.q_st[tempname][j] = 0;
+					merge.q_end[tempname][j] = 0;
+				}
 			}
 		merge.storeName[str].push_back(tempname);
 		}
@@ -49,7 +56,7 @@ void countCopy(string & str, asmMerge & merge)
 	
 }
 ////////////////////////////////////////////////////////////////////////////////
-void collapseRange(asmMerge & merge)
+void collapseRange(asmMerge & merge) // this collapses two consecutive query ranges if they are close to each other
 {
 	string tempname;
 	int len =0;
@@ -74,12 +81,14 @@ void collapseRange(asmMerge & merge)
 	}
 }
 ///////////////////////////////////////////////////////////////////////////////
-bool chkOvl(asmMerge & merge, string & str,unsigned int & j)
+bool chkOvl(asmMerge & merge, string & str,unsigned int & j) //to provide the condition for merging two query ranges
 {
 	int end1 = merge.ref_end[str][j-1];
 	int st2 = merge.ref_st[str][j];
+	int qend1 = merge.q_end[str][j-1];
+	int qst2 = merge.q_st[str][j];
 		
-	if((!(st2 < end1)) && (st2 - end1 <int(merge.ref_len[str]*0.12))) // the gap between the ranges has to be less than 12% of the reference length
+	if((!(st2 < end1)) && (st2 - end1 <int(merge.ref_len[str]*0.12)) && ( abs(qst2 - qend1) <int(merge.ref_len[str]*0.20))) // the gap between the ranges has to be less than 12% of the reference length and 20% for the query
 	{
 		return 0;
 	}

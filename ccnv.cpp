@@ -1,9 +1,7 @@
-
-
 #include<iostream>
 #include<fstream>
 #include<cstdlib>
-#include "qmerge.h"
+#include "val.h"
 
 using namespace std;
 
@@ -162,7 +160,15 @@ collapseRange(merge1);
 				tempname = merge.storeName[it->first][i]; //create the index
 				for(unsigned j =0;j<merge.q_st[tempname].size();j++)
 				{
-					fout<<tempname<<"\t"<<merge.q_st[tempname][j]<<"\t"<<merge.q_end[tempname][j]<<"\t"<<it->second<<"\t"<<merge1.storeCount[it->first]<<endl;
+					if((merge.q_end[tempname][j] != 0) && (merge.q_st[tempname][j]<merge.q_end[tempname][j]))
+					{
+					
+						fout<<tempname<<"\t"<<merge.q_st[tempname][j]<<"\t"<<merge.q_end[tempname][j]<<"\t"<<it->second<<"\t"<<merge1.storeCount[it->first]<<"\t"<<"+"<<endl;
+					}
+					if((merge.q_end[tempname][j] != 0) && (merge.q_st[tempname][j]>merge.q_end[tempname][j]))
+					{
+						fout<<tempname<<"\t"<<merge.q_end[tempname][j]<<"\t"<<merge.q_st[tempname][j]<<"\t"<<it->second<<"\t"<<merge1.storeCount[it->first]<<"\t"<<"-"<<endl;
+					}
 				}
 			}
 		}
