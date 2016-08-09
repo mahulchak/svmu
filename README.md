@@ -116,15 +116,15 @@ Using the 'Y' switch in fasplitter will ensure that the new fasta files have '.f
  ```
 	sed -i 's/ /:/g' blast.query.list
 	
-	./checkCN -d1 out.q.delta -d2 out.r.delta -q blast.query.list > my_cnvs.raw
+	./checkCNV -d1 out.q.delta -d2 out.r.delta -q blast.query.list > my_cnvs.raw
  ```
-
- The first column is the name of the CNV (the name contains the reference sequence name and the coordinates), the second column is the copy number in the query genome and the third column is the copy number in reference genome.
+ <u>Description of the "cnv_report.tsv" file</u>
+ Column 1 = name of the CNV with the reference sequence name and the coordinates
+ Column 2 = name of the query chromosome/contig
+ Column 3 = start coordinate in the query chromosome
+ Column 4 = end coordinate in the query chromosome
+ Column 5 = copy number in the query chromosome
+ Column 6 = copy number in the reference chromosome
+ Column 7 = orientation of the copy in the query genome
  
-12.  And the final filter which retains only those sequences which show more copies in the query genome.
-
- ```
-	awk '{if($3<$2) print $0}' my_cnvs.raw > my_cnvs.filtered
- ```
-
-Now you can use your own cutoff for copy number to separate  duplicates from TEs or you can use TE annotations in your reference genome to identify the TEs. You can get the sequences of the different copies in the query genome from the "all_chrom.tsv" file.
+Now you can use your own cutoff for copy number to separate  duplicates from TEs or you can use TE annotations in your reference genome to identify the TEs.
