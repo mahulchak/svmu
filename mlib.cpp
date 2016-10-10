@@ -49,6 +49,7 @@ int countCopy = 0;
 		{
 			if(!(rv[1]<cluster.refClust[j][0]) && !(rv[0]>cluster.refClust[j][1]))
 			{
+if((name == "2R") && (rv[0] ==  11073446)){cout<<rv[1]<<"\t"<<cluster.refClust[j][0]<<"\t"<<rv[0]<<endl;}
 				if((overlapD(rv,cluster.refClust[j])>100)) // at max 50% deletions are allowed in a cluster
 				{	
 					dup_term = findDupEnds(rv[0],rv[1],cluster.refClust[j][0],cluster.refClust[j][1],qv[0],qv[1],cluster.qClust[j][0],cluster.qClust[j][1]);
@@ -119,10 +120,10 @@ int countCopy = 0;
 int overlapD(vector<int>& rv, vector<int>& mRef) //computes overlap between two sequence ranges but does not check if there is an overlap
 {
 int D;
-	if((!(rv[0]==mRef[0])) || (!(rv[1]==mRef[1]))) //if the ranges are not identical
-	{
+	//if((!(rv[0]==mRef[0])) || (!(rv[1]==mRef[1]))) //if the ranges are not identical
+	//{
 		D = min(mRef[1],rv[1]) - max(mRef[0],rv[0]);
-	}
+	//}
 return D;
 }
 

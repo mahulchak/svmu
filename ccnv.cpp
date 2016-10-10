@@ -10,11 +10,11 @@ int main(int argc, char * argv[])
 {
         if(argc==1)
         {
-		cerr<<"Usage: "<<argv[0]<<" -d1 delta_candidate.out -d2 delta_ref.out -q query_name.list -c cutoff_for_repeats -qco cutoff_query_merging -rco cutoff_ref_merging -D master_delta.out"<<endl;
+		cerr<<"Usage: "<<argv[0]<<" -d1 delta_candidate.out -d2 delta_ref.out -q query_name.list -c cutoff_for_repeats -qco cutoff_query_merging -rco cutoff_ref_merging"<<endl;
         	exit(EXIT_FAILURE);
         }
 
-	ifstream Delta,delta1,delta2,fin;
+	ifstream delta1,delta2,fin;
 	ofstream fout,chromMap,orphan;	
 	
 	asmMerge master,merge,merge1; 
@@ -33,49 +33,7 @@ int main(int argc, char * argv[])
 	qCO = stoi(argv[10],NULL);
 //cout<<rCO <<"\t"<< qCO<<endl;
 //cout<<string(argv[8])<<endl;
-	if(string(argv[14]) != "")
-	{
-		Delta.open(argv[14]);
-		while(getline(Delta,header))
-       		{
-        	        if(header[0] =='>')
-                	{
 
-                        	ref_name = xtractcol(header,' ',1);
-	                        ref_name = ref_name.substr(1); //blast adds |c| so remove >|c|
-        	                master.r_name.push_back(ref_name);
-                	        qu_name = xtractcol(header,' ',2);
-                	        master.q_name.push_back(qu_name);
-                	        tempname = ref_name.append(qu_name); // tempname is the index for the map. they describe alignment pairs( e.g. BackboneX ctgY). should be unique.
-                       		master.ref_len[tempname] = atoi(xtractcol(header,' ',3).c_str());
-                	        master.q_len[tempname] = atoi(xtractcol(header,' ',4).c_str());
-               		}
-
-       		        if(header[0] != '>' && header.size()>10)
-               		{
-                       		r_st = atoi(xtractcol(header,' ',1).c_str());
-                     		master.ref_st[tempname].push_back(r_st); // storing the coordinates for each alignment hit
-               		      	r_end = atoi(xtractcol(header,' ',2).c_str());
-                  		master.ref_end[tempname].push_back(r_end);
-                     		qu_st = atoi(xtractcol(header,' ',3).c_str());
-                  		master.q_st[tempname].push_back(qu_st);
-                  		qu_end = atoi(xtractcol(header,' ',4).c_str());
-                     		master.q_end[tempname].push_back(qu_end);
-              		 }
-       		}
-	
-
-		Delta.close();
-	
-		ovlStoreCalculator(master);//calculate the alignment length for each alignment
-		findChromPartner(master);	
-		chromMap.open("ctgmap.txt");
-		for(map<string,string>::iterator it=master.storeHomolog.begin();it!= master.storeHomolog.end();it++)
-		{
-			chromMap<< it->first << "\t"<< it->second <<endl;
-		}
-		chromMap.close();
-	}
 	delta1.open(argv[2]);//open the second delta file
 
 	while(getline(delta1,header))

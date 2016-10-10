@@ -28,10 +28,6 @@ map<string,int> storeCount;
 map<string,int> seqCount;//stores the number of sequences to which a SV finds a hit
 map<string,vector<string> > storeName;
 map<string,int> ovlStore;
-map<string,string> storeHomolog;
-map<string,int> storeHomAln;
-map<string,vector<int> > masterQst;
-map<string,vector<int> > masterQend;
 map<string,vector<double> >cov;
 };
 
@@ -43,8 +39,4 @@ void collapseRange(asmMerge & merge, double & rCO, int & qCO);
 bool chkOvl(asmMerge & merge, string & str,unsigned int & j, double & rCO, int & qCO);
 int ovlCalculator(vector<int>& q_st, vector<int>& q_end);
 void ovlStoreCalculator(asmMerge & merge);
-void findChromPartner(asmMerge & merge);
-void masterQlist(asmMerge & merge);
-void reducList(asmMerge & merge);
-bool innie(vector<int> & masterQst, vector<int> & masterQend,vector<double> & cov, int & qSt, int & qEnd);
 #endif

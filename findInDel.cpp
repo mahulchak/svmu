@@ -9,7 +9,7 @@ using namespace std;
 int main(int argc, char * argv[])
 {
         if(argc==1)
-        {cerr<<"Usage: "<<argv[0]<<" -d delta_file.out"<<endl;
+        {cerr<<"Usage: "<<argv[0]<<" -d delta_file.out -m mutation_type(I/D)"<<endl;
         exit(EXIT_FAILURE);
         }
 
@@ -57,9 +57,17 @@ int main(int argc, char * argv[])
 	fin.close();
 
 	writeToFile(merge);
-	findIndel(merge);
-	//fillChromPos(merge);
-	//buildCoverage(merge);
+	if(*argv[4] == 'D')
+	{
+		findIndel(merge,'I');
+	}
+	if(*argv[4] == 'I')
+	{
+		findIndel(merge,'D');
+		collapseRange(merge);
+	}
+//	fillChromPos(merge);
+//	buildCoverage(merge);
 	//filterInsCall(merge);
 	for(map<string,vector<int> >::iterator it = merge.storeInsStart.begin();it != merge.storeInsStart.end(); it++)
 	{
@@ -68,6 +76,7 @@ int main(int argc, char * argv[])
 			cout<<it->first<<"\t"<<merge.storeInsStart[it->first][i]<<"\t"<<merge.storeInsEnd[it->first][i]<<endl;
 		}
 	}
+
 
 	return 0;
 }

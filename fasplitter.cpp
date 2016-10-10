@@ -1,6 +1,3 @@
-//this takes each fasta sequence from a fasta file and generates new fasta file for each sequence. The name of the new fasta files are derived from the sequence names.
-//useful for CNVnator and other stuff
-
 #include<iostream>
 #include<fstream>
 #include<string>
@@ -34,13 +31,29 @@ if(str[0] == '>')
 		}
 	if(*argv[2] == 'Y')
 	{
-		temp = clip_string(str,' ')+".fa"; //original was ' '.
-//cout<<temp<<endl;
+		if(str.find(' '))
+		{
+			temp = clip_string(str,' ')+".fa"; //original was ' '.
+		}
+		if(str.find(' ') == string::npos)
+		{
+			temp = str.substr(1) + ".fa";
+		}
+
 		fout.open(temp.c_str());
 	}
 	else
 	{
-		fout.open(clip_string(str,' ').c_str());
+		if(str.find(' '))
+                {
+                        temp = clip_string(str,' ')+".fa"; //original was ' '.
+                }
+                if(str.find(' ') == string::npos)
+                {
+                        temp = str.substr(1) + ".fa";
+                }
+
+
 	}
 	
 	str_hist = str;

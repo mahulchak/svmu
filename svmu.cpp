@@ -29,9 +29,8 @@ cout<<"Reading mgap alignment.."<<endl;
 	{
 		if(str[0] == '>')
 		{
-			//name=str.substr(1,str.find('n')); //remove > from the string
-			name = str.substr(1,(str.size()-6));
-			//cout<<name<<"\t"<<name.size()<<endl;
+			name=str.substr(1,str.find('n')); //remove > from the string
+		
 			
 		}
 		ctMum =0; //this is the count of mums within a cluster.reset it here.
@@ -75,7 +74,7 @@ cout<<"Reading mgap alignment.."<<endl;
 			ref_end = ref_st2 + aln_len;
 			q_end = q_st2 + aln_len;
 		}
-		if(totAln < 100000000)
+		if(totAln < 10000000)
 		{
 			fout<<string(argv[3])<<'\t'<<ref_st1<<'\t'<<ref_end<<'\t'<<q_st1<<'\t'<<q_end<<'\t'<<name<<'\t'<<totAln<<'\t'<<(q_end-q_st1)<<endl;
 			cluster.refName[count_mum] = string(argv[3]);
@@ -91,7 +90,7 @@ cout<<"Reading mgap alignment.."<<endl;
 		if(str[0] == '>' && !fin.eof()) //this is to extract the name when getline reads a seq names within the second while loop
 		{
 			//name=str.substr(1); //remove > from the string
-			name=str.substr(1,(str.size()-6)); 
+			name=str.substr(1,str.find('n')); 
 	        }
 
 		ref_st1= 0; //resetting them so that they print 0 when an alignment is absent
@@ -103,32 +102,28 @@ cout<<"Reading mgap alignment.."<<endl;
 	fout.close();
 	fin.close();
 cout<<"Finished converting mgap to bed conversion"<<endl;
-
 	name = string(argv[3]);
 cout<<"Extracting abnormal clusters"<<endl;
 	comparClust(cluster);
 cout<<"Finished recording the abnormal clusters"<<endl;
-	outFileName = "SV_report."+ name +".tsv";
+	outFileName = "SV_report.l20."+ name +".tsv";
 //cout<<"Filtering false positives now..."<<endl;
+	//fout.open(outFileName.c_str());
+	//filterDup(cluster);
+	//cout<<"Now filtering the exact entries and more false positives"<<endl;
 	//removeExactDups(cluster);
 	
 	//fout<<"Refchr"<<"\t"<<"start"<<"\t"<<"end"<<"\t"<<"DupChr1"<<"\t"<<"start1"<<"\t"<<"end1"<<"\t"<<"DupChr2"<<"\t"<<"start2"<<"\t"<<"end2"<<"\t"<<"Copies"<<endl;
-//cout<<"Finished filtering false positives. Now writing the SV in tsv format"<<endl;
+cout<<"Finished filtering false positives. Now writing the SV in tsv format"<<endl;
 	fout.open(outFileName.c_str());
 	for(unsigned int k=0;k<cluster.dupCord.size();k++)
 	{
 		if(cluster.dupCord[k][0] != 0)
 		{
-			if(cluster.dupName[k][1] == cluster.dupName[k][2])
-			{
-				fout<<cluster.dupName[k][0]<<"\t"<<cluster.dupCord[k][0]<<"\t"<<cluster.dupCord[k][1]<<"\t"<<cluster.dupName[k][1]<<"\t"<<cluster.dupCord[k][2]<<"\t"<<cluster.dupCord[k][3]<<"\t"<<cluster.dupName[k][2]<<"\t"<<cluster.dupCord[k][4]<<"\t"<<cluster.dupCord[k][5]<<"\t"<<cluster.dupCord[k][6]<<"\t"<<cluster.dupCord[k][7]<<"\t"<<"TD"<<endl;
-			}
-			if(cluster.dupName[k][1] != cluster.dupName[k][2])
-			{
-				fout<<cluster.dupName[k][0]<<"\t"<<cluster.dupCord[k][0]<<"\t"<<cluster.dupCord[k][1]<<"\t"<<cluster.dupName[k][1]<<"\t"<<cluster.dupCord[k][2]<<"\t"<<cluster.dupCord[k][3]<<"\t"<<cluster.dupName[k][2]<<"\t"<<cluster.dupCord[k][4]<<"\t"<<cluster.dupCord[k][5]<<"\t"<<cluster.dupCord[k][6]<<"\t"<<cluster.dupCord[k][7]<<"\t"<<"NTD"<<endl;
-			}
+			fout<<cluster.dupName[k][0]<<"\t"<<cluster.dupCord[k][0]<<"\t"<<cluster.dupCord[k][1]<<"\t"<<cluster.dupName[k][1]<<"\t"<<cluster.dupCord[k][2]<<"\t"<<cluster.dupCord[k][3]<<"\t"<<cluster.dupName[k][2]<<"\t"<<cluster.dupCord[k][4]<<"\t"<<cluster.dupCord[k][5]<<"\t"<<cluster.dupCord[k][6]<<"\t"<<cluster.dupCord[k][7]<<endl;
 		}
 	}
+//	fin.close();
 	fout.close();
 
 

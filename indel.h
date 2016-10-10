@@ -36,7 +36,7 @@ map<string,vector<int> >qChromPos;
 
 string xtractcol(string str,char c, int n);
 void writeToFile(asmMerge & merge);
-void findIndel(asmMerge & merge);
+void findIndel(asmMerge & merge, char mutType);
 char checkIndel(string tempname,asmMerge & merge,int k,int j);
 void fillChromPos(asmMerge & merge);
 void addCoverage(asmMerge & merge,string & str, int ref_st, int ref_end);
@@ -45,4 +45,5 @@ bool chkOvlQ(string tempname,asmMerge & merge,int k,int j);
 bool chkOvlR(string tempname,asmMerge & merge,int k,int j);
 int maxD(int & qf1,int & qe1, int & qf2, int & qe2);
 void filterInsCall(asmMerge & merge);
+void collapseRange(asmMerge & merge);
 #endif

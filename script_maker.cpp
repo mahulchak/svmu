@@ -9,21 +9,23 @@ int main(int argc, char * argv[])
 {
 	if ((argc == 1) || (argc <2))
 	{
-		cerr<<"Usage: "<<argv[0]<<" your_assembly.fasta list_of_query_fasta"<<endl;;
+		cerr<<"Usage: "<<argv[0]<<" -q your_assembly.fasta -l list_of_query_fasta -s cluster_separation -ln minimum_length"<<endl;;
 		exit(EXIT_FAILURE);
 	} 
 size_t pos;
 string str,script_file,name;
 ofstream fout;
 ifstream fin;
-fin.open(argv[2]);
+fin.open(argv[4]);
+int sep = stoi(argv[6],NULL);
+int minOvl = stoi(argv[8],NULL);
 	while(getline(fin,str)) //str is chromosome file name
 	{
 		pos = str.find(".fa");
 		name =	str.substr(0,pos); // name is chromosome name
 		script_file = "job_"+name;
 		fout.open(script_file.c_str());	//script file is named after the chrom name
-		fout<<"mummer -b -l 20 "<<str<<" "<<argv[1]<<" | mgaps -l 100 -d 5 -f .12 -s 200 > "<<name<<".mgaps"<<endl;
+		fout<<"mummer -b -l 20 "<<str<<" "<<argv[2]<<" | mgaps -l "<<minOvl<<" -d 5 -f .12 -s "<<sep<<" > "<<name<<".mgaps"<<endl;
 		fout<<"sed -i 's/^ //g' "<<name<<".mgaps"<<endl;
 		fout<<"sed -i 's/^ //g' "<<name<<".mgaps"<<endl;
 		fout<<"sed -i 's/^ //g' "<<name<<".mgaps"<<endl;
