@@ -23,7 +23,7 @@ Here is an example of how to use svmu pipeline to obtain a list of duplicates se
 
 1. Add a prefix to the sequence names to avoid a bug in BLAST.
  ```
-	sed 's/^>/>svmu/g' foo.fasta
+	sed -i 's/^>/>svmu/g' foo.fasta
  ```
  Run this on your assembly and the reference assembly.
 
@@ -137,5 +137,9 @@ Using the 'Y' switch in fasplitter will ensure that the new fasta files have '.f
  Column 5 = copy number in the query chromosome
  Column 6 = copy number in the reference chromosome
  Column 7 = orientation of the copy in the query genome
- 
+
+12. Remove svmu from sequence names.
+ ```
+	sed -i 's/svmu//g' cnv_report.tsv
+ ``` 
 Now you can use your own cutoff for copy number to separate  duplicates from TEs or you can use TE annotations in your reference genome to identify the TEs.
