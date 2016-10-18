@@ -28,13 +28,13 @@ void comparClust(mgapC & cluster)
 vector<int> rv;
 vector<int> qv;
 vector<int> dup_term; // stores vector returned by dup_ends
-vector<int> filter_term;
+//vector<int> filter_term;
 
 string name;
 
 int dupCt = 0;
 int filterCt = 0;
-int countCopy = 0;
+//int countCopy = 0;
 
 
 	for(unsigned int i =1; i<cluster.refName.size();i++)
@@ -42,15 +42,15 @@ int countCopy = 0;
 		rv = cluster.refClust[i];
 		qv = cluster.qClust[i];
 		name = cluster.qName[i];
-		countCopy = 0; //reset countCopy for each range
+//		countCopy = 0; //reset countCopy for each range
 		
 //cout<<name<<endl;
 		for(unsigned int j=1;j<cluster.refClust.size();j++)
 		{
 			if(!(rv[1]<cluster.refClust[j][0]) && !(rv[0]>cluster.refClust[j][1]))
 			{
-if((name == "2R") && (rv[0] ==  11073446)){cout<<rv[1]<<"\t"<<cluster.refClust[j][0]<<"\t"<<rv[0]<<endl;}
-				if((overlapD(rv,cluster.refClust[j])>100)) // at max 50% deletions are allowed in a cluster
+//if((name == "2R") && (rv[0] ==  11073446)){cout<<rv[1]<<"\t"<<cluster.refClust[j][0]<<"\t"<<rv[0]<<endl;}
+				if((overlapD(rv,cluster.refClust[j])>100) && (!((qv[0] == cluster.qClust[j][0])&&(qv[1] == cluster.qClust[j][1])))) // query ranges cannot be same
 				{	
 					dup_term = findDupEnds(rv[0],rv[1],cluster.refClust[j][0],cluster.refClust[j][1],qv[0],qv[1],cluster.qClust[j][0],cluster.qClust[j][1]);
 				
@@ -68,7 +68,7 @@ if((name == "2R") && (rv[0] ==  11073446)){cout<<rv[1]<<"\t"<<cluster.refClust[j
 							cluster.dupCord[dupCt].push_back(dup_term[4]);
 							cluster.dupCord[dupCt].push_back(dup_term[5]);
 							dupCt++;
-							countCopy++; //countCopy is incremented eveery time a new hit is found
+//							countCopy++; //countCopy is incremented eveery time a new hit is found
 							
 							
 //cout<<"DUP"<<"\t"<<dup_term[0]<<"\t"<<dup_term[1]<<"\t"<<dup_term[2]<<"\t"<<dup_term[3]<<"\t"<<name<<"\t"<<dup_term[4]<<"\t"<<dup_term[5]<<"\t"<<countCopy-1<<endl;
@@ -78,39 +78,39 @@ if((name == "2R") && (rv[0] ==  11073446)){cout<<rv[1]<<"\t"<<cluster.refClust[j
 				}
 			}
 			
-			if((ovlChk(rv,cluster.refClust[j])==0)&& (ovlChk(qv,cluster.qClust[j])==1) && (cluster.qName[j] == name) && (overlapD(qv,cluster.qClust[j]) > 20)) //if the query clusters are overlappingi
+//			if((ovlChk(rv,cluster.refClust[j])==0)&& (ovlChk(qv,cluster.qClust[j])==1) && (cluster.qName[j] == name) && (overlapD(qv,cluster.qClust[j]) > 20)) //if the query clusters are overlappingi
 			
-			{
-				filter_term = findDupEnds(qv[0],qv[1],cluster.qClust[j][0],cluster.qClust[j][1],rv[0],rv[1],cluster.refClust[j][0],cluster.refClust[j][1]);
-					
-				if(!filter_term.empty()) 
-                                {
+//			{
+//				filter_term = findDupEnds(qv[0],qv[1],cluster.qClust[j][0],cluster.qClust[j][1],rv[0],rv[1],cluster.refClust[j][0],cluster.refClust[j][1]);
+//					
+//				if(!filter_term.empty()) 
+//                              {
 
-					cluster.filterName[filterCt] = cluster.qName[j]; // there is only one reference so storing query name
-                                        cluster.filterList[filterCt].push_back(filter_term[0]);
-                                        cluster.filterList[filterCt].push_back(filter_term[1]);
-                                        cluster.filterList[filterCt].push_back(filter_term[2]);
-                                        cluster.filterList[filterCt].push_back(filter_term[3]);
-                                        cluster.filterList[filterCt].push_back(filter_term[4]);
-                                        cluster.filterList[filterCt].push_back(filter_term[5]);
-                                        filterCt++;
+//					cluster.filterName[filterCt] = cluster.qName[j]; // there is only one reference so storing query name
+//                                        cluster.filterList[filterCt].push_back(filter_term[0]);
+//                                        cluster.filterList[filterCt].push_back(filter_term[1]);
+//                                        cluster.filterList[filterCt].push_back(filter_term[2]);
+//                                        cluster.filterList[filterCt].push_back(filter_term[3]);
+//                                        cluster.filterList[filterCt].push_back(filter_term[4]);
+//                                        cluster.filterList[filterCt].push_back(filter_term[5]);
+//                                        filterCt++;
 												
 //cout<<"FILTER"<<"\t"<<rv[0]<<"\t"<<rv[1]<<"\t"<<cluster.refClust[j][0]<<"\t"<<cluster.refClust[j][1]<<"\t"<<filter_term[2]<<"\t"<<filter_term[3]<<"\t"<<filter_term[4]<<"\t"<<filter_term[5]<<"\t"<<qv[0]<<"\t"<<qv[1]<<"\t"<<cluster.qClust[j][0]<<"\t"<<cluster.qClust[j][1]<<"\t"<<filter_term[0]<<"\t"<<filter_term[1]<<endl;
-				}
-
-			}
+//				}
+//
+//			}
 			
 //do the same thing for clusters that are duplicated in reference but single copy in query (to remove FPs due to duplicated gene segments)			
  		}
 			
-			if(countCopy >0)
-			{
-				for(int k = (dupCt-countCopy);k<dupCt;k++)
-				{
-					cluster.dupCord[k].push_back(countCopy);
+//			if(countCopy >0)
+//			{
+//				for(int k = (dupCt-countCopy);k<dupCt;k++)
+//				{
+//					cluster.dupCord[k].push_back(countCopy);
 					//cluster.dupCord[k].push_back(falseCount);
-				}
-			}
+//				}
+//			}
 			dup_term.clear();
 		
 	}
@@ -120,10 +120,10 @@ if((name == "2R") && (rv[0] ==  11073446)){cout<<rv[1]<<"\t"<<cluster.refClust[j
 int overlapD(vector<int>& rv, vector<int>& mRef) //computes overlap between two sequence ranges but does not check if there is an overlap
 {
 int D;
-	//if((!(rv[0]==mRef[0])) || (!(rv[1]==mRef[1]))) //if the ranges are not identical
-	//{
+//	if(!((rv[0]==mRef[0]) && (rv[1]==mRef[1]))) //if the ranges are not identical
+//	{
 		D = min(mRef[1],rv[1]) - max(mRef[0],rv[0]);
-	//}
+//	}
 return D;
 }
 
