@@ -15,7 +15,7 @@ Download and compile the programs -
 
 Other programs needed for this pipeline:
 
-  * <a href="http://mummer.sourceforge.net/">MUMmer</a>,  and <a href="https://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download/"> BLAST</a>. Additionally, a program is needed to split the chromosomes into individual fasta files (supplied here). BLAST and MUMmer should be in your path.
+  * <a href="http://mummer.sourceforge.net/">MUMmer</a>,  and <a href="https://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download/"> BLAST</a> (Note: current version of checkCNV is compatible only with BLAST versions prior to 2.3). Additionally, a program is needed to split the chromosomes into individual fasta files (supplied here). BLAST and MUMmer should be in your path.
 
   * Reference and a query genome assembly are needed in fasta file format. The program will report the sequences that are n copy in the reference genome but >n copy in the query genome.
 
