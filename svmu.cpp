@@ -29,7 +29,7 @@ cout<<"Reading mgap alignment.."<<endl;
 	{
 		if(str[0] == '>')
 		{
-			name=str.substr(1,str.find('n')); //remove > from the string
+			name=str.substr(1,str.find('\t')); //remove > from the string
 		
 			
 		}
@@ -90,7 +90,7 @@ cout<<"Reading mgap alignment.."<<endl;
 		if(str[0] == '>' && !fin.eof()) //this is to extract the name when getline reads a seq names within the second while loop
 		{
 			//name=str.substr(1); //remove > from the string
-			name=str.substr(1,str.find('n')); 
+			name=str.substr(1,str.find('\t')); 
 	        }
 
 		ref_st1= 0; //resetting them so that they print 0 when an alignment is absent
