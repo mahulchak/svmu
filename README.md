@@ -150,6 +150,6 @@ Using the 'Y' switch in fasplitter will ensure that the new fasta files have '.f
  ```
 	This will give you the list of insertions (or deletions in your assembly) in the reference genome. Run nucmer in reverse orientation, i.e. set "your_asm.fasta" as the reference for nucmer instead of query, to obtain the list of insertions (deletions in the reference) in your assembly.
 
-	m = denotes that we are looking for insertions.
+	m =  tells the program that we are looking for insertions.
 
 	p = proportion between the gaps betweem query and reference MUMs. 0.05 is a good value (i.e. if the query has a 50bp sequence and the reference has a 1000bp sequence, surrounded by syntenic blocks, an insertion event will be inferred for the reference).
