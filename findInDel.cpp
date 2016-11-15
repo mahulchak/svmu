@@ -9,7 +9,7 @@ using namespace std;
 int main(int argc, char * argv[])
 {
         if(argc==1)
-        {cerr<<"Usage: "<<argv[0]<<" subcommand -d delta_file.out -m mutation_type(I/D)"<<endl;
+        {cerr<<"Usage: "<<argv[0]<<" subcommand -d delta_file.out -m mutation_type(I/D) -p (qins/rins)"<<endl;
         exit(EXIT_FAILURE);
         }
 
@@ -74,14 +74,15 @@ int main(int argc, char * argv[])
 	if(string(argv[1]) == "indel")
 	{
 	double c = 0;
+	float prop = stof(string(argv[7]),NULL);
 	string name;
 		 if(*argv[5] == 'D')
 	        {
-	                findIndel(merge,'I');
+	                findIndel(merge,'I',prop);
      		}
 	        if(*argv[5] == 'I')
 	        {
-       		         findIndel(merge,'D');
+       		        findIndel(merge,'D',prop);
                 	collapseRange(merge);
 		}
 		cout<<"Ins Chr"<<"\t"<<"Ins Start"<<"\t"<<"Del End"<<"\t"<<"Del Chr"<<"\t"<<"Del Start"<<"\t"<<"Del End"<<"\t"<<"Mutation Type"<<"\t"<<"Coverage"<<endl;

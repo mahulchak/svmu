@@ -44,8 +44,8 @@ map<string,vector<int> > anmlq_end;
 
 string xtractcol(string str,char c, int n);
 void writeToFile(asmMerge & merge);
-void findIndel(asmMerge & merge, char mutType);
-char checkIndel(string tempname,asmMerge & merge,int k,int j);
+void findIndel(asmMerge & merge, char mutType, float & prop);
+char checkIndel(string tempname,asmMerge & merge,int k,int j,float & prop);
 void fillChromPos(string & tempname,asmMerge & merge,int & length);
 void addCoverage(asmMerge & merge,string & str, int ref_st, int ref_end);
 void buildCoverage(asmMerge & merge);

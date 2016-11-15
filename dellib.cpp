@@ -74,7 +74,7 @@ void writeToFile(asmMerge & merge)
 			
 /////////////////////////////////////////////////////////////////////////this function checks whether a query is completely contained within a reference
 
-void findIndel(asmMerge & merge, char mutType)
+void findIndel(asmMerge & merge, char mutType, float & prop)
 {
 	string tempname;
 	int gapRef =0;
@@ -101,7 +101,7 @@ if(merge.r_name[i] == merge.q_name[i].substr(1))
 		// don't use a translocated cluster for indel calls. a big chunk of translocated clusters is probably okay though
 					if (((abs(gapRef) <50000) && (abs(gapQ) <50000)) && ((gapRef>0) || (gapQ>0)))
 					{
-						indel =	checkIndel(tempname,merge,k,j); 
+						indel =	checkIndel(tempname,merge,k,j, prop); 
 					}
 					if((indel == 'i') && (mutType == 'D')) //this means insertion in the reference or deletion in query
 					{
@@ -127,7 +127,7 @@ if(merge.r_name[i] == merge.q_name[i].substr(1))
 		
 }
 //////////////////////////////////////////////////////////////////////////////////////////
-char checkIndel(string tempname, asmMerge & merge, int k, int j)
+char checkIndel(string tempname, asmMerge & merge, int k, int j, float & prop)
 {
 //don't want to use clusters where gap between two clusters lacking the deletion is more than 5 bp
 //if the deletion is in the reference then gap between the two clusters will be bigger
@@ -165,12 +165,14 @@ char checkIndel(string tempname, asmMerge & merge, int k, int j)
         	gapQ = merge.q_st[tempname][j] - merge.q_end[tempname][k];//gapQ will be negative when they overlap
 
 //either the queries should overlap or the queries should not be more than 5bp apart
-		if ((((chkOvlQ(tempname,merge,k,j) == 1) && (ovlD<100))|| (gapQ>0 && gapQ<5)) && (gapRef >100))
+		//if ((((chkOvlQ(tempname,merge,k,j) == 1) && (ovlD<100))|| (gapQ>0 && gapQ<5)) && (gapRef >100))
+		if ((((chkOvlQ(tempname,merge,k,j) == 1) && (ovlD<100))|| (gapQ>0 && gapQ<int(prop*gapRef))) && (gapRef >100))
 		{
 		 return 'i';
 		}
 	//either the reference clusters should overlap or they should not be more than 5 bp apart
-		if(((chkOvlR(tempname,merge,k,j) == 1) || (gapRef >0 && gapRef<5)) && (gapQ >0 && gapQ>gapRef))
+		//if(((chkOvlR(tempname,merge,k,j) == 1) || (gapRef >0 && gapRef<5)) && (gapQ >0 && gapQ>gapRef))
+		if(((chkOvlR(tempname,merge,k,j) == 1) || (gapRef >0 && gapRef<int(prop*gapRef))) && (gapQ >0 && gapQ>gapRef))
 		{
 		return 'd';
 		}

@@ -125,6 +125,7 @@ Using the 'Y' switch in fasplitter will ensure that the new fasta files have '.f
 
  ```
 	qco determines how much divergence to allow within a duplicated query sequence. E.g. a 10Kb TE insertion can be accomodated by setting qco as 10000.
+
 	rco determines how much divergence to allow within a duplicated sequence in the reference. it uses fractions and 0.05 typically works well.
 
  <u>Description of the "cnv_report.tsv" file</u>
@@ -145,6 +146,10 @@ Using the 'Y' switch in fasplitter will ensure that the new fasta files have '.f
  ```
 	nucmer -mumreference -prefix q2r ref.fasta your_asm.fasta
 	delta-filter -m q2r.delta > q2r.mdelta
-	findDel indel -d q2r.mdelta -m I > ins.in.q
+	findDel indel -d q2r.mdelta -m I -p p> ins.in.a
  ```
- 
+	This will give you the list of insertions (or deletions in your assembly) in the reference genome. Run nucmer in reverse orientation, i.e. set "your_asm.fasta" as the reference for nucmer instead of query, to obtain the list of insertions (deletions in the reference) in your assembly.
+
+	m = denotes that we are looking for insertions.
+
+	p = proportion between the gaps betweem query and reference MUMs. 0.05 is a good value (i.e. if the query has a 50bp sequence and the reference has a 1000bp sequence, surrounded by syntenic blocks, an insertion event will be inferred for the reference).
