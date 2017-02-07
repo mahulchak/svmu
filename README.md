@@ -97,8 +97,8 @@ Using the 'Y' switch in fasplitter will ensure that the new fasta files have '.f
 9. The 'all_chrom.tsv' file has both TE and duplicates in it. It also has false positives because ancestral duplicates may often be marked as polymorphic duplicate by svmu. These false positives are inevitable because aligning two genomes, especially at complex repeat regions, is not always perfect. To remove TEs, use your own TE annotation file (repeats.te.bed) for the reference sequence or create one with Repeatmasker.  Reference names and reference coordinates are taken from "all_chrom.tsv" to create a list of coordinates that can be fetched using BLAST. You can use other tools or your own script.
  
  ```	
-	cat SV_report.l20.* | cut -f1-3 | bedtools subtract -a stdin -b repeats.te.bed | sort -u | awk '{if($3-$2>100) print $0}' | sort -k1,1 -k2,2n | bedtools merge -d 100 -i stdin |awk '{print $1" "$2"-"$3}' > input_for_blast
-	cat SV_report.l20.* | cut -f1-3 | bedtools subtract -a stdin -b repeats.te.bed | sort -u | awk '{if($3-$2>100) print $0}' | sort -k1,1 -k2,2n | bedtools merge -d 100 -i stdin |awk '{print $1":"$2"-"$3}' > input_for_nucmer
+	cat SV_report.l20.* | cut -f1-3 | bedtools subtract -a stdin -b repeats.te.bed | sort -u | awk '{if($3-$2>100) print $0}' | sort -k1,1 -k2,2n | awk '{print $1" "$2"-"$3}' > input_for_blast
+	cat SV_report.l20.* | cut -f1-3 | bedtools subtract -a stdin -b repeats.te.bed | sort -u | awk '{if($3-$2>100) print $0}' | sort -k1,1 -k2,2n | awk '{print $1":"$2"-"$3}' > input_for_nucmer
 	
  ```
 
@@ -111,17 +111,15 @@ Using the 'Y' switch in fasplitter will ensure that the new fasta files have '.f
 11. Align all sequences in nucmer.query.fasta to the query genome and the reference genome using nucmer.
 
  ```
-	nucmer -mumreference -prefix out.q nucmer.query.fasta your_assembly.fasta
+	nucmer -maxmatch -g cluster_sep -prefix out.q nucmer.query.fasta your_assembly.fasta
 	
-	nucmer -mumreference -prefix out.r nucmer.query.fasta reference_assembly.fasta
+	nucmer -maxmatch -g cluster_sep -prefix out.r nucmer.query.fasta reference_assembly.fasta
  ```
 
-12. Reformat the blast.query.list and then check the differences in copy number for each sequence using the program checkCN.
+12. Next check the differences in copy number for each sequence using the program checkCNV.
 
  ```
-	sed -i 's/ /:/g' blast.query.list
-	
-	./checkCNV -d1 out.q.delta -d2 out.r.delta -q blast.query.list -c cutoff_for_repeats -qco cutoff_query_merging -rco cutoff_ref_merging
+	./checkCNV -d1 out.q.delta -d2 out.r.delta -q input_for_nucmer -c cutoff_for_repeats -qco cutoff_query_merging -rco cutoff_ref_merging
 
  ```
 	qco determines how much divergence to allow within a duplicated query sequence. E.g. a 10Kb TE insertion can be accomodated by setting qco as 10000.
