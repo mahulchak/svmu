@@ -25,7 +25,7 @@ int minOvl = stoi(argv[8],NULL);
 		name =	str.substr(0,pos); // name is chromosome name
 		script_file = "job_"+name;
 		fout.open(script_file.c_str());	//script file is named after the chrom name
-		fout<<"mummer -b -l 20 "<<str<<" "<<argv[2]<<" | mgaps -l "<<minOvl<<" -d 5 -f .12 -s "<<sep<<" > "<<name<<".mgaps"<<endl;
+		fout<<"mummer -b -l 20 "<<str<<" "<<argv[2]<<" | mgaps -l "<<minOvl<<" -C -d 5 -f .12 -s "<<sep<<" > "<<name<<".mgaps"<<endl;
 		fout<<"sed -i 's/^ //g' "<<name<<".mgaps"<<endl;
 		fout<<"sed -i 's/^ //g' "<<name<<".mgaps"<<endl;
 		fout<<"sed -i 's/^ //g' "<<name<<".mgaps"<<endl;

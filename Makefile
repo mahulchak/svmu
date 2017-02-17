@@ -1,7 +1,7 @@
 #Default CXX is g++
 CXXFLAGS+=-Wall -std=c++0x
 
-PROGRAMS=fasplitter svmu scriptmaker checkCNV findDel
+PROGRAMS=fasplitter svmu scriptmaker checkCNV findDel findInvert
 
 .PHONY: all
 all: $(PROGRAMS)
@@ -19,6 +19,9 @@ checkCNV: cnvlib.cpp ccnv.cpp
 	$(CXX) $(CXXFLAGS) $^ -o $@
 
 findDel: dellib.cpp findInDel.cpp
+	$(CXX) $(CXXFLAGS) $^ -o $@
+
+findInvert: findInvert.cpp
 	$(CXX) $(CXXFLAGS) $^ -o $@
 .PHONY: clean
 clean:
