@@ -150,4 +150,11 @@ Using the 'Y' switch in fasplitter will ensure that the new fasta files have '.f
 
 	m =  tells the program that we are looking for insertions.
 
-	p = proportion between the gaps betweem query and reference MUMs. 0.05 is a good value (i.e. if the query has a 50bp sequence and the reference has a 1000bp sequence, surrounded by syntenic blocks, an insertion event will be inferred for the reference).
+	p = proportion between the gaps betweem query and reference MUMs. 0.1 is a good value (i.e. if the query has a 100bp sequence and the reference has a 1000bp sequence, surrounded by syntenic blocks, an insertion event will be inferred for the reference).
+
+14. <b>Inversion</b>: Use the mgaps files generated after the step 6 above.
+
+ ```
+	findInvert foo.mgaps >foo.inv.bed
+ ```
+	This utility extracts all the reference clusters that are present under the "Reverse" fasta headers in mgaps files and converts them into reduced bed format.
