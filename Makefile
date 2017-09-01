@@ -1,28 +1,23 @@
-#Default CXX is g++
-CXXFLAGS+=-Wall -std=c++0x
+#to compile the executable for svmu, the variant caller
 
-PROGRAMS=fasplitter svmu scriptmaker checkCNV findDel findInvert
+CC = g++
+CFLAGS = -g -Wall -std=c++0x 
 
-.PHONY: all
-all: $(PROGRAMS)
+default: svmu
+svmu: svlib.o ansv.o small.o svmu.o
+	$(CC) $(CFLAGS) -o svmu svlib.o ansv.o small.o svmu.o
 
-fasplitter: fasplitter.cpp
-	$(CXX) $(CXXFLAGS) $^ -o $@
+svlib.o: svlib.cpp sv.h
+	$(CC) $(CFLAGS) -c svlib.cpp
 
-svmu: mlib.cpp svmu.cpp
-	$(CXX) $(CXXFLAGS) $^ -o $@
+ansv.o: ansv.cpp sv.h
+	$(CC) $(CFLAGS) -c ansv.cpp
 
-scriptmaker: script_maker.cpp
-	$(CXX) $(CXXFLAGS) $^ -o $@
+small.o: small.cpp seqIO.h sv.h
+	$(CC) $(CFLAGS) -c small.cpp
 
-checkCNV: cnvlib.cpp ccnv.cpp
-	$(CXX) $(CXXFLAGS) $^ -o $@
+svmu.o: svmu.cpp sv.h seqIO.h
+	$(CC) $(CFLAGS) -c svmu.cpp
 
-findDel: dellib.cpp findInDel.cpp
-	$(CXX) $(CXXFLAGS) $^ -o $@
-
-findInvert: findInvert.cpp
-	$(CXX) $(CXXFLAGS) $^ -o $@
-.PHONY: clean
 clean:
-	rm -f $(PROGRAMS)
+	$(RM) *.o 

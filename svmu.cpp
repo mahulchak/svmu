@@ -1,132 +1,273 @@
 #include<iostream>
 #include "sv.h"
+#include "seqIO.h"
 
-int main(int argc, char * argv[])
+using namespace std;
+
+using chroms = map<string,chromPair>;
+using ccov = vector<int>;
+using vq = vector<qord>;
+int main(int argc, char *argv[])
 {
-
-	if(argc<3)
+	if(argc <2)
 	{
-	cerr<<"Usage: "<<argv[0]<<" foo.mgaps mumTobed.Chr.bed chrom"<<endl;
-	exit(EXIT_FAILURE);
+		cerr<<"Usage: "<<argv[0]<<" foo.delta ref.fasta query.fasta cutoff"<<endl;
+		exit(EXIT_FAILURE);
 	}
-	ifstream fin;
-	ofstream fout;
 
-	fin.open(argv[1]);
-	fout.open(argv[2]);
+	chroms allChrom;
 	
-	string str,name,temp,outFileName;
-	int ref_st1,ref_st2,ref_end,aln_len,q_st1,q_st2,q_end,ctMum,totAln;
-	totAln =0;
-	mgapC cluster;
-	int count_mum =0;
-	map<int,vector<int>> Mref; // the first element would be the start coordinate of a master cluster
-	map<int,vector<int>> Qref; //the first element would be the start and the 2nd elements would be master query
-	map<int,string> ref_name;
-	map<int,string> q_name;
-cout<<"Reading mgap alignment.."<<endl;
-	while(getline(fin,str))
+	map<string,ccov> masterRef; //stores sequence coverage but it can also be used to find reference chromosome lengths
+	map<string,ccov>masterQ; //stores sequence coverage but it can also be used to find query chromosome lengths
+	map<string,vector<string> > cp; //cp is an alias for Chromosome partner. Each reference name index has a vector of unqiue alignments which are part of these
+	map<string,vector<string> > hcp;//hcp stands for homologous cp
+	
+	map<string,map<int,vq> > mRef; //stores the coordinates of query on reference chromosomes
+	map<string,map<int,vq> > umRef;//stores the coordinates of unique reference to query map; requires re-reading the file
+	map<string,string> refseq;
+	map<string,string> qseq;
+	map<string,vector<int> > seqLen;//length of sequences.first element is ref and second is query
+	mI tempmi,gapmi;
+
+	string foo = string(argv[1]);
+	string line, chromName,refName,qName,indexAln;
+	int refStart = 0, refEnd = 0, qStart = 0, qEnd = 0, refLen =0, qLen =0, count = -1,indelPos =0;
+	unsigned int cutoff = 0;
+	cutoff = stoi(argv[4]);
+	vector<double> vd;
+	vector<int> vi;
+	vector<mI> vmi,tempVmi;
+	size_t pos1,pos2,namePos;
+	
+	ifstream fin, refFasta, qFasta;
+	ofstream fout,fcnv;
+	fin.open(argv[1]);
+	
+	while(getline(fin,line))
 	{
-		if(str[0] == '>')
-		{
-			name=str.substr(1,str.find('\t')); //remove > from the string
 		
+		if(line.find('>') != string::npos)//start of an aligning chromosome description
+		{
+						
+			refName = line.substr(1,line.find(' ')-1);
+			pos1 = line.find(' '); //position of the first space
+			pos2 = line.find(' ',pos1+1);//position of the second space
+			qName = line.substr(pos1+1, pos2-pos1-1); //up to the second space
+//cout<<qName<<endl;
+			pos1 = line.find(' ',pos2+1); //recycling pos1 to find pos3
+			refLen = stoi(line.substr(pos2+1,pos1-pos2));//reference length
+			qLen = stoi(line.substr(pos1));//from last space till end 
+			indexAln = refName + qName;
+			count = -1;
+			seqLen[indexAln].push_back(refLen);
+			seqLen[indexAln].push_back(qLen);
+			cp[refName].push_back(indexAln); //adding the alignment to the list of refName alignments
+			if(masterRef[refName].size() == 0)//if they have not been created
+			{
+				masterRef[refName] = makeChromBucket(refLen);
+			}
+			if(masterQ[qName].size() == 0)//if they have not been created
+			{
+				masterQ[qName] = makeChromBucket(qLen);
+			}
+		}
+		if((line.size() <10) && (refName != "") && (count > -1))
+		{
+			
+			indelPos = abs(stoi(line));
+			refStart = refStart + indelPos;
+			if(indelPos <0)
+			{	
+				refStart = refStart * (-1);
+
+			}
+			vi.push_back(refStart);
+		
+//cout<<refName<<"\t"<<indelPos<<" " <<refStart<<"\t"<<refEnd<<"\t"<<qName<<"\t"<<qStart<<"\t"<<qEnd<<endl;
+			if(indelPos ==0) //reached the end of the indel description
+			{
+				tempmi.mv = vi;
+				allChrom[indexAln].mums.push_back(tempmi);
+				storeCords(masterRef[refName],masterQ[qName],tempmi);
+				storeCords(mRef[refName],tempmi);
+//cout<<refName<<"\t"<<refStart<<"\t"<<refEnd<<"\t"<<qName<<"\t"<<qStart<<"\t"<<qEnd<<"\t"<<allChrom[indexAln].mums.size()<<endl;
+				vi.clear();//reset it once its values are used
+			}
+				
+			count++;
 			
 		}
-		ctMum =0; //this is the count of mums within a cluster.reset it here.
-
-		while(str[0] != '#' && str[0] != '>' && !fin.eof())
+		if((line.find('>') == string::npos) && (line.size() >10) && (refName != "")) //when describing alignment segments
 		{
-//cout<<q_st2<<endl;
-			if(ctMum ==0)  //the first match.the only match when a cluster has a single match
+		
+				tempmi.rn = refName;
+				tempmi.qn = qName;		
+				refStart = stoi(line,&pos1);
+				refEnd = stoi(line.substr(pos1),&pos2);
+				qStart = stoi(line.substr(pos1+pos2), &namePos);
+				qEnd = stoi(line.substr(pos1+pos2+namePos));
+				tempmi.x1 = refStart;
+				tempmi.x2 = refEnd;
+				tempmi.y1 = qStart;
+				tempmi.y2 = qEnd;
+
+				count = 0;
+	//			--refStart;//to count the mutation distance
+
+		}
+	}
+	fin.close();
+
+	for(chroms::iterator it = allChrom.begin();it!= allChrom.end();it++)
+	{
+		indexAln = it->first;
+		sort(allChrom[indexAln].mums.begin(),allChrom[indexAln].mums.end());
+	//	if(indexAln == "refallele2")
+	//	{
+	//	for(int j =23800;j<23840;j++)
+	//	{
+	//		cout<<"ref"<<"\t"<<j;
+	//		for(unsigned int ct=0;ct<mRef["ref"][j].size();ct++)
+	//		{
+	//			cout<<"\t"<<mRef["ref"][j][ct].name<<"\t"<<mRef["ref"][j][ct].cord;
+	//		}
+	//		cout<<endl;
+	//	}
+	//	}
+		for(unsigned int i= 0; i<allChrom[indexAln].mums.size();i++)
+		{
+			tempmi = allChrom[indexAln].mums[i];
+			vd = getCoverage(tempmi,masterRef[tempmi.rn],masterQ[tempmi.qn]);
+			if((vd[0] <1.3) && (vd[1]<1.3))
 			{
-				temp = xtractcol(str,'\t',1);
-				ref_st1 = stoi(temp,nullptr);
-				temp = xtractcol(str,'\t',3);
-				aln_len = stoi(temp,nullptr);
-				temp = xtractcol(str,'\t',2);
-				q_st1 = stoi(temp,nullptr);		
-				totAln = aln_len;
+				if(allChrom[indexAln].cm.size() == 0)
+				{
+					gapmi.rn = tempmi.rn;
+					gapmi.qn = tempmi.qn;
+					gapmi.x1 = 1;
+					gapmi.x2 = tempmi.x2;
+					gapmi.y1 = 1;
+					gapmi.y2 = min(tempmi.y1,tempmi.y2);
+					allChrom[indexAln].gap.push_back(gapmi);
+				}
+					
+				if(allChrom[indexAln].cm.size() >0)//once more than one element has been entered
+				{	
+					refStart = allChrom[indexAln].cm[allChrom[indexAln].cm.size() -1].x2;
+					qStart = max(allChrom[indexAln].cm[allChrom[indexAln].cm.size() -1].y2,allChrom[indexAln].cm[allChrom[indexAln].cm.size() -1].y1);
+					if(refStart < tempmi.x1)
+					{
+						gapmi.rn = tempmi.rn;
+						gapmi.qn = tempmi.qn;
+						gapmi.x1 = refStart;
+						gapmi.x2 = tempmi.x1;
+						gapmi.y1 = qStart;
+						gapmi.y2 = min(tempmi.y1,tempmi.y2);
+						allChrom[indexAln].gap.push_back(gapmi);
+
+					}
+				}
+				allChrom[indexAln].cm.push_back(tempmi);
+				count = count + tempmi.x2 - tempmi.x1; //keeping a count of total unique alignment
+				//cout<<"cm\t"<<indexAln<<"\t"<<tempmi.x1<<"\t"<<tempmi.x2<<"\t"<<tempmi.y1<<"\t"<<tempmi.y2<<"\t"<<vd[0]<<"\t"<<vd[1]<<endl;
 			}
+			
 			else
 			{
-				temp = xtractcol(str,'\t',1);
-                       		ref_st2 = stoi(temp,nullptr);
-				temp = xtractcol(str,'\t',3);
-				aln_len = stoi(temp,nullptr);
-				temp = xtractcol(str,'\t',2);
-				q_st2 = stoi(temp,nullptr);
-				totAln = aln_len+totAln;
-			}	
-		ctMum++; //counts total mums inside a cluster		
-		if(!fin.eof())
-		{
-			getline(fin,str); //this will also read the name of the next seq
+				 allChrom[indexAln].ncm.push_back(tempmi);
+			}
 		}
-		}
-		if(ctMum == 1) //if there is only one mum in the cluster
-		{
-			ref_end = ref_st1 + aln_len;
-			q_end = q_st1 + aln_len;
-		}
-		if(ctMum >1) //if there are more than one mum in the cluster
-		{
-			ref_end = ref_st2 + aln_len;
-			q_end = q_st2 + aln_len;
-		}
-		if(totAln < 10000000)
-		{
-			fout<<string(argv[3])<<'\t'<<ref_st1<<'\t'<<ref_end<<'\t'<<q_st1<<'\t'<<q_end<<'\t'<<name<<'\t'<<totAln<<'\t'<<(q_end-q_st1)<<endl;
-			cluster.refName[count_mum] = string(argv[3]);
-			cluster.qName[count_mum] = name;
-			cluster.refClust[count_mum].push_back(ref_st1);
-			cluster.refClust[count_mum].push_back(ref_end);
-			cluster.qClust[count_mum].push_back(q_st1);
-			cluster.qClust[count_mum].push_back(q_end);
-			cluster.len[count_mum].push_back(totAln);
-			cluster.len[count_mum].push_back(q_end-q_st1);
-			count_mum++;
-		}
-		if(str[0] == '>' && !fin.eof()) //this is to extract the name when getline reads a seq names within the second while loop
-		{
-			//name=str.substr(1); //remove > from the string
-			name=str.substr(1,str.find('\t')); 
-	        }
 
-		ref_st1= 0; //resetting them so that they print 0 when an alignment is absent
-		ref_end = 0;
-		q_st1 = 0;
-		q_end = 0;
-		totAln = 0;
+		if(allChrom[indexAln].cm.size()>cutoff)
+		{
+			hcp[allChrom[indexAln].cm[0].rn].push_back(indexAln);//homologous alignment
+			
+			for(unsigned int i=0;i<allChrom[indexAln].gap.size();i++)
+			{
+//				tempmi = allChrom[indexAln].gap[i];
+				gapCloser(allChrom[indexAln].gap[i], allChrom[indexAln].ncm, allChrom[indexAln].cm);
+			}
+	//		sort(allChrom[indexAln].cm.begin(),allChrom[indexAln].cm.end(),qusort);
+		}
+
+		allChrom[indexAln].mums.clear(); //free up the memory
+		allChrom[indexAln].gap.clear();//free up memory;will create gaps again later
+		count = 0; //reset count for the next alignment
 	}
-	fout.close();
-	fin.close();
-cout<<"Finished converting mgap to bed conversion"<<endl;
-	name = string(argv[3]);
-cout<<"Extracting abnormal clusters"<<endl;
-	comparClust(cluster);
-cout<<"Finished recording the abnormal clusters"<<endl;
-	outFileName = "SV_report.l20."+ name +".tsv";
-//cout<<"Filtering false positives now..."<<endl;
-	//fout.open(outFileName.c_str());
-	//filterDup(cluster);
-	//cout<<"Now filtering the exact entries and more false positives"<<endl;
-	//removeExactDups(cluster);
-	
-	//fout<<"Refchr"<<"\t"<<"start"<<"\t"<<"end"<<"\t"<<"DupChr1"<<"\t"<<"start1"<<"\t"<<"end1"<<"\t"<<"DupChr2"<<"\t"<<"start2"<<"\t"<<"end2"<<"\t"<<"Copies"<<endl;
-cout<<"Finished filtering false positives. Now writing the SV in tsv format"<<endl;
-	fout.open(outFileName.c_str());
-	for(unsigned int k=0;k<cluster.dupCord.size();k++)
+//cout<<"Done with gap filling "<<endl;	
+	ofstream ftest;
+	ftest.open("testsv.txt");	
+	for(map<string,vector<string> >::iterator it = hcp.begin(); it != hcp.end();it++)
 	{
-		if(cluster.dupCord[k][0] != 0)
+		refName = it->first;
+		for(unsigned int i = 0; i<hcp[refName].size();i++)
 		{
-			fout<<cluster.dupName[k][0]<<"\t"<<cluster.dupCord[k][0]<<"\t"<<cluster.dupCord[k][1]<<"\t"<<cluster.dupName[k][1]<<"\t"<<cluster.dupCord[k][2]<<"\t"<<cluster.dupCord[k][3]<<"\t"<<cluster.dupName[k][2]<<"\t"<<cluster.dupCord[k][4]<<"\t"<<cluster.dupCord[k][5]<<endl;
+			fin.open(argv[1]);
+			indexAln = hcp[refName][i];
+			qName = allChrom[indexAln].mums[i].qn;
+			sort(allChrom[indexAln].cm.begin(),allChrom[indexAln].cm.end());
+			xtracTrans(allChrom[indexAln].cm,ftest);
+			readUniq(fin,allChrom[indexAln].cm,umRef[refName]);
+			//fin.seekg(0,fin.beg);
+			fin.close();
 		}
 	}
-//	fin.close();
+	ftest.close();
+//	for(int j = 23820;j<23840;j++)
+//	{
+//		cout<<"ref"<<"\t"<<j;
+//		for(unsigned int ct=0;ct<umRef["ref"][j].size();ct++)
+//		{
+//			cout<<"\t"<<umRef["ref"][j][ct].name<<"\t"<<umRef["ref"][j][ct].cord;
+//		}
+//		cout<<endl;
+//	}
+	refFasta.open(argv[2]);//read in the reference fasta
+	readfasta(refFasta,refseq);//load them into memory
+	refFasta.close();
+	qFasta.open(argv[3]);//read in the query fasta	
+	readfasta(qFasta,qseq);
+	qFasta.close();
+		
+	//cout<<"fileformat=VCFv4.2"<<endl;
+	//cout<<"#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT"<<endl;
+	fout.open("sv.txt");
+	fcnv.open("cnv_all.txt");
+	for(map<string,vector<string> >::iterator it = hcp.begin(); it != hcp.end();it++)
+	{
+		refName = it->first;
+		//for(unsigned int i =0; i<cp[refName].size(); i++)
+		for(unsigned int i = 0; i<hcp[refName].size();i++)
+		{		
+			//indexAln = cp[refName][i];
+			indexAln = hcp[refName][i];
+			qName = allChrom[indexAln].mums[i].qn;
+			sort(allChrom[indexAln].cm.begin(),allChrom[indexAln].cm.end());
+			splitByCoverage(allChrom[indexAln],masterRef[refName],masterQ[qName]);
+			allChrom[indexAln].gap.clear();//flushing the gaps vector
+			for(unsigned int j=0; j<allChrom[indexAln].cc.size();j++)
+			{
+				tempVmi = findQuery(mRef[refName],allChrom[indexAln].cc[j],masterRef[refName],masterQ[qName]);
+				if(tempVmi.size()>0)
+				{
+					vmi.insert(vmi.end(),tempVmi.begin(),tempVmi.end());
+					for(unsigned int i=0; i< tempVmi.size();i++)
+					{
+						fcnv<<tempVmi[i].rn<<" "<<tempVmi[i].x1<<" "<<tempVmi[i].x2<<" "<<tempVmi[i].qn<<" "<<tempVmi[i].y1<<" "<<tempVmi[i].y2<<endl;
+					}
+				}
+			}
+			annotGaps(allChrom[indexAln].cm,mRef[refName],masterRef[refName],masterQ[qName],vmi,umRef[refName],refseq[refName],qseq[qName],seqLen[indexAln],fout);			
+			
+			
+		}
+	}
 	fout.close();
-
+	fcnv.close();	
 
 
 return 0;
 }
+			
+
+
