@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
 	size_t pos1,pos2,namePos;
 	
 	ifstream fin, refFasta, qFasta;
-	ofstream fout,fcnv;
+	ofstream fout,fcnv,fsmall;
 	fin.open(argv[1]);
 	
 	while(getline(fin,line))
@@ -175,6 +175,11 @@ int main(int argc, char *argv[])
 			else
 			{
 				 allChrom[indexAln].ncm.push_back(tempmi);
+				if((nearestInt(vd[0]) == 1) && (nearestInt(vd[1]) > 1))
+				{
+					cout<<tempmi.rn<<"\t"<<tempmi.x1<<"\t"<<tempmi.x2<<"\t"<<tempmi.qn<<"\t"<<tempmi.y1<<"\t"<<tempmi.y2<<"\t"<<nearestInt(vd[0])<<"\t"<<nearestInt(vd[1])<<endl;
+				}
+				
 			}
 		}
 
@@ -233,6 +238,7 @@ int main(int argc, char *argv[])
 	//cout<<"#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT"<<endl;
 	fout.open("sv.txt");
 	fcnv.open("cnv_all.txt");
+	fsmall.open("small.txt");
 	for(map<string,vector<string> >::iterator it = hcp.begin(); it != hcp.end();it++)
 	{
 		refName = it->first;
@@ -253,18 +259,18 @@ int main(int argc, char *argv[])
 					vmi.insert(vmi.end(),tempVmi.begin(),tempVmi.end());
 					for(unsigned int i=0; i< tempVmi.size();i++)
 					{
-						fcnv<<tempVmi[i].rn<<" "<<tempVmi[i].x1<<" "<<tempVmi[i].x2<<" "<<tempVmi[i].qn<<" "<<tempVmi[i].y1<<" "<<tempVmi[i].y2<<endl;
+						fcnv<<tempVmi[i].rn<<"\t"<<tempVmi[i].x1<<"\t"<<tempVmi[i].x2<<"\t"<<tempVmi[i].qn<<"\t"<<tempVmi[i].y1<<"\t"<<tempVmi[i].y2<<endl;
 					}
 				}
 			}
-			annotGaps(allChrom[indexAln].cm,mRef[refName],masterRef[refName],masterQ[qName],vmi,umRef[refName],refseq[refName],qseq[qName],seqLen[indexAln],fout);			
+			annotGaps(allChrom[indexAln].cm,mRef[refName],masterRef[refName],masterQ[qName],vmi,umRef[refName],refseq[refName],qseq[qName],seqLen[indexAln],fout,fsmall);			
 			
 			
 		}
 	}
 	fout.close();
 	fcnv.close();	
-
+	fsmall.close();
 
 return 0;
 }

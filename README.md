@@ -1,6 +1,6 @@
 # svmu
 
-SVMU (Structural Variants from MUmmer) 0.2beta is the byproduct of our (Emerson and Long labs at UCI) efforts to identify all sequence variants in a genome via alignment of two  genome assemblies. It calls SNPs, small indels, as well as duplicates, large indels, and inversions from whole genome alignments using MUMmer. 
+SVMU (Structural Variants from MUmmer) 0.2beta is a byproduct of our (Emerson and Long labs at UCI) efforts to identify comprehensive sequence variants via alignment of two  genome assemblies. It calls SNPs, small indels, as well as duplicates, large indels, and inversions from whole genome alignments using MUMmer. 
 <b>It is still under development</b>. If you encounter an issue, please email me at mchakrab@uci.edu. This version replaces the earlier version of svmu.
 
 If you publish results obtained with this pipeline, please cite SVMU as described here http://www.biorxiv.org/content/early/2017/03/08/114967.

@@ -10,5 +10,6 @@
 using namespace std;
 void readfasta(ifstream & fin,map<string, string> & fastaseq);
 
+
 #endif
 

@@ -6,20 +6,21 @@ using chroms = map<string,chromPair>;
 using ccov = vector<int>;
 using vq = vector<qord>;
 
-void annotGaps(vector<mI> & cm, map<int,vq> & mRef, ccov & masterRef, ccov & masterQ, vector<mI> & cnv, map<int,vector<qord> > & umRef, string & refseq, string & qseq, vector<int> & seqLen,ofstream & fout)
+void annotGaps(vector<mI> & cm, map<int,vq> & mRef, ccov & masterRef, ccov & masterQ, vector<mI> & cnv, map<int,vector<qord> > & umRef, string & refseq, string & qseq, vector<int> & seqLen,ofstream & fout, ofstream & fsmall)
 {
 	int refOvl =0; //overlap between reference intervals
 	int qOvl = 0; //overlap between query intervals
 	vector<double> cov(2);
+	vector<int> vi;
 	mI gapmi,cnvmi,tempmi;
 	vector<mI> storedCNV;
 	tempmi = cm[0]; // because the loop does not go into this
-	callSmall(tempmi,umRef,refseq,qseq,seqLen);
+	callSmall(tempmi,umRef,refseq,qseq,seqLen, fsmall);
 	bool fs = false;//fs = found SV
 	for(unsigned int i=1; i< cm.size();i++)
 	{
 		tempmi = cm[i];
-		callSmall(tempmi,umRef,refseq,qseq,seqLen);
+		callSmall(tempmi,umRef,refseq,qseq,seqLen,fsmall);
 		refOvl = cm[i].x1 - cm[i-1].x2;
 		//qOvl = min(cm[i].y1,cm[i].y2) - max(cm[i-1].y1,cm[i-1].y2);
 		qOvl = cm[i].y1 - cm[i-1].y2;
@@ -29,12 +30,30 @@ void annotGaps(vector<mI> & cm, map<int,vq> & mRef, ccov & masterRef, ccov & mas
 		}
 		if((cm[i-1].y1 > cm[i-1].y2) && (cm[i].y1 < cm[i].y2)) //only previous mum is inverted
 		{
-			qOvl = cm[i].y1 - cm[i-1].y1;
+			if((i>1) && (cm[i-2].y1 < cm[i-2].y2))
+			{
+				qOvl = cm[i].y1 - cm[i-1].y1;
+			}
+			else
+			{
+				refOvl = 0;
+				qOvl = 0;
+			}
 		}
 		if((cm[i-1].y1 < cm[i-1].y2) && (cm[i].y1 >cm[i].y2)) //only second mum is inverted
 		{
-			qOvl = cm[i].y2 - cm[i-1].y2;
-			fout<<"INV\t"<<cm[i].rn<<"\t"<<cm[i].x1<<"\t"<<cm[i].x2<<"\t"<<cm[i].qn<<"\t"<<cm[i].y2<<"\t"<<cm[i].y1<<endl;//inverted the query start and end
+			if((i < (cm.size()-1)) && (cm[i+1].y1 < cm[i+1].y2))//third mum isn't inverted
+			{
+				qOvl = cm[i].y2 - cm[i-1].y2; //only if this is is a single inverted mum
+			}
+			else
+			{
+				qOvl = 0;
+				refOvl = 0;
+			}
+			vi = findInvertSpan(cm,i);
+			//fout<<"INV\t"<<cm[i].rn<<"\t"<<cm[i].x1<<"\t"<<cm[i].x2<<"\t"<<cm[i].qn<<"\t"<<cm[i].y2<<"\t"<<cm[i].y1<<endl;//inverted the query start and end
+			fout<<"INV\t"<<cm[i].rn<<"\t"<<cm[i].x1<<"\t"<<cm[i].x2<<"\t"<<cm[i].qn<<"\t"<<vi[0]<<"\t"<<vi[1]<<endl;
 		} 	
 		cnvmi = findDup(cm[i-1],cm[i]);
 		if(cnvmi.x1 != 0)
@@ -45,12 +64,13 @@ void annotGaps(vector<mI> & cm, map<int,vq> & mRef, ccov & masterRef, ccov & mas
 
 		if(refOvl < 0)
 		{
-			if(qOvl<0)
+			if(!(qOvl>0))//if qOvl is 0 or less
 			{
 				//cout<<"BD "<<cm[i-1].x2<<" "<<cm[i].x1<<" "<<max(cm[i-1].y1,cm[i-1].y2)<<" "<<min(cm[i].y1,cm[i].y2)<<endl;
 			}
 			else
 			{
+				gapmi.rn = cm[i-1].rn;
 				gapmi.x1 = min(cm[i-1].x2,cm[i].x1);
 				gapmi.x2 = max(cm[i-1].x2,cm[i].x1);
 				gapmi.y1 = min(cm[i-1].y2,cm[i].y1);
@@ -60,14 +80,14 @@ void annotGaps(vector<mI> & cm, map<int,vq> & mRef, ccov & masterRef, ccov & mas
 				//fout<<"INS\t"<<cm[i-1].rn<<"\t"<<cm[i-1].x2<<"\t"<<cm[i].x1<<"\t"<<cm[i-1].qn<<"\t"<<max(cm[i-1].y1,cm[i-1].y2) +1<<"\t"<<min(cm[i].y1,cm[i].y2) -1<<"\t"<<cov[0]<<"\t"<<cov[1]<<endl;
 				if(max(gapmi.y1,gapmi.y2) > min(gapmi.y1,gapmi.y2)) //they still differ after cnv has been subtracted
 				{
-					fout<<"MOR INS"<<"\t"<<cm[i-1].rn<<"\t"<<cm[i-1].x2<<" "<<cm[i].x1<<"\t"<<cm[i-1].qn<<"\t"<<min(gapmi.y1,gapmi.y2) + 1<<"\t"<<max(gapmi.y1,gapmi.y2) -1<<endl;
+					fout<<"MOR INS"<<"\t"<<cm[i-1].rn<<"\t"<<cm[i-1].x2<<" "<<cm[i].x1<<"\t"<<cm[i-1].qn<<"\t"<<min(gapmi.y1,gapmi.y2) + 1<<"\t"<<max(gapmi.y1,gapmi.y2) -1<<"\t"<<cov[0]<<"\t"<<cov[1]<<endl;
 					fs = true; //it reported the insertion
 				}
 				if( fs == false)
 				{
 					if(!((cm[i-1].y1 > cm[i-1].y2) && (cm[i].y1 >cm[i].y2)))
 					{
-						fout<<"INS\t"<<cm[i-1].rn<<"\t"<<cm[i-1].x2<<"\t"<<cm[i].x1<<"\t"<<cm[i-1].qn<<"\t"<<max(cm[i-1].y1,cm[i-1].y2) +1<<"\t"<<min(cm[i].y1,cm[i].y2) -1<<"\t"<<cov[0]<<"\t"<<cov[1]<<endl;
+						fout<<"INS\t"<<cm[i-1].rn<<"\t"<<cm[i-1].x2<<"\t"<<cm[i].x1<<"\t"<<cm[i-1].qn<<"\t"<<max(cm[i-1].y1,cm[i-1].y2) +1<<"\t"<<min(cm[i].y1,cm[i].y2) -1<<"\t"<<cov[0]<<"\t"<<cov[1]<<"\t"<<qOvl<<endl;
 					}
 					if(((cm[i-1].y1 > cm[i-1].y2) && (cm[i].y1 >cm[i].y2))) //inverted
 					{
@@ -77,7 +97,7 @@ void annotGaps(vector<mI> & cm, map<int,vq> & mRef, ccov & masterRef, ccov & mas
 //fout<<" now:"<<gapmi.y1<<" "<<gapmi.y2<< " max and min are "<<maxg<<" "<<ming<<endl;
 			}
 		}
-		if(!(refOvl<0))
+		if(refOvl >0)
 		{
 			if(refOvl > qOvl)
 			{
@@ -86,8 +106,9 @@ void annotGaps(vector<mI> & cm, map<int,vq> & mRef, ccov & masterRef, ccov & mas
 				gapmi.x2 = max(cm[i-1].x2,cm[i].x1);
 				gapmi.y1 = min(cm[i].y1,cm[i].y2);
 				gapmi.y2 = max(cm[i-1].y1,cm[i-1].y2);
-				//cout<<"DEL "<<cm[i-1].x2<<" "<<cm[i].x1<<" "<<max(cm[i-1].y1,cm[i-1].y2)<<" "<<min(cm[i].y1,cm[i].y2)<<endl;
+				//perform a cnv search for reference and subtract it from refOvl
 				cov = getCoverage(gapmi,masterRef,masterQ);
+		//		findCnvOverlapInRef(cnv,gapmi,storedCNV,fout);
 				if(!((cm[i-1].y1 > cm[i-1].y2) && (cm[i].y1 >cm[i].y2)))
 				{
 					fout<<"DEL\t"<<cm[i-1].rn<<"\t"<<cm[i-1].x2 + 1 <<"\t"<<cm[i].x1 -1<<"\t"<<cm[i-1].qn<<"\t"<<max(cm[i-1].y1,cm[i-1].y2)<<"\t"<<min(cm[i].y1,cm[i].y2)<<"\t"<<cov[0]<<"\t"<<cov[1]<<endl;
@@ -141,7 +162,7 @@ void findCnvOverlap(vector<mI> & cnv,mI & mi,vector<mI> & storedCNV,ofstream & f
 	for(unsigned int i=0;i<cnv.size();i++)
 	{
 		tempmi = cnv[i];
-		if(tempmi.y1 <tempmi.y2) //forward strand. assumes that the gap is also forward oriented
+		if((tempmi.y1 <tempmi.y2) && (cnv[i].qn.find("trans") == string::npos) && (mi.rn == tempmi.rn)) //forward strand. assumes that the gap is also forward oriented,does not have predicted te
 		{
 			if(!(tempmi.y2<mi.y1) && !(tempmi.y1>mi.y2))
 			{
@@ -164,7 +185,7 @@ fout<<"nCNV\t"<<tempmi.rn<<"\t"<<tempmi.x1<<"\t"<<tempmi.x2<<"\t"<<tempmi.qn<<"\
 				
 			}
 		}
-		if(tempmi.y1 > tempmi.y2) // reverse strand. assumes that the gap is also reverse oriented
+		if((tempmi.y1 > tempmi.y2) && (cnv[i].qn.find("trans") == string::npos) && (mi.rn == tempmi.rn)) // reverse strand. assumes that the gap is also reverse oriented
 		{
 			if(!(tempmi.y2 > mi.y1) && !(tempmi.y1 < mi.y2))
 			{
@@ -176,7 +197,7 @@ fout<<"nCNV\t"<<tempmi.rn<<"\t"<<tempmi.x1<<"\t"<<tempmi.x2<<"\t"<<tempmi.qn<<"\
 					//found = true;
 					if((find(storedCNV.begin(),storedCNV.end(),tempmi) == storedCNV.end()) && (mi.y1 != mi.y2))
 					{
-//cout<<tempmi.rn<<" "<<tempmi.x1<<" "<<tempmi.x2<<" "<<tempmi.qn<<" "<<tempmi.y1<<" "<<tempmi.y2<<endl;
+fout<<"nCNV\t"<<tempmi.rn<<"\t"<<tempmi.x1<<"\t"<<tempmi.x2<<"\t"<<tempmi.qn<<"\t"<<tempmi.y1<<"\t"<<tempmi.y2<<endl;
 
 						storedCNV.push_back(tempmi);
 						mi.y2 = max(tempmi.y2 - 1,mi.y1);
@@ -234,7 +255,54 @@ mI findDup(mI & mi1, mI & mi2)
 	}
 	return tempmi;
 }
+/////////////////////////////////////////////////////////////////////////////
+void findCnvOverlapInRef(vector<mI> & cnv,mI & mi,vector<mI> & storedCNV,ofstream & fout) //returns a cnv if it overlaps a gap
+{
+	mI tempmi;
+	int ovl =0;
+//	unsigned int count = 0;
+	for(unsigned int i=0;i<cnv.size();i++)
+	{
+		tempmi = cnv[i];
+		if((cnv[i].qn.find("trans") == string::npos) && (mi.rn == tempmi.rn)) //forward strand. assumes that the gap is also forward oriented,does not have predicted te
+		{
+			if(!(tempmi.x2<mi.x1) && !(tempmi.x1>mi.x2))
+			{
+				ovl = min(tempmi.x2,mi.x2) - max(tempmi.x1,mi.x1);
+				if((double(ovl)/double(tempmi.x2 -tempmi.x1)) >0.9)
+				{
+					if((find(storedCNV.begin(),storedCNV.end(),tempmi) == storedCNV.end()) && (mi.x1 != mi.x2))
+					{
+fout<<"rnCNV\t"<<tempmi.rn<<"\t"<<tempmi.x1<<"\t"<<tempmi.x2<<"\t"<<tempmi.qn<<"\t"<<tempmi.y1<<"\t"<<tempmi.y2<<endl;
+						storedCNV.push_back(tempmi);
+						findCnvOverlap(cnv,mi,storedCNV,fout);
+						break;
+					}
+				}
+			}
+		}
+	}
+}
 /////////////////////////////////////////////////////////////////////////////	
+vector<int> findInvertSpan(vector<mI> & cm, int i)
+{
+	bool fi = true; //found invert abbreviated
+	vector<int> vi(2);
 
+	while(fi == true)
+	{
+		i++;
+		if(cm[i].y1 > cm[i].y2)//ith mum is inverted
+		{	
+			fi = true;
+			vi[0] = cm[i].y2;
+			vi[1] = cm[i].y1;
+		}
+		if(cm[i].y1 < cm[i].y2)//ith mum is not inverted
+		{
+			fi = false;
+		}
 	
-	
+	}
+	return vi;
+}

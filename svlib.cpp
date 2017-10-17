@@ -282,7 +282,8 @@ void splitByCoverage(chromPair & cp, ccov & chrom, ccov & masterQ)
 				mi.x2 = i+1;
 			mi.rn = cp.cm[0].rn;
 			mi.qn = cp.cm[0].qn;
-				if(chrom[mi.x1-1] >1)
+				//if(chrom[mi.x1-1] >1)
+				if(chrom[mi.x1-1] > 0)
 				{
 					if((cp.cc.size() == 0) && (mi.x2 -mi.x1 >20)) //at least 20 bp or more should show cnv
 					{
@@ -295,11 +296,11 @@ void splitByCoverage(chromPair & cp, ccov & chrom, ccov & masterQ)
 					}
 //cout<<mi.rn<<"\t"<<mi.x1<<"\t"<<mi.x2<<"\t"<<chrom[mi.x1-1]<<"\t"<<chrom[mi.x2-1]<<endl;
 				}
-				if(chrom[mi.x1-1] ==0) 
-				{
-					cp.in.push_back(mi);
-				}
-				
+				//if(chrom[mi.x1-1] ==0) 
+				//{
+				//	cp.in.push_back(mi);
+				//}
+						
 //cout<<mi.x1<<"\t"<<mi.x2<<"\t"<<mi.y1<<"\t"<<mi.y2<<"\t"<<vd[0]<<"\t"<<vd[1]<<endl;
 			}
 //cout<<i<<"\t"<<mi.x1<<"\t"<<mi.x2<<"\t"<<chrom[mi.x1-1]<<"\t"<<chrom[mi.x2-1]<<endl;//because coverage is 0 based but coordinate is 1 based
@@ -376,6 +377,7 @@ vector<mI> findQuery(map<int,vq> & mRef, mI & mi,ccov & masterRef, ccov & master
 {
 	
 	//vector<mI> mums(mRef[mi.x1].size());//creating the vector of the coverage size
+	vector<string> qnames;//will be used to screen TEs based on number of contigs they are present on
 	qord temp;
 	vector<double> vd;
 	//vd = getCoverage(mi,masterRef,masterQ);
@@ -395,28 +397,34 @@ vector<mI> findQuery(map<int,vq> & mRef, mI & mi,ccov & masterRef, ccov & master
 		mums[j].y2 = mRef[mi.x2][j].cord;
 		mums[j].qn = mRef[mi.x1][j].name;
 		mums[j].rn = mi.rn;
+		if(j ==0)
+		{
+			qnames.push_back(mums[j].qn);
+		}
+		if(find(qnames.begin(),qnames.end(),mums[j].qn) == qnames.end() && (j>0)) //if the qname hasn't already been entered
+		{
+			qnames.push_back(mums[j].qn);
+		}
 	}
-
 	for(unsigned int i = 0; i< mums.size();i++)
 	{
 		vd = getCoverage(mums[i],masterRef,masterQ); //add these in the function arguments
 		rcov = nearestInt(vd[0]);
 		cov1 = nearestInt(vd[1]);	
-//if(mums[i].rn == "3R" && mums[i].qn == "3R")
-//{
-//	cout<<mums[i].rn<<" "<<mums[i].x1<<" "<<mums[i].x2<<" "<<mums[i].qn<<" "<<mums[i].y1<<" "<<mums[i].y2<<endl;
-//}
 		if(rcov != cov1)
 		{
 			found = true;
 		}
-		
+		if((qnames.size() > 1)) //present in more than 1 chromosomes/contigs
+		{
+			mums[i].qn = mums[i].qn + " trans";
+		}	
 	}
 	if(found == false)
 	{
 		mums.clear();
 	}	
-	
+	qnames.clear();
 return mums;
 }
 /////////////////////////////////////////////////

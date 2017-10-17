@@ -71,11 +71,13 @@ void splitByCoverage(chromPair & cp,vector<int> & rchrom,vector<int> & qchrom);
 void gapCloser(mI & mi, vector<mI> ncm, vector<mI>& cm);
 vector<mI> findQuery(map<int,vector<qord> > & mRef, mI & mi,vector<int> & masterRef, vector<int> & masterQ);
 int nearestInt(double d);
-void annotGaps(vector<mI> & cm,map<int,vector<qord> > & mRef,vector<int> & masterRef, vector<int> & masterQ,vector<mI> & cnv,map<int,vector<qord> > & umRef, string & refseq, string & qseq,vector<int> & seqlen,ofstream & fout);
+void annotGaps(vector<mI> & cm,map<int,vector<qord> > & mRef,vector<int> & masterRef, vector<int> & masterQ,vector<mI> & cnv,map<int,vector<qord> > & umRef, string & refseq, string & qseq,vector<int> & seqlen,ofstream & fout, ofstream & fsmall);
 void readUniq(ifstream & fin,vector<mI> & cm, map<int,vector<qord> > & umRef);
-void callSmall(mI & mi,map<int,vector<qord> > & umRef, string & refseq, string & qseq,vector<int> & seqlen);
+void callSmall(mI & mi,map<int,vector<qord> > & umRef, string & refseq, string & qseq,vector<int> & seqlen,ofstream & fsmall);
 void findCnvOverlap(vector<mI> & cnv,mI & mi,vector<mI> & storedCNV,ofstream & fout);
+void findCnvOverlapInRef(vector<mI> & cnv,mI & mi,vector<mI> & storedCNV,ofstream & fout);
 mI findDup(mI & mi1, mI & mi2);
 char comp(char & N);
 void xtracTrans(vector<mI> & cm,ofstream & ftest);
+vector<int> findInvertSpan(vector<mI> & cm, int i);
 #endif

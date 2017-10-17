@@ -199,7 +199,7 @@ void readfasta(ifstream & fin,map<string, string> & fastaseq) //reading fasta fi
 	}
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void callSmall(mI & mi,map<int,vector<qord> > & umRef, string & refseq, string & qseq,vector<int> & seqLen) //just get the individual sequences passed
+void callSmall(mI & mi,map<int,vector<qord> > & umRef, string & refseq, string & qseq,vector<int> & seqLen, ofstream & fsmall) //just get the individual sequences passed
 {
 	int refPos =0,refGap =0,qGap =0;
 	refPos = mi.x1 -2;
@@ -231,8 +231,8 @@ void callSmall(mI & mi,map<int,vector<qord> > & umRef, string & refseq, string &
 			{
 				if(tq.size()>0)
 				{
-					//fout<<"DEL "<<refName<<" "<<ti[0]<<" "<<ti[ti.size()-1]<<" "<<tq[0].name<<" "<<tq[0].cord<<" "<<tq[tq.size()-1].cord<<endl;
-					cout<<"DEL\t"<<refName<<"\t"<<ti[0]<<"\t"<<ti[ti.size()-1]<<"\t"<<tq[0].name<<"\t"<<tq[0].cord<<"\t"<<tq[tq.size()-1].cord<<endl;
+					//cout<<"DEL\t"<<refName<<"\t"<<ti[0]<<"\t"<<ti[ti.size()-1]<<"\t"<<tq[0].name<<"\t"<<tq[0].cord<<"\t"<<tq[tq.size()-1].cord<<endl;
+					fsmall<<"DEL\t"<<refName<<"\t"<<ti[0]<<"\t"<<ti[ti.size()-1]<<"\t"<<tq[0].name<<"\t"<<tq[0].cord<<"\t"<<tq[tq.size()-1].cord<<endl;
 					tq.clear();
 					ti.clear();
 				}
@@ -247,7 +247,8 @@ void callSmall(mI & mi,map<int,vector<qord> > & umRef, string & refseq, string &
 						}
 				if(refseq[pos] != qseq[umRef[pos][0].cord -1])
 				{
-					cout<<"SNP\t"<<refName<<"\t"<<pos+1<<"\t"<<refseq[pos]<<"\t"<<umRef[pos][0].name<<"\t"<<umRef[pos][0].cord<<"\t"<<qseq[umRef[pos][0].cord -1]<<endl;
+					//cout<<"SNP\t"<<refName<<"\t"<<pos+1<<"\t"<<refseq[pos]<<"\t"<<umRef[pos][0].name<<"\t"<<umRef[pos][0].cord<<"\t"<<qseq[umRef[pos][0].cord -1]<<endl;
+					fsmall<<"SNP\t"<<refName<<"\t"<<pos+1<<"\t"<<refseq[pos]<<"\t"<<umRef[pos][0].name<<"\t"<<umRef[pos][0].cord<<"\t"<<qseq[umRef[pos][0].cord -1]<<endl;
 					
 				}
 			}
@@ -261,11 +262,14 @@ void callSmall(mI & mi,map<int,vector<qord> > & umRef, string & refseq, string &
 				//fout<<"INS "<<refName<<" "<<refPos+1<<" "<<refPos+1<<" "<<umRef[pos][0].name<<" "<<lq.cord+1<<" "<<umRef[pos][0].cord-1<<" "<<endl;
 				if(mi.y1 < mi.y2) //if forward oriented
 				{
-					cout<<"INS\t"<<refName<<" "<<refPos+1<<"\t"<<refPos+1<<"\t"<<umRef[pos][0].name<<"\t"<<lq.cord+1<<"\t"<<umRef[pos][0].cord-1<<"\t"<<endl;
+					//cout<<"INS\t"<<refName<<" "<<refPos+1<<"\t"<<refPos+1<<"\t"<<umRef[pos][0].name<<"\t"<<lq.cord+1<<"\t"<<umRef[pos][0].cord-1<<"\t"<<endl;
+					fsmall<<"INS\t"<<refName<<" "<<refPos+1<<"\t"<<refPos+1<<"\t"<<umRef[pos][0].name<<"\t"<<lq.cord+1<<"\t"<<umRef[pos][0].cord-1<<"\t"<<endl;
+
 				}
 				if(mi.y1 > mi.y2)
 				{
-					cout<<"INS\t"<<refName<<"\t"<<refPos+1<<" "<<refPos+1<<"\t"<<umRef[pos][0].name<<"\t"<<lq.cord-1<<"\t"<<umRef[pos][0].cord +1<<"\t"<<endl;
+				//	cout<<"INS\t"<<refName<<"\t"<<refPos+1<<" "<<refPos+1<<"\t"<<umRef[pos][0].name<<"\t"<<lq.cord-1<<"\t"<<umRef[pos][0].cord +1<<"\t"<<endl;
+					fsmall<<"INS\t"<<refName<<"\t"<<refPos+1<<" "<<refPos+1<<"\t"<<umRef[pos][0].name<<"\t"<<lq.cord-1<<"\t"<<umRef[pos][0].cord +1<<"\t"<<endl;
 				}
 				if(abs((lq.cord+1) - (umRef[pos][0].cord-1)) > 100)
 				{
@@ -283,8 +287,8 @@ void callSmall(mI & mi,map<int,vector<qord> > & umRef, string & refseq, string &
 				if(refseq[pos] != qseq[umRef[pos][0].cord -1])
 				{
 					//fout<<"SNP "<<refName<<" "<<pos+1<<""<<refseq[pos]<<" "<<umRef[pos][0].name<<" "<<umRef[pos][0].cord<<" "<<qseq[umRef[pos][0].cord -1]<<endl;
-					cout<<"SNP\t"<<refName<<"\t"<<pos+1<<"\t"<<refseq[pos]<<"\t"<<umRef[pos][0].name<<"\t"<<umRef[pos][0].cord<<"\t"<<qseq[umRef[pos][0].cord -1]<<endl;
-
+					//cout<<"SNP\t"<<refName<<"\t"<<pos+1<<"\t"<<refseq[pos]<<"\t"<<umRef[pos][0].name<<"\t"<<umRef[pos][0].cord<<"\t"<<qseq[umRef[pos][0].cord -1]<<endl;
+					fsmall<<"SNP\t"<<refName<<"\t"<<pos+1<<"\t"<<refseq[pos]<<"\t"<<umRef[pos][0].name<<"\t"<<umRef[pos][0].cord<<"\t"<<qseq[umRef[pos][0].cord -1]<<endl;
 				}				
 			}
 //			if((refGap > 1) && (qGap >1) )
