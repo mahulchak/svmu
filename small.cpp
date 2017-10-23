@@ -231,25 +231,20 @@ void callSmall(mI & mi,map<int,vector<qord> > & umRef, string & refseq, string &
 			{
 				if(tq.size()>0)
 				{
-					//cout<<"DEL\t"<<refName<<"\t"<<ti[0]<<"\t"<<ti[ti.size()-1]<<"\t"<<tq[0].name<<"\t"<<tq[0].cord<<"\t"<<tq[tq.size()-1].cord<<endl;
-					fsmall<<"DEL\t"<<refName<<"\t"<<ti[0]<<"\t"<<ti[ti.size()-1]<<"\t"<<tq[0].name<<"\t"<<tq[0].cord<<"\t"<<tq[tq.size()-1].cord<<endl;
+					fsmall<<refName<<"\t"<<ti[0]<<"\t"<<ti[ti.size()-1]<<"\tDEL\t"<<tq[0].name<<"\t"<<tq[0].cord<<"\t"<<tq[tq.size()-1].cord<<endl;
 					tq.clear();
 					ti.clear();
 				}
-				////cout<<"SNP "<<refName<<" "<<pos<<" "<<umRef[pos][0].name<<" "<<umRef[pos][0].cord<<endl;
 				if(mi.y1 > mi.y2) //if inverted
 				{
 					if(qseq[umRef[pos][0].cord -1] == comp(refseq[pos]))
 					{
 						qseq[umRef[pos][0].cord -1] = refseq[pos];
-//cout<<"Check "<<refName<<" "<<pos+1<<" "<<refseq[pos]<<" "<<comp(refseq[pos])<<" "<<umRef[pos][0].name<<" "<<umRef[pos][0].cord<<" "<<qseq[umRef[pos][0].cord -1]<<endl;
 					}
 						}
 				if(refseq[pos] != qseq[umRef[pos][0].cord -1])
 				{
-					//cout<<"SNP\t"<<refName<<"\t"<<pos+1<<"\t"<<refseq[pos]<<"\t"<<umRef[pos][0].name<<"\t"<<umRef[pos][0].cord<<"\t"<<qseq[umRef[pos][0].cord -1]<<endl;
-					fsmall<<"SNP\t"<<refName<<"\t"<<pos+1<<"\t"<<refseq[pos]<<"\t"<<umRef[pos][0].name<<"\t"<<umRef[pos][0].cord<<"\t"<<qseq[umRef[pos][0].cord -1]<<endl;
-					
+					fsmall<<refName<<"\t"<<pos+1<<"\t"<<refseq[pos]<<"\tSNP\t"<<umRef[pos][0].name<<"\t"<<umRef[pos][0].cord<<"\t"<<qseq[umRef[pos][0].cord -1]<<endl;
 				}
 			}
 			if((refGap == 1) && (qGap ==0))
@@ -262,14 +257,12 @@ void callSmall(mI & mi,map<int,vector<qord> > & umRef, string & refseq, string &
 				//fout<<"INS "<<refName<<" "<<refPos+1<<" "<<refPos+1<<" "<<umRef[pos][0].name<<" "<<lq.cord+1<<" "<<umRef[pos][0].cord-1<<" "<<endl;
 				if(mi.y1 < mi.y2) //if forward oriented
 				{
-					//cout<<"INS\t"<<refName<<" "<<refPos+1<<"\t"<<refPos+1<<"\t"<<umRef[pos][0].name<<"\t"<<lq.cord+1<<"\t"<<umRef[pos][0].cord-1<<"\t"<<endl;
-					fsmall<<"INS\t"<<refName<<" "<<refPos+1<<"\t"<<refPos+1<<"\t"<<umRef[pos][0].name<<"\t"<<lq.cord+1<<"\t"<<umRef[pos][0].cord-1<<"\t"<<endl;
-
+					fsmall<<refName<<" "<<refPos+1<<"\t"<<refPos+1<<"\tINS\t"<<umRef[pos][0].name<<"\t"<<lq.cord+1<<"\t"<<umRef[pos][0].cord-1<<"\t"<<endl;
 				}
 				if(mi.y1 > mi.y2)
 				{
 				//	cout<<"INS\t"<<refName<<"\t"<<refPos+1<<" "<<refPos+1<<"\t"<<umRef[pos][0].name<<"\t"<<lq.cord-1<<"\t"<<umRef[pos][0].cord +1<<"\t"<<endl;
-					fsmall<<"INS\t"<<refName<<"\t"<<refPos+1<<" "<<refPos+1<<"\t"<<umRef[pos][0].name<<"\t"<<lq.cord-1<<"\t"<<umRef[pos][0].cord +1<<"\t"<<endl;
+					fsmall<<refName<<"\t"<<refPos+1<<" "<<refPos+1<<"\tINS\t"<<umRef[pos][0].name<<"\t"<<lq.cord-1<<"\t"<<umRef[pos][0].cord +1<<"\t"<<endl;
 				}
 				if(abs((lq.cord+1) - (umRef[pos][0].cord-1)) > 100)
 				{
@@ -282,19 +275,12 @@ void callSmall(mI & mi,map<int,vector<qord> > & umRef, string & refseq, string &
 				//	gap.push_back(tempmi);
 //cout<<tempmi.rn<<" "<<tempmi.x1<<" "<<tempmi.x2<<" "<<tempmi.qn<<" "<<tempmi.y1<<" "<<tempmi.y2<<endl;
 				}
-				////fout<<"INS "<<refName<<" "<<refPos<<" "<<refPos<<" "<<umRef[pos][0].name<<" "<<lq.cord+1<<" "<<umRef[pos][0].cord-1<<" "<<qseq.substr(lq.cord,abs(umRef[pos][0].cord - lq.cord)-1)<<endl;
-				
+			
 				if(refseq[pos] != qseq[umRef[pos][0].cord -1])
 				{
-					//fout<<"SNP "<<refName<<" "<<pos+1<<""<<refseq[pos]<<" "<<umRef[pos][0].name<<" "<<umRef[pos][0].cord<<" "<<qseq[umRef[pos][0].cord -1]<<endl;
-					//cout<<"SNP\t"<<refName<<"\t"<<pos+1<<"\t"<<refseq[pos]<<"\t"<<umRef[pos][0].name<<"\t"<<umRef[pos][0].cord<<"\t"<<qseq[umRef[pos][0].cord -1]<<endl;
-					fsmall<<"SNP\t"<<refName<<"\t"<<pos+1<<"\t"<<refseq[pos]<<"\t"<<umRef[pos][0].name<<"\t"<<umRef[pos][0].cord<<"\t"<<qseq[umRef[pos][0].cord -1]<<endl;
+					fsmall<<refName<<"\t"<<pos+1<<"\t"<<refseq[pos]<<"\tSNP\t"<<umRef[pos][0].name<<"\t"<<umRef[pos][0].cord<<"\t"<<qseq[umRef[pos][0].cord -1]<<endl;
 				}				
 			}
-//			if((refGap > 1) && (qGap >1) )
-//			{
-//cout<<"INS "<<refName<<" "<<refPos<<" "<<pos<<" "<<umRef[pos][0].name<<" "<<lq.cord+1<<" "<<umRef[pos][0].cord -1<<endl;
-//			}
 				
 			lq = umRef[pos][0];
 			refPos = pos;

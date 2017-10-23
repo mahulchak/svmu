@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
 	size_t pos1,pos2,namePos;
 	
 	ifstream fin, refFasta, qFasta;
-	ofstream fout,fcnv,fsmall;
+	ofstream fout,fcnv,fsmall,ftrans,findel;
 	fin.open(argv[1]);
 	
 	while(getline(fin,line))
@@ -175,10 +175,10 @@ int main(int argc, char *argv[])
 			else
 			{
 				 allChrom[indexAln].ncm.push_back(tempmi);
-				if((nearestInt(vd[0]) == 1) && (nearestInt(vd[1]) > 1))
-				{
-					cout<<tempmi.rn<<"\t"<<tempmi.x1<<"\t"<<tempmi.x2<<"\t"<<tempmi.qn<<"\t"<<tempmi.y1<<"\t"<<tempmi.y2<<"\t"<<nearestInt(vd[0])<<"\t"<<nearestInt(vd[1])<<endl;
-				}
+				//if((nearestInt(vd[0]) == 1) && (nearestInt(vd[1]) > 1))
+				//{
+				//	cout<<tempmi.rn<<"\t"<<tempmi.x1<<"\t"<<tempmi.x2<<"\t"<<tempmi.qn<<"\t"<<tempmi.y1<<"\t"<<tempmi.y2<<"\t"<<nearestInt(vd[0])<<"\t"<<nearestInt(vd[1])<<endl;
+				//}
 				
 			}
 		}
@@ -200,8 +200,7 @@ int main(int argc, char *argv[])
 		count = 0; //reset count for the next alignment
 	}
 //cout<<"Done with gap filling "<<endl;	
-	ofstream ftest;
-	ftest.open("testsv.txt");	
+	ftrans.open("trans.txt");	
 	for(map<string,vector<string> >::iterator it = hcp.begin(); it != hcp.end();it++)
 	{
 		refName = it->first;
@@ -211,22 +210,12 @@ int main(int argc, char *argv[])
 			indexAln = hcp[refName][i];
 			qName = allChrom[indexAln].mums[i].qn;
 			sort(allChrom[indexAln].cm.begin(),allChrom[indexAln].cm.end());
-			xtracTrans(allChrom[indexAln].cm,ftest);
+			xtracTrans(allChrom[indexAln].cm,ftrans);//sort it inside the function
 			readUniq(fin,allChrom[indexAln].cm,umRef[refName]);
-			//fin.seekg(0,fin.beg);
 			fin.close();
 		}
 	}
-	ftest.close();
-//	for(int j = 23820;j<23840;j++)
-//	{
-//		cout<<"ref"<<"\t"<<j;
-//		for(unsigned int ct=0;ct<umRef["ref"][j].size();ct++)
-//		{
-//			cout<<"\t"<<umRef["ref"][j][ct].name<<"\t"<<umRef["ref"][j][ct].cord;
-//		}
-//		cout<<endl;
-//	}
+	ftrans.close();
 	refFasta.open(argv[2]);//read in the reference fasta
 	readfasta(refFasta,refseq);//load them into memory
 	refFasta.close();
@@ -239,17 +228,17 @@ int main(int argc, char *argv[])
 	fout.open("sv.txt");
 	fcnv.open("cnv_all.txt");
 	fsmall.open("small.txt");
+	findel.open("indel.txt");
+	fout<<"REF_CHROM\tREF_START\tREF_END\tSV_TYPE\tQ_CHROM\tQ_START\tQ_END"<<endl;
 	for(map<string,vector<string> >::iterator it = hcp.begin(); it != hcp.end();it++)
 	{
 		refName = it->first;
-		//for(unsigned int i =0; i<cp[refName].size(); i++)
 		for(unsigned int i = 0; i<hcp[refName].size();i++)
 		{		
-			//indexAln = cp[refName][i];
 			indexAln = hcp[refName][i];
 			qName = allChrom[indexAln].mums[i].qn;
 			sort(allChrom[indexAln].cm.begin(),allChrom[indexAln].cm.end());
-			splitByCoverage(allChrom[indexAln],masterRef[refName],masterQ[qName]);
+			splitByCoverage(allChrom[indexAln],masterRef[refName],masterQ[qName],findel);
 			allChrom[indexAln].gap.clear();//flushing the gaps vector
 			for(unsigned int j=0; j<allChrom[indexAln].cc.size();j++)
 			{
@@ -259,7 +248,7 @@ int main(int argc, char *argv[])
 					vmi.insert(vmi.end(),tempVmi.begin(),tempVmi.end());
 					for(unsigned int i=0; i< tempVmi.size();i++)
 					{
-						fcnv<<tempVmi[i].rn<<"\t"<<tempVmi[i].x1<<"\t"<<tempVmi[i].x2<<"\t"<<tempVmi[i].qn<<"\t"<<tempVmi[i].y1<<"\t"<<tempVmi[i].y2<<endl;
+						fcnv<<tempVmi[i].rn<<"\t"<<tempVmi[i].x1<<"\t"<<tempVmi[i].x2<<"\tCNV\t"<<tempVmi[i].qn<<"\t"<<tempVmi[i].y1<<"\t"<<tempVmi[i].y2<<endl;
 					}
 				}
 			}
@@ -271,7 +260,7 @@ int main(int argc, char *argv[])
 	fout.close();
 	fcnv.close();	
 	fsmall.close();
-
+	findel.close();
 return 0;
 }
 			

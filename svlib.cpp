@@ -241,26 +241,12 @@ mI findClosest(mI & mi, vector<mI> & mums)
 return it->second;
 }
 ////////////////////////////////////////////////////
-void recordShadow(unsigned int i, unsigned int j, vector<mI> & mums, vector<mI> & sm)
-{
-	for(unsigned int k = i; k<j;k++)
-	{
-		
-		if(find(sm.begin(),sm.end(),mums[k]) == sm.end()) // if it does not exist within the sm
-		{
-			sm.push_back(mums[k]);
-//cout<<mums[k].x1<<"\t"<<mums[k].x2<<"\t"<<mums[k].y1<<"\t"<<mums[k].y2<<endl;
-		}
-	}
-}
-
-//////////////////////////////////////////////
 //void splitByCoverage(chromPair & cp, ccov & chrom,vector<mI> & mums, ccov & masterRef, ccov & masterQ) // returns the percentage of gap filled by the mi in mums
-void splitByCoverage(chromPair & cp, ccov & chrom, ccov & masterQ)
+void splitByCoverage(chromPair & cp, ccov & chrom, ccov & masterQ,ofstream & findel)
 {
 	int cov=0, lastcov=0, nextcov =0;
 	//vector<mI> mum;
-	mI mi,tempmi;
+	mI mi,tempmi,gapmi;
 	vector<double> vd;
 	mi.x1 =1;
 	mi.x1 = cp.cm[0].x1;
@@ -268,6 +254,21 @@ void splitByCoverage(chromPair & cp, ccov & chrom, ccov & masterQ)
 	{
 		//for(unsigned int i =1; i<chrom.size()-1;i++)
 		mi.x1 = cp.cm[j].x1;
+		if(j>0)
+		{
+			gapmi.x1 = min(cp.cm[j-1].x2,cp.cm[j].x1);
+			gapmi.x2 = max(cp.cm[j-1].x2,cp.cm[j].x1);
+			gapmi.y1 = min(cp.cm[j-1].y2, cp.cm[j].y1);
+			gapmi.y2 = max(cp.cm[j-1].y2, cp.cm[j].y1);
+			vd = getCoverage(gapmi,chrom,masterQ);
+			if(vd[0] < 0.1)
+			{
+				findel<<cp.cm[j].rn<<"\t"<<gapmi.x1<<"\t"<<gapmi.x2<<"\tREF_INS\t"<<cp.cm[j].qn<<"\t"<<gapmi.y1<<"\t"<<gapmi.y2<<endl;
+			}
+			if(vd[1]<0.1)
+			{
+				findel<<cp.cm[j].qn<<"\t"<<gapmi.y1<<"\t"<<gapmi.y2<<"\tQUERY_INS\t"<<cp.cm[j].rn<<"\t"<<gapmi.x1<<"\t"<<gapmi.x2<<endl;
+			}
 		for(int i = cp.cm[j].x1-1; i<cp.cm[j].x2;i++)
 		{
 			cov = chrom[i];
@@ -282,8 +283,8 @@ void splitByCoverage(chromPair & cp, ccov & chrom, ccov & masterQ)
 				mi.x2 = i+1;
 			mi.rn = cp.cm[0].rn;
 			mi.qn = cp.cm[0].qn;
-				//if(chrom[mi.x1-1] >1)
-				if(chrom[mi.x1-1] > 0)
+				if(chrom[mi.x1-1] >1)
+				//if(chrom[mi.x1-1] > 0) //this is to count for those which are fewer in query than reference
 				{
 					if((cp.cc.size() == 0) && (mi.x2 -mi.x1 >20)) //at least 20 bp or more should show cnv
 					{
@@ -299,7 +300,8 @@ void splitByCoverage(chromPair & cp, ccov & chrom, ccov & masterQ)
 				//if(chrom[mi.x1-1] ==0) 
 				//{
 				//	cp.in.push_back(mi);
-				//}
+//cout<<mi.rn<<"\t"<<mi.x1<<"\t"<<mi.x2<<"\t"<<chrom[mi.x1-1]<<endl;
+				}
 						
 //cout<<mi.x1<<"\t"<<mi.x2<<"\t"<<mi.y1<<"\t"<<mi.y2<<"\t"<<vd[0]<<"\t"<<vd[1]<<endl;
 			}
@@ -310,36 +312,6 @@ void splitByCoverage(chromPair & cp, ccov & chrom, ccov & masterQ)
 //return mum;	
 }						
 /////////////////////////////////////////////////
-void findPartnerCord(mI & mi, vector<mI> & mums,char c)//finds corresponding query or reference coordinates for supplied reference or query					
-{
-	unsigned int i =0;
-	int span =0, endDiff =0, ovl =0;
-	
-	if(c == 'R')//provided reference coordinates
-	{
-		while(i<mums.size()-1) //when no overlap is found
-		{
-			endDiff = abs(min(mums[i].x1,mi.x1) - max(mums[i].x2,mi.x2));//distance between the two ends of the mems
-			span = abs(mums[i].x2 - mums[i].x1) + abs(mi.x2- mi.x1); // total length of the two mems
-						
-			if((span -endDiff) > ovl) //if the overlap is greater than the overlap stored in the system
-			{
-				if(mums[i].y1 < mums[i].y2)//the query is one the same strand as the 
-				{
-					mi.y1 = mums[i].y1 + abs(mums[i].x1 - max(mums[i].x1,mi.x1));
-					mi.y2 = mums[i].y2 - (mums[i].x2 -  min(mums[i].x2,mi.x2));
-				}
-				if(mums[i].y1 > mums[i].y2)//the query is on the reverse strand
-				{
-					mi.y1 = mums[i].y1 - abs(mums[i].x1 - max(mums[i].x1,mi.x1));
-					mi.y2 = mums[i].y2 + (mums[i].x2 - max(mums[i].x1,mi.x1));
-				} 
-			}
-			i++;
-		}
-	}
-}
-///////////////////////////////////////////////
 void gapCloser(mI & mi, vector<mI> ncm, vector<mI> & cm)
 {
 	mI tempmi;\
@@ -361,8 +333,8 @@ void gapCloser(mI & mi, vector<mI> ncm, vector<mI> & cm)
 //cout<<tempmi.rn<<" "<<tempmi.x1<<" "<<tempmi.x2<<" "<<tempmi.y1<<" "<<tempmi.y2<<endl;
 			mi.x1 = tempmi.x2+1; //adjust the gap coordinates
 			mi.y1 = max(tempmi.y1,tempmi.y2)+1; //adjust the gap coordinates
-//cout<<smum.size()<<" "<<smum[0].x1<<" "<<smum[0].x2<<" "<<smum[0].y1<<" "<<smum[0].y2<<" "<<tempmi.x1<<" "<<tempmi.x2<<" "<<tempmi.y1<<" "<<tempmi.y2<<" "<<mi.x1<<" "<<mi.y1<<endl;
 			gapCloser(mi,smum,cm);//need to make it dependent on the size of ncm if ncm size does not change, that mean no more solution is there
+			
 		}
 		//return;
 	}
@@ -411,7 +383,8 @@ vector<mI> findQuery(map<int,vq> & mRef, mI & mi,ccov & masterRef, ccov & master
 		vd = getCoverage(mums[i],masterRef,masterQ); //add these in the function arguments
 		rcov = nearestInt(vd[0]);
 		cov1 = nearestInt(vd[1]);	
-		if(rcov != cov1)
+		//if(rcov != cov1) //if they are unequal. counts both less and more copies
+		if(rcov > cov1) //counts only copies which are more
 		{
 			found = true;
 		}

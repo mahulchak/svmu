@@ -25,7 +25,16 @@ If you publish results obtained with this pipeline, please cite SVMU as describe
 	svmu sam2ref.mm.delta ref.fasta sample.fasta n > sample.small.txt
 
  ```
-  n represents the number of unique mum/syntenic blocks that should be present between two sequences to find the SVs between them. It can be 5, or 10, or 100 (a new update will likely get rid of this parameter but bear with it for now). The program will generate "sv.txt" and "cnv_all.txt" files as output. The former contains all indels,inversions, and CNVs in the sample genome with respect to the reference genome. The latter contains all CNV coordinates.
+  n represents the number of unique mum/syntenic blocks that should be present between two sequences to find the SVs between them. It can be 5, or 10, or 100 (a future update will likely get rid of this parameter). The program generates several files as output: 
 
+	sv.txt: A bed file that summarizes structural mutations (indels, CNVs, inversions) in the sample genome with respect to the reference genome. 
+
+	small.txt: A bed file containing SNPs and small indels that occur within syntenic blocks (or MUMs).
+
+	cnv_all.txt: A bed file with all the reference genomic regions that are present in higher copy numbers (>1) in the sample genome. Those with "trans" in their names mean either it is a transposable element or non-TE copies of a gene in different chromosomes.
+
+	indel.txt: A bed file with all the reference and quesry genomic regions that are missing in the other genome. 
+	
+	trans.txt: A bed file with the reference genomic regions that have been putatively translocated (may not include TEs). 
 
 We are continuously working on this and other tools that facilitate variant detection from a population samples of high quality genomes. If you have an idea or suggestion (including collaboration ideas, write to me or J.J. Emerson or Anthony Long).

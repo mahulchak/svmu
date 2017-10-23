@@ -19,11 +19,12 @@ void annotGaps(vector<mI> & cm, map<int,vq> & mRef, ccov & masterRef, ccov & mas
 	bool fs = false;//fs = found SV
 	for(unsigned int i=1; i< cm.size();i++)
 	{
+//cout<<"cm\t"<<cm[i].rn<<"\t"<<cm[i].x1<<"\t"<<cm[i].x2<<"\t"<<cm[i].qn<<"\t"<<cm[i].y1<<"\t"<<cm[i].y2<<endl;
 		tempmi = cm[i];
 		callSmall(tempmi,umRef,refseq,qseq,seqLen,fsmall);
 		refOvl = cm[i].x1 - cm[i-1].x2;
-		//qOvl = min(cm[i].y1,cm[i].y2) - max(cm[i-1].y1,cm[i-1].y2);
 		qOvl = cm[i].y1 - cm[i-1].y2;
+		
 		if((cm[i-1].y1 > cm[i-1].y2) && (cm[i].y1 >cm[i].y2)) //two subsequent mums are inverted
 		{
 			qOvl = cm[i-1].y2 - cm[i].y1;
@@ -53,12 +54,12 @@ void annotGaps(vector<mI> & cm, map<int,vq> & mRef, ccov & masterRef, ccov & mas
 			}
 			vi = findInvertSpan(cm,i);
 			//fout<<"INV\t"<<cm[i].rn<<"\t"<<cm[i].x1<<"\t"<<cm[i].x2<<"\t"<<cm[i].qn<<"\t"<<cm[i].y2<<"\t"<<cm[i].y1<<endl;//inverted the query start and end
-			fout<<"INV\t"<<cm[i].rn<<"\t"<<cm[i].x1<<"\t"<<cm[i].x2<<"\t"<<cm[i].qn<<"\t"<<vi[0]<<"\t"<<vi[1]<<endl;
+			fout<<cm[i].rn<<"\t"<<cm[i].x1<<"\t"<<cm[i].x2<<"\tINV\t"<<cm[i].qn<<"\t"<<vi[0]<<"\t"<<vi[1]<<endl;
 		} 	
 		cnvmi = findDup(cm[i-1],cm[i]);
 		if(cnvmi.x1 != 0)
 		{
-			fout<<"CNV\t"<<cnvmi.rn<<"\t"<<cnvmi.x1<<" "<<cnvmi.x2<<"\t"<<cnvmi.qn<<"\t"<<cnvmi.y1<<"\t"<<cnvmi.y2<<endl;
+			fout<<cnvmi.rn<<"\t"<<cnvmi.x1<<" "<<cnvmi.x2<<"\tCNV\t"<<cnvmi.qn<<"\t"<<cnvmi.y1<<"\t"<<cnvmi.y2<<endl;
 			cm[i].y1 = cnvmi.y1; // changing the interval so that it is not used for calling CNV again			
 		}
 
@@ -80,21 +81,20 @@ void annotGaps(vector<mI> & cm, map<int,vq> & mRef, ccov & masterRef, ccov & mas
 				//fout<<"INS\t"<<cm[i-1].rn<<"\t"<<cm[i-1].x2<<"\t"<<cm[i].x1<<"\t"<<cm[i-1].qn<<"\t"<<max(cm[i-1].y1,cm[i-1].y2) +1<<"\t"<<min(cm[i].y1,cm[i].y2) -1<<"\t"<<cov[0]<<"\t"<<cov[1]<<endl;
 				if(max(gapmi.y1,gapmi.y2) > min(gapmi.y1,gapmi.y2)) //they still differ after cnv has been subtracted
 				{
-					fout<<"MOR INS"<<"\t"<<cm[i-1].rn<<"\t"<<cm[i-1].x2<<" "<<cm[i].x1<<"\t"<<cm[i-1].qn<<"\t"<<min(gapmi.y1,gapmi.y2) + 1<<"\t"<<max(gapmi.y1,gapmi.y2) -1<<"\t"<<cov[0]<<"\t"<<cov[1]<<endl;
+					fout<<cm[i-1].rn<<"\t"<<cm[i-1].x2<<"\t"<<cm[i].x1<<"\tMOR INS\t"<<cm[i-1].qn<<"\t"<<min(gapmi.y1,gapmi.y2) + 1<<"\t"<<max(gapmi.y1,gapmi.y2) -1<<"\t"<<cov[0]<<"\t"<<cov[1]<<endl;
 					fs = true; //it reported the insertion
 				}
 				if( fs == false)
 				{
 					if(!((cm[i-1].y1 > cm[i-1].y2) && (cm[i].y1 >cm[i].y2)))
 					{
-						fout<<"INS\t"<<cm[i-1].rn<<"\t"<<cm[i-1].x2<<"\t"<<cm[i].x1<<"\t"<<cm[i-1].qn<<"\t"<<max(cm[i-1].y1,cm[i-1].y2) +1<<"\t"<<min(cm[i].y1,cm[i].y2) -1<<"\t"<<cov[0]<<"\t"<<cov[1]<<"\t"<<qOvl<<endl;
+						fout<<cm[i-1].rn<<"\t"<<cm[i-1].x2<<"\t"<<cm[i].x1<<"\tINS\t"<<cm[i-1].qn<<"\t"<<max(cm[i-1].y1,cm[i-1].y2) +1<<"\t"<<min(cm[i].y1,cm[i].y2) -1<<"\t"<<cov[0]<<"\t"<<cov[1]<<"\t"<<qOvl<<endl;
 					}
 					if(((cm[i-1].y1 > cm[i-1].y2) && (cm[i].y1 >cm[i].y2))) //inverted
 					{
-						fout<<"INS/INV\t"<<cm[i-1].rn<<"\t"<<cm[i-1].x2<<"\t"<<cm[i].x1<<"\t"<<cm[i-1].qn<<"\t"<<min(cm[i-1].y1,cm[i-1].y2) +1<<"\t"<<max(cm[i].y1,cm[i].y2) -1<<"\t"<<cov[0]<<"\t"<<cov[1]<<endl;
+						fout<<cm[i-1].rn<<"\t"<<cm[i-1].x2<<"\t"<<cm[i].x1<<"\tINS/INV\t"<<cm[i-1].qn<<"\t"<<min(cm[i-1].y1,cm[i-1].y2) +1<<"\t"<<max(cm[i].y1,cm[i].y2) -1<<"\t"<<cov[0]<<"\t"<<cov[1]<<endl;
 					}
 				}	
-//fout<<" now:"<<gapmi.y1<<" "<<gapmi.y2<< " max and min are "<<maxg<<" "<<ming<<endl;
 			}
 		}
 		if(refOvl >0)
@@ -111,11 +111,11 @@ void annotGaps(vector<mI> & cm, map<int,vq> & mRef, ccov & masterRef, ccov & mas
 		//		findCnvOverlapInRef(cnv,gapmi,storedCNV,fout);
 				if(!((cm[i-1].y1 > cm[i-1].y2) && (cm[i].y1 >cm[i].y2)))
 				{
-					fout<<"DEL\t"<<cm[i-1].rn<<"\t"<<cm[i-1].x2 + 1 <<"\t"<<cm[i].x1 -1<<"\t"<<cm[i-1].qn<<"\t"<<max(cm[i-1].y1,cm[i-1].y2)<<"\t"<<min(cm[i].y1,cm[i].y2)<<"\t"<<cov[0]<<"\t"<<cov[1]<<endl;
+					fout<<cm[i-1].rn<<"\t"<<cm[i-1].x2 + 1 <<"\t"<<cm[i].x1 -1<<"\tDEL\t"<<cm[i-1].qn<<"\t"<<max(cm[i-1].y1,cm[i-1].y2)<<"\t"<<min(cm[i].y1,cm[i].y2)<<"\t"<<cov[0]<<"\t"<<cov[1]<<endl;
 				}
 				if(((cm[i-1].y1 > cm[i-1].y2) && (cm[i].y1 >cm[i].y2))) //inverted
 				{
-					fout<<"DEL/INV\t"<<cm[i-1].rn<<"\t"<<cm[i-1].x2 + 1 <<"\t"<<cm[i].x1 -1<<"\t"<<cm[i-1].qn<<"\t"<<min(cm[i-1].y1,cm[i-1].y2)<<"\t"<<max(cm[i].y1,cm[i].y2)<<"\t"<<cov[0]<<"\t"<<cov[1]<<endl;
+					fout<<cm[i-1].rn<<"\t"<<cm[i-1].x2 + 1 <<"\t"<<cm[i].x1 -1<<"\tDEL/INV\t"<<cm[i-1].qn<<"\t"<<min(cm[i-1].y1,cm[i-1].y2)<<"\t"<<max(cm[i].y1,cm[i].y2)<<"\t"<<cov[0]<<"\t"<<cov[1]<<endl;
 				}
 			}
 			if(refOvl < qOvl)
@@ -129,7 +129,7 @@ void annotGaps(vector<mI> & cm, map<int,vq> & mRef, ccov & masterRef, ccov & mas
 				if(max(gapmi.y1,gapmi.y2) > min(gapmi.y1,gapmi.y2)) //they still differ after cnv has been computed
 				{
 					cov = getCoverage(gapmi,masterRef,masterQ);
-					fout<<"MOD INS\t"<<cm[i-1].rn<<"\t"<<cm[i-1].x2 <<"\t"<<cm[i].x1<<"\t"<<cm[i-1].qn<<"\t"<<min(gapmi.y1,gapmi.y2) +1 <<"\t"<<max(gapmi.y1,gapmi.y2) -1<<"\t"<<cov[0]<<"\t"<<cov[1]<<endl;
+					fout<<cm[i-1].rn<<"\t"<<cm[i-1].x2 <<"\t"<<cm[i].x1<<"\tMOD INS\t"<<cm[i-1].qn<<"\t"<<min(gapmi.y1,gapmi.y2) +1 <<"\t"<<max(gapmi.y1,gapmi.y2) -1<<"\t"<<cov[0]<<"\t"<<cov[1]<<endl;
 					fs = true;
 				}
 				cov = getCoverage(gapmi,masterRef,masterQ);
@@ -137,7 +137,7 @@ void annotGaps(vector<mI> & cm, map<int,vq> & mRef, ccov & masterRef, ccov & mas
 				{
 				//	if(!((cm[i-1].y1 > cm[i-1].y2) && (cm[i].y1 >cm[i].y2)))
 				//	{
-						fout<<"INS\t"<<cm[i-1].rn<<"\t"<<cm[i-1].x2 <<"\t"<<cm[i].x1<<"\t"<<cm[i-1].qn<<"\t"<<min(gapmi.y1,gapmi.y2) +1 <<"\t"<<max(gapmi.y1,gapmi.y2) -1<<"\t"<<cov[0]<<"\t"<<cov[1]<<endl;
+						fout<<cm[i-1].rn<<"\t"<<cm[i-1].x2 <<"\t"<<cm[i].x1<<"\tINS\t"<<cm[i-1].qn<<"\t"<<min(gapmi.y1,gapmi.y2) +1 <<"\t"<<max(gapmi.y1,gapmi.y2) -1<<"\t"<<cov[0]<<"\t"<<cov[1]<<endl;
 				//	}
 				//	if(((cm[i-1].y1 > cm[i-1].y2) && (cm[i].y1 >cm[i].y2))) //inverted
 				//	{
@@ -170,11 +170,9 @@ void findCnvOverlap(vector<mI> & cnv,mI & mi,vector<mI> & storedCNV,ofstream & f
 			
 				if((double(ovl)/double(tempmi.y2 -tempmi.y1)) >0.9)
 				{
-					//return tempmi;
-					//found = true;
 					if((find(storedCNV.begin(),storedCNV.end(),tempmi) == storedCNV.end()) && (mi.y1 != mi.y2))
 					{
-fout<<"nCNV\t"<<tempmi.rn<<"\t"<<tempmi.x1<<"\t"<<tempmi.x2<<"\t"<<tempmi.qn<<"\t"<<tempmi.y1<<"\t"<<tempmi.y2<<endl;
+fout<<tempmi.rn<<"\t"<<tempmi.x1<<"\t"<<tempmi.x2<<"\tnCNV\t"<<tempmi.qn<<"\t"<<tempmi.y1<<"\t"<<tempmi.y2<<endl;
 						storedCNV.push_back(tempmi);
 						mi.y1 = min(tempmi.y2 + 1,mi.y2);//reduce the gap
 						//mi.y2 = tempmi.y2 + 1;
@@ -193,11 +191,9 @@ fout<<"nCNV\t"<<tempmi.rn<<"\t"<<tempmi.x1<<"\t"<<tempmi.x2<<"\t"<<tempmi.qn<<"\
 			
 				if((double(ovl)/double(tempmi.y1 -tempmi.y2))>0.9) 
 				{
-					//return tempmi;
-					//found = true;
 					if((find(storedCNV.begin(),storedCNV.end(),tempmi) == storedCNV.end()) && (mi.y1 != mi.y2))
 					{
-fout<<"nCNV\t"<<tempmi.rn<<"\t"<<tempmi.x1<<"\t"<<tempmi.x2<<"\t"<<tempmi.qn<<"\t"<<tempmi.y1<<"\t"<<tempmi.y2<<endl;
+fout<<tempmi.rn<<"\t"<<tempmi.x1<<"\t"<<tempmi.x2<<"\tnCNV\t"<<tempmi.qn<<"\t"<<tempmi.y1<<"\t"<<tempmi.y2<<endl;
 
 						storedCNV.push_back(tempmi);
 						mi.y2 = max(tempmi.y2 - 1,mi.y1);
@@ -210,10 +206,6 @@ fout<<"nCNV\t"<<tempmi.rn<<"\t"<<tempmi.x1<<"\t"<<tempmi.x2<<"\t"<<tempmi.qn<<"\
 		}
 		count++;
 	}
-if(count != cnv.size())
-{
-//	cout<<tempmi.rn<<" "<<tempmi.x1<<" "<<tempmi.x2<<" "<<tempmi.qn<<" "<<tempmi.y1<<" "<<tempmi.y2<<endl;
-}
 
 }			
 /////////////////////////////////////////////////////////////////
@@ -228,8 +220,8 @@ mI findDup(mI & mi1, mI & mi2)
 		{
 			tempmi.rn = mi1.rn;
 			tempmi.x1 = mi2.x1;
-			tempmi.x2 = mi1.x2;
 			tempmi.qn = mi1.qn;
+			tempmi.x2 = min(mi1.x2,mi2.x2); //smallest of the two
 			if(mi2.y1 <mi2.y2) //forward oriented
 			{
 				tempmi.y1 = mi2.y1;
@@ -246,7 +238,7 @@ mI findDup(mI & mi1, mI & mi2)
 		{
 			tempmi.rn = mi1.rn;
 			tempmi.x1 = mi2.x1;
-			tempmi.x2 = mi1.x2;
+			tempmi.x2 = min(mi1.x2,mi2.x2);
 			tempmi.qn = mi1.qn;
 			tempmi.y1 = mi2.y1;
 			tempmi.y2 = mi2.y2;
