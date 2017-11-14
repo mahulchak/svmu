@@ -109,7 +109,7 @@ void storeCordsCm(map<int,vector<qord> > & mRef, mI & mi)
 	}
 }
 //////////////////////////////////////////////////////////
-void readUniq(ifstream & fin,vector<mI> & cm, map<int,vector<qord> > & umRef) //records one to one mapping
+void readUniq(ifstream & fin,vector<mI> & cm, map<int,vector<qord> > & umRef,vector<int> & masterHQ) //records one to one mapping
 {
 	string refName,qName,indexAln,line;
 	size_t pos1,pos2,namePos;
@@ -125,12 +125,16 @@ void readUniq(ifstream & fin,vector<mI> & cm, map<int,vector<qord> > & umRef) //
 			refName = line.substr(1,line.find(' ')-1);
 			pos1 = line.find(' '); //position of the first space
 			pos2 = line.find(' ',pos1+1);//position of the second space
-			qName = line.substr(pos1+1, pos2-pos1); //up to the second space
+			qName = line.substr(pos1+1, pos2-pos1-1); //up to the second space
 			pos1 = line.find(' ',pos2+1); //recycling pos1 to find pos3
 			Len = stoi(line.substr(pos2+1,pos1-pos2));//reference length
-			Len = stoi(line.substr(pos1));//from last space till end 
+			Len = stoi(line.substr(pos1));//from last space till end. This is qLen
 			indexAln = refName + qName;
 			count = -1;
+			if(masterHQ.size() == 0)//if they have not been created
+			{
+				masterHQ = makeChromBucket(Len);//Here Len is qLen
+			}
 		}
 		if((line.size() <10) && (refName != "") && (count > -1))
 		{
@@ -159,6 +163,10 @@ void readUniq(ifstream & fin,vector<mI> & cm, map<int,vector<qord> > & umRef) //
 				{
 					storeCordsCm(umRef,tempmi); //add the new mRef or umRef here
 //cout<<tempmi.rn<<" "<<tempmi.x1<<" "<<tempmi.x2<<" "<<tempmi.qn<<" "<<tempmi.y1<<" "<<tempmi.y2<<endl;
+				}
+				if((cm[0].rn == tempmi.rn) && (cm[0].qn == tempmi.qn))
+				{
+					storeCords(masterHQ,tempmi);
 				}
 				vi.clear();//reset it once its values are used
 			}
@@ -315,4 +323,26 @@ char comp(char & N) //return the complementary nucleotide
 	}
 
 return c;
-}			
+}		
+//////////////////////////////////////////////////////////////////////
+void storeCords(vector<int> & masterHQ, mI & mi)
+{
+
+        int ty1 = 0, ty2 =0;
+
+        if(mi.y1 > mi.y2)//if reverse oriented
+        {
+                ty1 = mi.y2;
+                ty2 = mi.y1;
+        }
+        if(mi.y1 < mi.y2)//forward oriented
+        {
+                ty1 = mi.y1;
+                ty2 = mi.y2;
+        }
+      	for(int j = ty1-1; j<ty2;j++)
+        {
+                masterHQ[j]++;
+        }
+}
+	

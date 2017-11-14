@@ -89,6 +89,7 @@ void storeCords(map<int,vq> & mRef, mI & mi)
 		int qC = mi.y1;
 		while( refC<mi.x2+1)
 		{
+		
 			if((find(mi.mv.begin(),mi.mv.end(),refC) == mi.mv.end()) && (find(mi.mv.begin(),mi.mv.end(),ci) == mi.mv.end())) //if this position does not have a indel
 			{
 				refC++;
@@ -113,6 +114,7 @@ void storeCords(map<int,vq> & mRef, mI & mi)
 	if(mi.y1 > mi.y2 )//if two are on different strands
 	{
 		int qC = mi.y1; //y1 is bigger than y2
+	
 		while(refC<mi.x2+1)
 		{
 			if((find(mi.mv.begin(),mi.mv.end(),refC) == mi.mv.end()) && (find(mi.mv.begin(),mi.mv.end(),ci) == mi.mv.end())) //if this position does not have a indel
@@ -250,6 +252,7 @@ void splitByCoverage(chromPair & cp, ccov & chrom, ccov & masterQ,ofstream & fin
 	vector<double> vd;
 	mi.x1 =1;
 	mi.x1 = cp.cm[0].x1;
+	bool flag = false;
 	for(unsigned int j=0;j<cp.cm.size();j++)
 	{
 		//for(unsigned int i =1; i<chrom.size()-1;i++)
@@ -261,14 +264,17 @@ void splitByCoverage(chromPair & cp, ccov & chrom, ccov & masterQ,ofstream & fin
 			gapmi.y1 = min(cp.cm[j-1].y2, cp.cm[j].y1);
 			gapmi.y2 = max(cp.cm[j-1].y2, cp.cm[j].y1);
 			vd = getCoverage(gapmi,chrom,masterQ);
-			if(vd[0] < 0.1)
+			if(vd[0] < 0.5)
 			{
 				findel<<cp.cm[j].rn<<"\t"<<gapmi.x1<<"\t"<<gapmi.x2<<"\tREF_INS\t"<<cp.cm[j].qn<<"\t"<<gapmi.y1<<"\t"<<gapmi.y2<<endl;
+				flag = true;
 			}
-			if(vd[1]<0.1)
+			if((vd[1]<0.5) && (flag == false) )
 			{
-				findel<<cp.cm[j].qn<<"\t"<<gapmi.y1<<"\t"<<gapmi.y2<<"\tQUERY_INS\t"<<cp.cm[j].rn<<"\t"<<gapmi.x1<<"\t"<<gapmi.x2<<endl;
+				findel<<cp.cm[j].rn<<"\t"<<gapmi.x1<<"\t"<<gapmi.x2<<"\tQUERY_INS\t"<<cp.cm[j].qn<<"\t"<<gapmi.y1<<"\t"<<gapmi.y2<<endl;				
 			}
+			flag = false;
+		}
 		for(int i = cp.cm[j].x1-1; i<cp.cm[j].x2;i++)
 		{
 			cov = chrom[i];
@@ -286,12 +292,14 @@ void splitByCoverage(chromPair & cp, ccov & chrom, ccov & masterQ,ofstream & fin
 				if(chrom[mi.x1-1] >1)
 				//if(chrom[mi.x1-1] > 0) //this is to count for those which are fewer in query than reference
 				{
+					mi.y1 = 0;
+					mi.y2 = 0;
 					if((cp.cc.size() == 0) && (mi.x2 -mi.x1 >20)) //at least 20 bp or more should show cnv
 					{
 						cp.cc.push_back(mi);
 //cout<<mi.rn<<"\t"<<mi.x1<<"\t"<<mi.x2<<"\t"<<chrom[mi.x1-1]<<"\t"<<chrom[mi.x2-1]<<endl;
 					}
-					if((cp.cc.size() >0) && !(mi == cp.cc[cp.cc.size()-1]) && (mi.x2-mi.x1>20))
+					if((cp.cc.size() >0) && !(mi == cp.cc[cp.cc.size()-1]) && (mi.x2-mi.x1>20) && (find(cp.cc.begin(),cp.cc.end(),mi) == cp.cc.end()))
 					{
 						cp.cc.push_back(mi);
 					}
@@ -301,14 +309,12 @@ void splitByCoverage(chromPair & cp, ccov & chrom, ccov & masterQ,ofstream & fin
 				//{
 				//	cp.in.push_back(mi);
 //cout<<mi.rn<<"\t"<<mi.x1<<"\t"<<mi.x2<<"\t"<<chrom[mi.x1-1]<<endl;
-				}
+			}
 						
 //cout<<mi.x1<<"\t"<<mi.x2<<"\t"<<mi.y1<<"\t"<<mi.y2<<"\t"<<vd[0]<<"\t"<<vd[1]<<endl;
-			}
-//cout<<i<<"\t"<<mi.x1<<"\t"<<mi.x2<<"\t"<<chrom[mi.x1-1]<<"\t"<<chrom[mi.x2-1]<<endl;//because coverage is 0 based but coordinate is 1 based
 		}
 	}
-	
+		
 //return mum;	
 }						
 /////////////////////////////////////////////////
@@ -336,7 +342,6 @@ void gapCloser(mI & mi, vector<mI> ncm, vector<mI> & cm)
 			gapCloser(mi,smum,cm);//need to make it dependent on the size of ncm if ncm size does not change, that mean no more solution is there
 			
 		}
-		//return;
 	}
 	else
 	{
@@ -345,7 +350,7 @@ void gapCloser(mI & mi, vector<mI> ncm, vector<mI> & cm)
 	
 }
 /////////////////////////////////////////////////	
-vector<mI> findQuery(map<int,vq> & mRef, mI & mi,ccov & masterRef, ccov & masterQ)
+vector<mI> findQuery(map<int,vq> & mRef, mI & mi,ccov & masterRef, ccov & masterQ, ccov & masterHQ)
 {
 	
 	//vector<mI> mums(mRef[mi.x1].size());//creating the vector of the coverage size
@@ -353,15 +358,15 @@ vector<mI> findQuery(map<int,vq> & mRef, mI & mi,ccov & masterRef, ccov & master
 	qord temp;
 	vector<double> vd;
 	//vd = getCoverage(mi,masterRef,masterQ);
-	vector<mI> mums(masterRef[mi.x1-1]);
-	
-	int rcov =0,cov1 =0;
+	vector<mI> mums(masterRef[mi.x1-1]);//the last element is for coverage
+	mI tmi;//this is to add the coverage info as the last element of mums
+	int rcov =0,cov1 =0, tdcov = 0;
 	vector<int> vi;
 	bool found =false;
 	sort(mRef[mi.x1].begin(),mRef[mi.x1].end());
 	sort(mRef[mi.x2].begin(),mRef[mi.x2].end());
 	//for(unsigned int j=0; j<mRef[mi.x1].size();j++)
-	for(unsigned int j=0; j<masterRef[mi.x1-1];j++)
+	for(int j=0; j<masterRef[mi.x1-1];j++)
 	{
 		mums[j].x1 = mi.x1;
 		mums[j].x2 = mi.x2;
@@ -383,16 +388,26 @@ vector<mI> findQuery(map<int,vq> & mRef, mI & mi,ccov & masterRef, ccov & master
 		vd = getCoverage(mums[i],masterRef,masterQ); //add these in the function arguments
 		rcov = nearestInt(vd[0]);
 		cov1 = nearestInt(vd[1]);	
-		//if(rcov != cov1) //if they are unequal. counts both less and more copies
-		if(rcov > cov1) //counts only copies which are more
+		vd = getCoverage(mums[i],masterRef,masterHQ);//being done for masterHQ and NOT masterQ
+		tdcov = nearestInt(vd[1]);
+		if(rcov != cov1) //if they are unequal. counts both less and more copies
+	//	if(rcov > cov1) //counts only copies which are more
 		{
 			found = true;
+		}
+		else
+		{
+			found = false;
 		}
 		if((qnames.size() > 1)) //present in more than 1 chromosomes/contigs
 		{
 			mums[i].qn = mums[i].qn + " trans";
 		}	
 	}
+	tmi.x1 = rcov;
+	tmi.x2 = cov1;
+	tmi.y1 = tdcov;
+	mums.push_back(tmi);//add the coverage info as the last element. 
 	if(found == false)
 	{
 		mums.clear();
@@ -415,18 +430,28 @@ int nearestInt(double d)//returns the nearest integer
 	}
 }
 /////////////////////////////////////////////	
-void xtracTrans(vector<mI> & cm, ofstream & ftest)
+void xtracTrans(map<int,vq> & mRef,vector<mI> & cm, ofstream & ftest)
 {
 	//vector<mI> qcm = cm;
 	int k = cm.size()-1;//to use for traversing the vector in reverse direction
 	//sort(qcm.begin(),qcm.end(),qusort); //sorted cm based on query coordinates
+	int chromCt = 0;
+	mI gapmi;
+	vector<string> qname;
 	for(unsigned int i= 1;i<cm.size()-1;i++)
 	{
+		gapmi.rn = cm[i-1].rn;
+		gapmi.qn = cm[i-1].qn;
+		gapmi.x1 = cm[i-1].x2;
+		gapmi.x2 = cm[i].x1;
+                gapmi.y1 = min(cm[i-1].y2,cm[i].y1);
+                gapmi.y2 = max(cm[i-1].y2,cm[i].y1);
+
 		if((cm[i].y2 < cm[i-1].y1) && (cm[i].y1 <cm[i].y2) && (cm[i-1].y1 < cm[i-1].y2)) //if out of order and neither are reverse oriented
 		{
 			if(!(!(cm[i].x1 < cm[i-1].x1) && !(cm[i].x2 > cm[i-1].x2)))
 			{
-				ftest<<"1 "<<cm[i].rn<<"\t"<<cm[i].x1<<"\t"<<cm[i].x2<<"\t"<<cm[i].qn<<"\t"<<cm[i].y1<<"\t"<<cm[i].y2<<endl;
+				ftest<<cm[i].rn<<"\t"<<cm[i].x1<<"\t"<<cm[i].x2<<"\tTRANSLOC\t"<<cm[i].qn<<"\t"<<cm[i].y1<<"\t"<<cm[i].y2<<endl;
 			}
 			if(!(cm[i].x1 < cm[i-1].x1) && !(cm[i].x2 > cm[i-1].x2))
 			{
@@ -438,8 +463,29 @@ void xtracTrans(vector<mI> & cm, ofstream & ftest)
 		{
 			if(!(!(cm[k-i+1].x1 < cm[k-i].x1) && !(cm[k-i+1].x2 > cm[k-i].x2)))
 			{
-				ftest<<"2 "<<cm[k-i].rn<<"\t"<<cm[k-i].x1<<"\t"<<cm[k-i].x2<<"\t"<<cm[k-i].qn<<"\t"<<cm[k-i].y1<<"\t"<<cm[k-i].y2<<endl;
+				ftest<<cm[k-i].rn<<"\t"<<cm[k-i].x1<<"\t"<<cm[k-i].x2<<"\tTRANSLOC\t"<<cm[k-i].qn<<"\t"<<cm[k-i].y1<<"\t"<<cm[k-i].y2<<endl;
 			}
 		}
+		for(int j= gapmi.x1; j<gapmi.x2; j++)
+		{
+			for(unsigned int ct = 0;ct<mRef[j-1].size();ct++)
+			{
+				if(find(qname.begin(),qname.end(),mRef[j-1][ct].name) == qname.end()) // if the query name is absent
+				{
+					qname.push_back(mRef[j-1][ct].name);
+				}
+				if(qname.size() == 2) //if qname has more than 1 element
+				{
+					chromCt++;
+					ct = mRef[j-1].size(); //once more than 1 chromosome has been found for this position, break the loop
+				}
+			}
+			qname.clear();
+		}
+		if((chromCt > ((gapmi.x2-gapmi.x1) *0.8)) && ((gapmi.x2 -gapmi.x1) > 100)) // if more than 70% of the gap map to more than one chromosome and length is at least 10bp
+		{
+			ftest<<gapmi.rn<<"\t"<<gapmi.x1<<"\t"<<gapmi.x2<<"\tTRANSPOSED_REF_INS\t"<<gapmi.qn<<"\t"<<gapmi.y1<<"\t"<<gapmi.y2<<endl;
+		}
+		chromCt = 0; //reset chromosome count to 0
 	}
 }

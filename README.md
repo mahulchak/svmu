@@ -15,8 +15,13 @@ If you publish results obtained with this pipeline, please cite SVMU as describe
 2. Align the reference and your sample genomes using nucmer: 
 
  ```
-	nucmer -maxmatch -prefix sam2ref.mm ref.fasta sample.fasta
+	nucmer -maxmatch --noextend -prefix sam2ref.mm ref.fasta sample.fasta
 	
+ ```
+	Unfortunately, svmu has a high memory footprint (we are working to reduce it) so if your svmu run crashes due to memory, run nucmer as follows -
+ ```
+	nucmer -mumreference --noextend -prefix sam2ref.mr ref.fasta sample.fasta
+
  ```
 
 3. Run svmu on the delta file.
@@ -27,7 +32,7 @@ If you publish results obtained with this pipeline, please cite SVMU as describe
  ```
   n represents the number of unique mum/syntenic blocks that should be present between two sequences to find the SVs between them. It can be 5, or 10, or 100 (a future update will likely get rid of this parameter). The program generates several files as output: 
 
-	sv.txt: A bed file that summarizes structural mutations (indels, CNVs, inversions) in the sample genome with respect to the reference genome. 
+	sv.txt: A bed file that summarizes structural mutations (indels, CNVs, inversions) in the sample genome with respect to the reference genome.  
 
 	small.txt: A bed file containing SNPs and small indels that occur within syntenic blocks (or MUMs).
 

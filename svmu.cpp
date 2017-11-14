@@ -19,6 +19,7 @@ int main(int argc, char *argv[])
 	
 	map<string,ccov> masterRef; //stores sequence coverage but it can also be used to find reference chromosome lengths
 	map<string,ccov>masterQ; //stores sequence coverage but it can also be used to find query chromosome lengths
+	map<string,ccov>masterHQ; //same as masterQ but records coverage only for homologous pairs
 	map<string,vector<string> > cp; //cp is an alias for Chromosome partner. Each reference name index has a vector of unqiue alignments which are part of these
 	map<string,vector<string> > hcp;//hcp stands for homologous cp
 	
@@ -175,10 +176,10 @@ int main(int argc, char *argv[])
 			else
 			{
 				 allChrom[indexAln].ncm.push_back(tempmi);
-				//if((nearestInt(vd[0]) == 1) && (nearestInt(vd[1]) > 1))
-				//{
-				//	cout<<tempmi.rn<<"\t"<<tempmi.x1<<"\t"<<tempmi.x2<<"\t"<<tempmi.qn<<"\t"<<tempmi.y1<<"\t"<<tempmi.y2<<"\t"<<nearestInt(vd[0])<<"\t"<<nearestInt(vd[1])<<endl;
-				//}
+	//			if((nearestInt(vd[0]) > 5) && (nearestInt(vd[1]) > 5))
+	//			{
+	//				cout<<tempmi.rn<<"\t"<<tempmi.x1<<"\t"<<tempmi.x2<<"\t"<<tempmi.qn<<"\t"<<tempmi.y1<<"\t"<<tempmi.y2<<"\t"<<nearestInt(vd[0])<<"\t"<<nearestInt(vd[1])<<endl;
+	//			}
 				
 			}
 		}
@@ -210,26 +211,35 @@ int main(int argc, char *argv[])
 			indexAln = hcp[refName][i];
 			qName = allChrom[indexAln].mums[i].qn;
 			sort(allChrom[indexAln].cm.begin(),allChrom[indexAln].cm.end());
-			xtracTrans(allChrom[indexAln].cm,ftrans);//sort it inside the function
-			readUniq(fin,allChrom[indexAln].cm,umRef[refName]);
+			xtracTrans(mRef[refName],allChrom[indexAln].cm,ftrans);//sort it inside the function
+			readUniq(fin,allChrom[indexAln].cm,umRef[refName],masterHQ[qName]);
 			fin.close();
 		}
 	}
 	ftrans.close();
+//	for(int j = 23820;j<23840;j++)
+//	{
+//		cout<<"ref"<<"\t"<<j;
+//		for(unsigned int ct=0;ct<umRef["ref"][j].size();ct++)
+//		{
+//			cout<<"\t"<<umRef["ref"][j][ct].name<<"\t"<<umRef["ref"][j][ct].cord;
+//		}
+//		cout<<endl;
+//	}
 	refFasta.open(argv[2]);//read in the reference fasta
 	readfasta(refFasta,refseq);//load them into memory
 	refFasta.close();
 	qFasta.open(argv[3]);//read in the query fasta	
 	readfasta(qFasta,qseq);
 	qFasta.close();
-		
+	int id = 0;	
 	//cout<<"fileformat=VCFv4.2"<<endl;
 	//cout<<"#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT"<<endl;
 	fout.open("sv.txt");
 	fcnv.open("cnv_all.txt");
 	fsmall.open("small.txt");
 	findel.open("indel.txt");
-	fout<<"REF_CHROM\tREF_START\tREF_END\tSV_TYPE\tQ_CHROM\tQ_START\tQ_END"<<endl;
+	fout<<"REF_CHROM\tREF_START\tREF_END\tSV_TYPE\tQ_CHROM\tQ_START\tQ_END\tID\tLEN\tCOV_REF\tCOV_Q"<<endl;
 	for(map<string,vector<string> >::iterator it = hcp.begin(); it != hcp.end();it++)
 	{
 		refName = it->first;
@@ -242,17 +252,17 @@ int main(int argc, char *argv[])
 			allChrom[indexAln].gap.clear();//flushing the gaps vector
 			for(unsigned int j=0; j<allChrom[indexAln].cc.size();j++)
 			{
-				tempVmi = findQuery(mRef[refName],allChrom[indexAln].cc[j],masterRef[refName],masterQ[qName]);
+				tempVmi = findQuery(mRef[refName],allChrom[indexAln].cc[j],masterRef[refName],masterQ[qName], masterHQ[qName]);
 				if(tempVmi.size()>0)
 				{
 					vmi.insert(vmi.end(),tempVmi.begin(),tempVmi.end());
-					for(unsigned int i=0; i< tempVmi.size();i++)
+					for(unsigned int i=0; i< tempVmi.size()-1;i++)//last element of tempVmi has the coverage info
 					{
-						fcnv<<tempVmi[i].rn<<"\t"<<tempVmi[i].x1<<"\t"<<tempVmi[i].x2<<"\tCNV\t"<<tempVmi[i].qn<<"\t"<<tempVmi[i].y1<<"\t"<<tempVmi[i].y2<<endl;
+						fcnv<<tempVmi[i].rn<<"\t"<<tempVmi[i].x1<<"\t"<<tempVmi[i].x2<<"\tCNV\t"<<tempVmi[i].qn<<"\t"<<tempVmi[i].y1<<"\t"<<tempVmi[i].y2<<"\t"<<setfill('0')<<setw(10)<<tempVmi[i].x1<<tempVmi[i].rn<<"\t"<<tempVmi[tempVmi.size()-1].x1<<"\t"<<tempVmi[tempVmi.size()-1].x2<<"\t"<<tempVmi[tempVmi.size()-1].y1<<endl;
 					}
 				}
 			}
-			annotGaps(allChrom[indexAln].cm,mRef[refName],masterRef[refName],masterQ[qName],vmi,umRef[refName],refseq[refName],qseq[qName],seqLen[indexAln],fout,fsmall);			
+			annotGaps(allChrom[indexAln].cm,mRef[refName],masterRef[refName],masterQ[qName],vmi,umRef[refName],refseq[refName],qseq[qName],seqLen[indexAln],fout,fsmall,id);			
 			
 			
 		}
