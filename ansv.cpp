@@ -69,11 +69,11 @@ void annotGaps(vector<mI> & cm, map<int,vq> & mRef, ccov & masterRef, ccov & mas
 			{ 
 				if((cov[0] >4) || (cov[1] >4))
 				{
-					fout<<cnvmi.rn<<"\t"<<cnvmi.x1<<" "<<cnvmi.x2<<"\tnCNV\t"<<cnvmi.qn<<"\t"<<cnvmi.y1<<"\t"<<cnvmi.y2<<"\t"<<setfill('0')<<setw(10)<<cnvmi.x1<<cnvmi.rn<<"\t"<<(cnvmi.x2 -cnvmi.x1)<<"\t"<<cov[0]<<"\t"<<nearestInt(cov[1])<<endl;
+					fout<<cnvmi.rn<<"\t"<<cnvmi.x1<<"\t"<<cnvmi.x2<<"\tnCNV\t"<<cnvmi.qn<<"\t"<<cnvmi.y1<<"\t"<<cnvmi.y2<<"\t"<<setfill('0')<<setw(10)<<cnvmi.x1<<cnvmi.rn<<"\t"<<(cnvmi.x2 -cnvmi.x1)<<"\t"<<cov[0]<<"\t"<<nearestInt(cov[1])<<endl;
 				}
 				else
 				{
-					fout<<cnvmi.rn<<"\t"<<cnvmi.x1<<" "<<cnvmi.x2<<"\tCNV\t"<<cnvmi.qn<<"\t"<<cnvmi.y1<<"\t"<<cnvmi.y2<<"\t"<<setfill('0')<<setw(10)<<cnvmi.x1<<cnvmi.rn<<"\t"<<(cnvmi.x2 -cnvmi.x1)<<"\t"<<cov[0]<<"\t"<<nearestInt(cov[1])<<endl;
+					fout<<cnvmi.rn<<"\t"<<cnvmi.x1<<"\t"<<cnvmi.x2<<"\tCNV\t"<<cnvmi.qn<<"\t"<<cnvmi.y1<<"\t"<<cnvmi.y2<<"\t"<<setfill('0')<<setw(10)<<cnvmi.x1<<cnvmi.rn<<"\t"<<(cnvmi.x2 -cnvmi.x1)<<"\t"<<cov[0]<<"\t"<<nearestInt(cov[1])<<endl;
 				}
 				cm[i].y1 = cnvmi.y1; // changing the interval so that it is not used for calling CNV again  
 			}
