@@ -15,7 +15,7 @@ If you publish results obtained with this pipeline, please cite SVMU as describe
 2. Align the reference and your sample genomes using nucmer: 
 
  ```
-	nucmer -maxmatch --noextend -prefix sam2ref.mm ref.fasta sample.fasta
+	nucmer -maxmatch -prefix sam2ref.mm ref.fasta sample.fasta
 	
  ```
 Unfortunately, svmu has a high memory footprint (we are working to reduce it) so if your svmu run crashes due to memory, run nucmer as follows -
