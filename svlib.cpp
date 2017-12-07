@@ -143,27 +143,64 @@ void storeCords(map<int,vq> & mRef, mI & mi)
 //////////////////////////////////////////////////////////
 vector<double> getCoverage(mI & mi, ccov & masterRef, ccov & masterQ)
 {
-	int d = 0, cov = 0;
+	int d = 0, cov = 0, covCount=0, medCov =0;
 	double c;
 	vector<double> cc;
+	map<int,int> covFreq;//holds coverage frequency for the genomic interval
 //cout<<mi.x1<<"\t"<<mi.x2<<"\t"<<mi.y1<<"\t"<<mi.y2<<"\t";
 	d = mi.x2 - mi.x1;
 	for(int i = mi.x1-1;i<mi.x2;i++)
 	{
 		cov = cov + masterRef[i];	
+		covFreq[masterRef[i]]++;
 		
 	}
+	for(map<int,int>::iterator it = covFreq.begin();it!= covFreq.end();it++)
+	{
+		if((covCount <int(d*0.75)) && (d>5))
+		{
+			covCount = covCount + it->second;	
+			medCov = it->first;
+		}
+	}
+cout<<mi.x1<<"\t"<<mi.x2<<"\t"<<mi.y1<<"\t"<<mi.y2<<"\t"<<covCount<<"\t"<<medCov<<"\t";
 c = cov/double(d);
-cc.push_back(c);
+	if(d >5)
+	{
+		cc.push_back(double(medCov));
+	}
+	else
+	{
+		cc.push_back(c);
+	}
 
 	cov = 0;
+	covFreq.erase(covFreq.begin(),covFreq.end());//destroying the previous map
+	covCount = 0;
 	d = abs(mi.y1-mi.y2);
 	for(int i = min(mi.y1,mi.y2)-1;i<max(mi.y1,mi.y2);i++)
 	{
 		cov = cov + masterQ[i];
+		covFreq[masterQ[i]]++;
 	}
-c = cov/double(d);
-cc.push_back(c);	
+	for(map<int,int>::iterator it = covFreq.begin();it!= covFreq.end();it++)
+	{
+		if((covCount <int(d*0.75)+1) && (d>5))
+		{
+			covCount = covCount + it->second;
+			medCov = it->first;
+		}
+	}
+cout<<medCov<<endl;
+	c = cov/double(d);
+	if(d>5)
+	{
+		cc.push_back(double(medCov));
+	}
+	else
+	{
+		cc.push_back(c);	
+	}
 return cc;
 //cout<<c<<endl;
 }

@@ -239,7 +239,7 @@ void callSmall(mI & mi,map<int,vector<qord> > & umRef, string & refseq, string &
 			{
 				if(tq.size()>0)
 				{
-					fsmall<<refName<<"\t"<<ti[0]<<"\t"<<ti[ti.size()-1]<<"\tDEL\t"<<tq[0].name<<"\t"<<tq[0].cord<<"\t"<<tq[tq.size()-1].cord<<endl;
+					fsmall<<refName<<"\t"<<ti[0]<<"\t"<<ti[ti.size()-1]<<"\tDEL\t"<<tq[0].name<<"\t"<<tq[0].cord<<"\t"<<tq[tq.size()-1].cord<<"\ts"<<setfill('0')<<setw(10)<<ti[0]<<refName<<"\t"<<abs(ti[0] - ti[ti.size()-1])+1<<"\t"<<"NA"<<"\t"<<"NA"<<endl;
 					tq.clear();
 					ti.clear();
 				}
@@ -265,12 +265,12 @@ void callSmall(mI & mi,map<int,vector<qord> > & umRef, string & refseq, string &
 				//fout<<"INS "<<refName<<" "<<refPos+1<<" "<<refPos+1<<" "<<umRef[pos][0].name<<" "<<lq.cord+1<<" "<<umRef[pos][0].cord-1<<" "<<endl;
 				if(mi.y1 < mi.y2) //if forward oriented
 				{
-					fsmall<<refName<<" "<<refPos+1<<"\t"<<refPos+1<<"\tINS\t"<<umRef[pos][0].name<<"\t"<<lq.cord+1<<"\t"<<umRef[pos][0].cord-1<<"\t"<<endl;
+					fsmall<<refName<<" "<<refPos+1<<"\t"<<refPos+1<<"\tINS\t"<<umRef[pos][0].name<<"\t"<<lq.cord+1<<"\t"<<umRef[pos][0].cord-1<<"\ts"<<setfill('0')<<setw(10)<<refPos+1<<refName<<"\t"<<abs(lq.cord+1-umRef[pos][0].cord+1)+1<<"\t"<<"NA\tNA"<<endl;
 				}
 				if(mi.y1 > mi.y2)
 				{
 				//	cout<<"INS\t"<<refName<<"\t"<<refPos+1<<" "<<refPos+1<<"\t"<<umRef[pos][0].name<<"\t"<<lq.cord-1<<"\t"<<umRef[pos][0].cord +1<<"\t"<<endl;
-					fsmall<<refName<<"\t"<<refPos+1<<" "<<refPos+1<<"\tINS\t"<<umRef[pos][0].name<<"\t"<<lq.cord-1<<"\t"<<umRef[pos][0].cord +1<<"\t"<<endl;
+					fsmall<<refName<<"\t"<<refPos+1<<" "<<refPos+1<<"\tINS\t"<<umRef[pos][0].name<<"\t"<<lq.cord-1<<"\t"<<umRef[pos][0].cord +1<<"\ts"<<setfill('0')<<setw(10)<<refPos+1<<refName<<"\t"<<abs(lq.cord-1- umRef[pos][0].cord-1)+1<<"\t"<<"NA\tNA"<<endl;
 				}
 				if(abs((lq.cord+1) - (umRef[pos][0].cord-1)) > 100)
 				{

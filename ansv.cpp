@@ -59,7 +59,7 @@ void annotGaps(vector<mI> & cm, map<int,vq> & mRef, ccov & masterRef, ccov & mas
 			gapmi.y2 = vi[3];
 			cov = getCoverage(gapmi,masterRef,masterQ);
 			//fout<<cm[i].rn<<"\t"<<cm[i].x1<<"\t"<<cm[i].x2<<"\tINV\t"<<cm[i].qn<<"\t"<<vi[0]<<"\t"<<vi[1]<<endl;
-			fout<<cm[i].rn<<"\t"<<vi[0]<<"\t"<<vi[1]<<"\tINV\t"<<cm[i].qn<<"\t"<<"\t"<<vi[2]<<"\t"<<vi[3]<<"\t"<<setfill('0')<<setw(10)<<id++<<"\t"<<vi[1]-vi[0]<<"\t"<<cov[0]<<"\t"<<cov[1]<<endl;
+			fout<<cm[i].rn<<"\t"<<vi[0]<<"\t"<<vi[1]<<"\tINV\t"<<cm[i].qn<<"\t"<<vi[2]<<"\t"<<vi[3]<<"\t"<<setfill('0')<<setw(10)<<id++<<"\t"<<vi[1]-vi[0]<<"\t"<<cov[0]<<"\t"<<cov[1]<<endl;
 		} 	
 		cnvmi = findDup(cm[i-1],cm[i]);
 		if(cnvmi.x1 != 0)
@@ -158,7 +158,14 @@ void annotGaps(vector<mI> & cm, map<int,vq> & mRef, ccov & masterRef, ccov & mas
 		//		findCnvOverlapInRef(cnv,gapmi,storedCNV,fout);
 				if(!((cm[i-1].y1 > cm[i-1].y2) && (cm[i].y1 >cm[i].y2)))
 				{
-					fout<<cm[i-1].rn<<"\t"<<min(cm[i-1].x2 + 1,cm[i].x1 -1) <<"\t"<<max(cm[i-1].x2 + 1,cm[i].x1 -1)<<"\tDEL\t"<<cm[i-1].qn<<"\t"<<max(cm[i-1].y1,cm[i-1].y2)<<"\t"<<min(cm[i].y1,cm[i].y2)<<"\t"<<setfill('0')<<setw(10)<<id++<<"\t"<<abs(min(cm[i-1].x2 + 1,cm[i].x1 -1)-max(cm[i-1].x2 + 1,cm[i].x1 -1))<<"\t"<<cov[0]<<"\t"<<cov[1]<<endl;
+					if(!(qOvl <0)) //no duplication in reference
+					{
+						fout<<cm[i-1].rn<<"\t"<<min(cm[i-1].x2 + 1,cm[i].x1 -1) <<"\t"<<max(cm[i-1].x2 + 1,cm[i].x1 -1)<<"\tDEL\t"<<cm[i-1].qn<<"\t"<<max(cm[i-1].y1,cm[i-1].y2)<<"\t"<<min(cm[i].y1,cm[i].y2)<<"\t"<<setfill('0')<<setw(10)<<id++<<"\t"<<abs(min(cm[i-1].x2 + 1,cm[i].x1 -1)-max(cm[i-1].x2 + 1,cm[i].x1 -1))<<"\t"<<cov[0]<<"\t"<<cov[1]<<endl;
+					}
+					if(qOvl <0)//
+					{
+						fout<<cm[i-1].rn<<"\t"<<min(cm[i-1].x2 + 1,cm[i].x1 -1) <<"\t"<<max(cm[i-1].x2 + 1,cm[i].x1 -1)+abs(qOvl)<<"\tDEL\t"<<cm[i-1].qn<<"\t"<<max(cm[i-1].y1,cm[i-1].y2)<<"\t"<<min(cm[i].y1,cm[i].y2)<<"\t"<<setfill('0')<<setw(10)<<id++<<"\t"<<abs(min(cm[i-1].x2 + 1,cm[i].x1 -1)-max(cm[i-1].x2 + 1,cm[i].x1 -1))+abs(qOvl)<<"\t"<<cov[0]<<"\t"<<cov[1]<<endl;
+					}
 				}
 				if(((cm[i-1].y1 > cm[i-1].y2) && (cm[i].y1 >cm[i].y2))) //inverted
 				{
