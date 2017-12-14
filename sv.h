@@ -24,7 +24,7 @@ struct mI {
         int x2;//reference end
         int y1;//query start
         int y2;//query end
-        //int q;//qualifier. special comments or information can be added to this
+        char c;//qualifier. special comments or information can be added to this:i=inversion;
 	vector<int> mv;        
         bool operator < (const mI& mum1) const
         {
@@ -68,9 +68,11 @@ bool detectShadow(mI & mum, vector<mI> & mums, unsigned int n);
 mI findClosest(mI & mi, vector<mI> & mums,unsigned int i, vector<int> & masterRef,vector<int> & masterQ);
 mI findClosest(mI & mi, vector<mI> & mums);//overloaded function
 vector<double> getCoverage(mI & mi, vector<int> & masterRef,vector<int> & masterQ);
+vector<double> getCoverage(mI & mi, vector<int> & masterRef,vector<int> & masterQ,float p);
 //void splitByCoverage(chromPair & cp,vector<int> & chrom, vector<mI> & mums,vector<int> & masterRef, vector<int> & masterQ);
 void splitByCoverage(chromPair & cp,vector<int> & rchrom,vector<int> & qchrom,ofstream & findel);
 void gapCloser(mI & mi, vector<mI> ncm, vector<mI>& cm);
+void gapCloserRev(mI & mi, vector<mI> ncm, vector<mI> & cm);
 vector<mI> findQuery(map<int,vector<qord> > & mRef, mI & mi,vector<int> & masterRef, vector<int> & masterQ,vector<int> & masterHQ);
 int nearestInt(double d);
 void annotGaps(vector<mI> & cm,map<int,vector<qord> > & mRef,vector<int> & masterRef, vector<int> & masterQ,vector<mI> & cnv,map<int,vector<qord> > & umRef, string & refseq, string & qseq,vector<int> & seqlen,ofstream & fout, ofstream & fsmall,int & id);

@@ -141,9 +141,9 @@ void storeCords(map<int,vq> & mRef, mI & mi)
 }
 		
 //////////////////////////////////////////////////////////
-vector<double> getCoverage(mI & mi, ccov & masterRef, ccov & masterQ)
+vector<double> getCoverage(mI & mi, ccov & masterRef, ccov & masterQ, float p)
 {
-	int d = 0, cov = 0, covCount=0, medCov =0;
+	int d = 0, cov = 0,covCount=0, medCov =0;
 	double c;
 	vector<double> cc;
 	map<int,int> covFreq;//holds coverage frequency for the genomic interval
@@ -153,19 +153,18 @@ vector<double> getCoverage(mI & mi, ccov & masterRef, ccov & masterQ)
 	{
 		cov = cov + masterRef[i];	
 		covFreq[masterRef[i]]++;
-		
 	}
 	for(map<int,int>::iterator it = covFreq.begin();it!= covFreq.end();it++)
 	{
-		if((covCount <int(d*0.75)) && (d>5))
+		if((covCount <int(d*p)) && (d>5))
 		{
-			covCount = covCount + it->second;	
+			covCount = covCount + it->second;
 			medCov = it->first;
 		}
 	}
-cout<<mi.x1<<"\t"<<mi.x2<<"\t"<<mi.y1<<"\t"<<mi.y2<<"\t"<<covCount<<"\t"<<medCov<<"\t";
-c = cov/double(d);
-	if(d >5)
+//cout<<mi.x1<<"\t"<<mi.x2<<"\t"<<mi.y1<<"\t"<<mi.y2<<"\t"<<covCount<<"\t"<<medCov<<"\t";
+	c = cov/double(d);
+	if(d>5)
 	{
 		cc.push_back(double(medCov));
 	}
@@ -173,8 +172,9 @@ c = cov/double(d);
 	{
 		cc.push_back(c);
 	}
-
+	
 	cov = 0;
+	medCov = 0;
 	covFreq.erase(covFreq.begin(),covFreq.end());//destroying the previous map
 	covCount = 0;
 	d = abs(mi.y1-mi.y2);
@@ -185,13 +185,13 @@ c = cov/double(d);
 	}
 	for(map<int,int>::iterator it = covFreq.begin();it!= covFreq.end();it++)
 	{
-		if((covCount <int(d*0.75)+1) && (d>5))
+		if((covCount <int(d*p)+1) && (d>5))
 		{
 			covCount = covCount + it->second;
 			medCov = it->first;
 		}
 	}
-cout<<medCov<<endl;
+//cout<<medCov<<endl;
 	c = cov/double(d);
 	if(d>5)
 	{
@@ -205,8 +205,29 @@ return cc;
 //cout<<c<<endl;
 }
 		
-		
-		
+//////////////////////////////////////////////////////
+vector<double> getCoverage(mI & mi, ccov & masterRef, ccov & masterQ)
+{
+	int d = 0, cov = 0;
+	double c;
+	vector<double> cc;
+	d = mi.x2 - mi.x1;
+	for(int i = mi.x1-1;i<mi.x2;i++)
+	{
+		cov = cov + masterRef[i];
+	}
+	c = cov/double(d);
+	cc.push_back(c);
+	cov = 0;
+	d = abs(mi.y1-mi.y2);
+	for(int i = min(mi.y1,mi.y2)-1;i<max(mi.y1,mi.y2);i++)
+	{
+		cov = cov + masterQ[i];
+	}
+	c = cov/double(d);
+	cc.push_back(c);
+	return cc;
+}		
 //////////////////////////////////////////////////////
 mI findClosest(mI & mi, vector<mI> & mums, unsigned int i,ccov & masterRef, ccov & masterQ)
 {
@@ -263,10 +284,11 @@ mI findClosest(mI & mi, vector<mI> & mums)
 	{
 		if(mums[j].y1 > mums[j].y2) //on the other strand
 		{
-			ty2 = mums[j].y2; //swap the values
+			ty2 = mums[j].y1; //swap the values
 			d1 = pow(abs(mi.x1 - mums[j].x1),2);
 			d2 = pow(abs(ty1 - ty2),2);
-			 d = sqrt(d1+d2);
+			 d = abs(sqrt(d1+d2));
+//if(mi.x1 == 627788){cout<<mums[j].x1<<" "<<mums[j].x2<<" "<<mums[j].y1<<" "<<mums[j].y2<<"\t"<<d2<<"\t"<<d<<endl;}
 		}
 		if(mums[j].y1 < mums[j].y2)
 		{
@@ -385,6 +407,35 @@ void gapCloser(mI & mi, vector<mI> ncm, vector<mI> & cm)
 		//return;
 	}
 	
+}
+/////////////////////////////////////////////////////
+void gapCloserRev(mI & mi, vector<mI> ncm, vector<mI> & cm)
+{
+	mI tempmi;
+	vector<mI> smum; //selected mums that overlap with the gap.
+	if((mi.x2 - mi.x1>0) && (mi.y1 - mi.y2 >0)) //checking if both of them has gaps. this is for inverted sequences
+	{
+		for(unsigned int i = 0;i<ncm.size();i++)
+		{
+			//if ncm[i] is also on reverse strand
+			if((!(ncm[i].x2 < mi.x1) && !(min(ncm[i].y1,ncm[i].y2)>mi.y1)) && (!(ncm[i].x1>mi.x2)) && (!(max(ncm[i].y1,ncm[i].y2)<mi.y2))) //ncm mum does not fall outside
+			{
+				smum.push_back(ncm[i]);
+			}
+		}
+		if(smum.size()>0)
+		{
+			tempmi = findClosest(mi,smum); //find the closest mum from the ncm pool
+			cm.push_back(tempmi);
+			mi.x1 = tempmi.x2+1; //adjust the gap coordinates
+			mi.y1 = min(tempmi.y1,tempmi.y2)-1; //adjust the gap coordinates
+			gapCloserRev(mi,smum,cm);//need to make it dependent on the size of ncm if ncm size does not change, that mean no more solution is there
+		}
+	}
+	else
+{
+		//return;
+	}	
 }
 /////////////////////////////////////////////////	
 vector<mI> findQuery(map<int,vq> & mRef, mI & mi,ccov & masterRef, ccov & masterQ, ccov & masterHQ)

@@ -28,11 +28,12 @@ int main(int argc, char *argv[])
 	map<string,string> refseq;
 	map<string,string> qseq;
 	map<string,vector<int> > seqLen;//length of sequences.first element is ref and second is query
-	mI tempmi,gapmi;
+	map<string,bool> qStrand; //stores whether query strand is forward strand or reverse strand
+	mI tempmi,gapmi,prevmi;
 
 	string foo = string(argv[1]);
 	string line, chromName,refName,qName,indexAln;
-	int refStart = 0, refEnd = 0, qStart = 0, qEnd = 0, refLen =0, qLen =0, count = -1,indelPos =0;
+	int refStart = 0, refEnd = 0, qStart = 0, qEnd = 0, refLen =0, qLen =0, count = -1,indelPos =0, forCount =0, revCount = 0;
 	unsigned int cutoff = 0;
 	cutoff = stoi(argv[4]);
 	vector<double> vd;
@@ -91,6 +92,8 @@ int main(int argc, char *argv[])
 				allChrom[indexAln].mums.push_back(tempmi);
 				storeCords(masterRef[refName],masterQ[qName],tempmi);
 				storeCords(mRef[refName],tempmi);
+				//tempmi.mv.clear();//delete this?
+				//allChrom[indexAln].mums.push_back(tempmi);
 //cout<<refName<<"\t"<<refStart<<"\t"<<refEnd<<"\t"<<qName<<"\t"<<qStart<<"\t"<<qEnd<<"\t"<<allChrom[indexAln].mums.size()<<endl;
 				vi.clear();//reset it once its values are used
 			}
@@ -123,18 +126,44 @@ int main(int argc, char *argv[])
 	{
 		indexAln = it->first;
 		sort(allChrom[indexAln].mums.begin(),allChrom[indexAln].mums.end());
-	//	if(indexAln == "refallele2")
-	//	{
-	//	for(int j =23800;j<23840;j++)
-	//	{
-	//		cout<<"ref"<<"\t"<<j;
-	//		for(unsigned int ct=0;ct<mRef["ref"][j].size();ct++)
-	//		{
-	//			cout<<"\t"<<mRef["ref"][j][ct].name<<"\t"<<mRef["ref"][j][ct].cord;
-	//		}
-	//		cout<<endl;
-	//	}
-	//	}
+		for(unsigned int i = 0; i< allChrom[indexAln].mums.size();i++)
+		{
+			tempmi = allChrom[indexAln].mums[i];
+			vd = getCoverage(tempmi,masterRef[tempmi.rn],masterQ[tempmi.qn]);
+			if((vd[0] <1.3) && (vd[1]<1.3))
+			{
+				if(tempmi.y1>tempmi.y2)
+				{
+					revCount++;
+				}
+				else
+				{
+					forCount++;
+				}
+			}
+		}
+		if(revCount > forCount)
+		{
+			qStrand[indexAln] = true;//yes it is reverse strand
+		}
+		else
+		{
+			qStrand[indexAln] = false;
+		}
+		forCount = 0;
+		revCount = 0;
+		//if(indexAln == "2L2L")
+		//{
+		//for(int j =6100162;j<6101000;j++)
+		//{
+		//	cout<<"ref"<<"\t"<<j;
+		//	for(unsigned int ct=0;ct<mRef["ref"][j].size();ct++)
+		//	{
+		//		cout<<"\t"<<mRef["ref"][j][ct].name<<"\t"<<mRef["ref"][j][ct].cord;
+		//	}
+		//	cout<<endl;
+		//}
+		//}
 		for(unsigned int i= 0; i<allChrom[indexAln].mums.size();i++)
 		{
 			tempmi = allChrom[indexAln].mums[i];
@@ -146,27 +175,68 @@ int main(int argc, char *argv[])
 					gapmi.rn = tempmi.rn;
 					gapmi.qn = tempmi.qn;
 					gapmi.x1 = 1;
-					gapmi.x2 = tempmi.x2;
-					gapmi.y1 = 1;
-					gapmi.y2 = min(tempmi.y1,tempmi.y2);
+					gapmi.x2 = tempmi.x1;
+					if(qStrand[indexAln] == false)
+					{
+						gapmi.y1 = 1;
+						gapmi.y2 = min(tempmi.y1,tempmi.y2);
+						gapmi.c = 'f';
+					}
+					else	
+					{
+						gapmi.y1 = seqLen[indexAln][1];//the largest length. correct this after the next element
+						gapmi.y2 = max(tempmi.y1,tempmi.y2);
+						gapmi.c = 'r';
+					}
 					allChrom[indexAln].gap.push_back(gapmi);
 				}
 					
 				if(allChrom[indexAln].cm.size() >0)//once more than one element has been entered
 				{	
+					prevmi = allChrom[indexAln].cm[allChrom[indexAln].cm.size() -1];//the previous mi
 					refStart = allChrom[indexAln].cm[allChrom[indexAln].cm.size() -1].x2;
-					qStart = max(allChrom[indexAln].cm[allChrom[indexAln].cm.size() -1].y2,allChrom[indexAln].cm[allChrom[indexAln].cm.size() -1].y1);
+					//if((prevmi.y1 <prevmi.y2) && (tempmi.y1 <tempmi.y2))
+					//{
+					//	qStart = max(allChrom[indexAln].cm[allChrom[indexAln].cm.size() -1].y2,allChrom[indexAln].cm[allChrom[indexAln].cm.size() -1].y1);
+					//}
+					if((prevmi.y1 > prevmi.y2) && (tempmi.y1 > tempmi.y2))
+					{
+						qStart = min(allChrom[indexAln].cm[allChrom[indexAln].cm.size() -1].y2,allChrom[indexAln].cm[allChrom[indexAln].cm.size() -1].y1);
+					}
+					else
+					{
+						qStart = max(allChrom[indexAln].cm[allChrom[indexAln].cm.size() -1].y2,allChrom[indexAln].cm[allChrom[indexAln].cm.size() -1].y1);
+					}
+					gapmi.rn = tempmi.rn;
+					gapmi.qn = tempmi.qn;
 					if(refStart < tempmi.x1)
 					{
-						gapmi.rn = tempmi.rn;
-						gapmi.qn = tempmi.qn;
-						gapmi.x1 = refStart;
-						gapmi.x2 = tempmi.x1;
-						gapmi.y1 = qStart;
-						gapmi.y2 = min(tempmi.y1,tempmi.y2);
-						allChrom[indexAln].gap.push_back(gapmi);
-
+						if(!((prevmi.y1 >prevmi.y2) && (tempmi.y1 >tempmi.y2))) //not both of them are inverted
+						{	
+							gapmi.x1 = refStart;
+							gapmi.x2 = tempmi.x1;
+							gapmi.y1 = qStart;
+							gapmi.y2 = min(tempmi.y1,tempmi.y2);
+							gapmi.c = 'f';
+							if(gapmi.y2 - gapmi.y1 >0)
+							{
+								allChrom[indexAln].gap.push_back(gapmi);
+							}
+						}
+						if((prevmi.y1 > prevmi.y2) && (tempmi.y1 > tempmi.y2))
+						{
+							gapmi.x1 = refStart;
+							gapmi.x2 = tempmi.x1;
+							gapmi.y1 = qStart;
+							gapmi.y2 = max(tempmi.y1,tempmi.y2);
+							gapmi.c = 'r';
+							if(gapmi.y1 - gapmi.y2 >0)
+							{
+								allChrom[indexAln].gap.push_back(gapmi);
+							}
+						}
 					}
+					
 				}
 				allChrom[indexAln].cm.push_back(tempmi);
 				count = count + tempmi.x2 - tempmi.x1; //keeping a count of total unique alignment
@@ -175,11 +245,8 @@ int main(int argc, char *argv[])
 			
 			else
 			{
+			//	cout<<"ncm\t"<<indexAln<<"\t"<<tempmi.x1<<"\t"<<tempmi.x2<<"\t"<<tempmi.y1<<"\t"<<tempmi.y2<<"\t"<<vd[0]<<"\t"<<vd[1]<<endl;
 				 allChrom[indexAln].ncm.push_back(tempmi);
-	//			if((nearestInt(vd[0]) > 5) && (nearestInt(vd[1]) > 5))
-	//			{
-	//				cout<<tempmi.rn<<"\t"<<tempmi.x1<<"\t"<<tempmi.x2<<"\t"<<tempmi.qn<<"\t"<<tempmi.y1<<"\t"<<tempmi.y2<<"\t"<<nearestInt(vd[0])<<"\t"<<nearestInt(vd[1])<<endl;
-	//			}
 				
 			}
 		}
@@ -191,9 +258,24 @@ int main(int argc, char *argv[])
 			for(unsigned int i=0;i<allChrom[indexAln].gap.size();i++)
 			{
 //				tempmi = allChrom[indexAln].gap[i];
-				gapCloser(allChrom[indexAln].gap[i], allChrom[indexAln].ncm, allChrom[indexAln].cm);
+				if(allChrom[indexAln].gap[i].y1 <allChrom[indexAln].gap[i].y2) // if forward strand
+
+				{
+					gapCloser(allChrom[indexAln].gap[i], allChrom[indexAln].ncm, allChrom[indexAln].cm);
+				}
+					if(allChrom[indexAln].gap[i].c == 'r')
+				{
+					gapCloserRev(allChrom[indexAln].gap[i], allChrom[indexAln].ncm, allChrom[indexAln].cm);
+				}
 			}
-	//		sort(allChrom[indexAln].cm.begin(),allChrom[indexAln].cm.end(),qusort);
+			//sort(allChrom[indexAln].cm.begin(),allChrom[indexAln].cm.end(),qusort);
+			//sort(allChrom[indexAln].cm.begin(),allChrom[indexAln].cm.end());
+			//for(unsigned int i=0;i<allChrom[indexAln].cm.size();i++)
+			//{
+			//	tempmi = allChrom[indexAln].cm[i];
+			//	cout<<"cm\t"<<indexAln<<"\t"<<tempmi.x1<<"\t"<<tempmi.x2<<"\t"<<tempmi.y1<<"\t"<<tempmi.y2<<endl;
+			//}			
+			
 		}
 
 		allChrom[indexAln].mums.clear(); //free up the memory
