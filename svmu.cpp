@@ -89,11 +89,11 @@ int main(int argc, char *argv[])
 			if(indelPos ==0) //reached the end of the indel description
 			{
 				tempmi.mv = vi;
-				allChrom[indexAln].mums.push_back(tempmi);
+				//allChrom[indexAln].mums.push_back(tempmi);
 				storeCords(masterRef[refName],masterQ[qName],tempmi);
 				storeCords(mRef[refName],tempmi);
-				//tempmi.mv.clear();//delete this?
-				//allChrom[indexAln].mums.push_back(tempmi);
+				tempmi.mv.clear();//delete this?
+				allChrom[indexAln].mums.push_back(tempmi);
 //cout<<refName<<"\t"<<refStart<<"\t"<<refEnd<<"\t"<<qName<<"\t"<<qStart<<"\t"<<qEnd<<"\t"<<allChrom[indexAln].mums.size()<<endl;
 				vi.clear();//reset it once its values are used
 			}
@@ -240,12 +240,12 @@ int main(int argc, char *argv[])
 				}
 				allChrom[indexAln].cm.push_back(tempmi);
 				count = count + tempmi.x2 - tempmi.x1; //keeping a count of total unique alignment
-				//cout<<"cm\t"<<indexAln<<"\t"<<tempmi.x1<<"\t"<<tempmi.x2<<"\t"<<tempmi.y1<<"\t"<<tempmi.y2<<"\t"<<vd[0]<<"\t"<<vd[1]<<endl;
+				cout<<"cm\t"<<indexAln<<"\t"<<tempmi.x1<<"\t"<<tempmi.x2<<"\t"<<tempmi.y1<<"\t"<<tempmi.y2<<"\t"<<vd[0]<<"\t"<<vd[1]<<endl;
 			}
 			
 			else
 			{
-			//	cout<<"ncm\t"<<indexAln<<"\t"<<tempmi.x1<<"\t"<<tempmi.x2<<"\t"<<tempmi.y1<<"\t"<<tempmi.y2<<"\t"<<vd[0]<<"\t"<<vd[1]<<endl;
+				cout<<"ncm\t"<<indexAln<<"\t"<<tempmi.x1<<"\t"<<tempmi.x2<<"\t"<<tempmi.y1<<"\t"<<tempmi.y2<<"\t"<<vd[0]<<"\t"<<vd[1]<<endl;
 				 allChrom[indexAln].ncm.push_back(tempmi);
 				
 			}
@@ -253,6 +253,7 @@ int main(int argc, char *argv[])
 
 		if(allChrom[indexAln].cm.size()>cutoff)
 		{
+//cout<<indexAln<<"\t"<<allChrom[indexAln].cm.size()<<"\t"<<cutoff<<endl;
 			hcp[allChrom[indexAln].cm[0].rn].push_back(indexAln);//homologous alignment
 			
 			for(unsigned int i=0;i<allChrom[indexAln].gap.size();i++)
@@ -299,15 +300,16 @@ int main(int argc, char *argv[])
 		}
 	}
 	ftrans.close();
-//	for(int j = 23820;j<23840;j++)
-//	{
-//		cout<<"ref"<<"\t"<<j;
-//		for(unsigned int ct=0;ct<umRef["ref"][j].size();ct++)
-//		{
-//			cout<<"\t"<<umRef["ref"][j][ct].name<<"\t"<<umRef["ref"][j][ct].cord;
-//		}
-//		cout<<endl;
-//	}
+	//for(int j = 13900084;j<13906487;j++)
+	//{
+	//	cout<<"2LSuper-Scaffold_16"<<"\t"<<j;
+	//	for(unsigned int ct=0;ct<umRef["2L"][j].size();ct++)
+	//	{
+	//		cout<<"\t"<<umRef["2L"][j][ct].name<<"\t"<<umRef["2L"][j][ct].cord;
+	//	}
+	//	cout<<endl;
+	//}
+	
 	refFasta.open(argv[2]);//read in the reference fasta
 	readfasta(refFasta,refseq);//load them into memory
 	refFasta.close();
@@ -315,8 +317,6 @@ int main(int argc, char *argv[])
 	readfasta(qFasta,qseq);
 	qFasta.close();
 	int id = 0;	
-	//cout<<"fileformat=VCFv4.2"<<endl;
-	//cout<<"#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT"<<endl;
 	fout.open("sv.txt");
 	fcnv.open("cnv_all.txt");
 	fsmall.open("small.txt");

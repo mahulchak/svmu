@@ -225,6 +225,7 @@ void callSmall(mI & mi,map<int,vector<qord> > & umRef, string & refseq, string &
 	for(int pos = mi.x1-1;pos < mi.x2;pos++)//pos is the coordinates from a cm
 	{
 		//pos = it->first;
+//cout<<"small\t"<<mi.rn<<'\t'<<mi.x1<<'\t'<<mi.x2<<'\t'<<pos<<endl;
 		if(umRef[pos].size() >1)
 		{
 //			sort(umRef[pos].begin(),umRef[pos].end());//sort the coordinates to remain consistent
@@ -234,7 +235,6 @@ void callSmall(mI & mi,map<int,vector<qord> > & umRef, string & refseq, string &
 		{
 			refGap = (pos - refPos);
 			qGap = abs(lq.cord - umRef[pos][0].cord);
-			
 			if((refGap == 1) && (qGap == 1))
 			{
 				if(tq.size()>0)
@@ -249,7 +249,7 @@ void callSmall(mI & mi,map<int,vector<qord> > & umRef, string & refseq, string &
 					{
 						qseq[umRef[pos][0].cord -1] = refseq[pos];
 					}
-						}
+				}
 				if(refseq[pos] != qseq[umRef[pos][0].cord -1])
 				{
 					fsmall<<refName<<"\t"<<pos+1<<"\t"<<refseq[pos]<<"\tSNP\t"<<umRef[pos][0].name<<"\t"<<umRef[pos][0].cord<<"\t"<<qseq[umRef[pos][0].cord -1]<<endl;
@@ -289,7 +289,6 @@ void callSmall(mI & mi,map<int,vector<qord> > & umRef, string & refseq, string &
 					fsmall<<refName<<"\t"<<pos+1<<"\t"<<refseq[pos]<<"\tSNP\t"<<umRef[pos][0].name<<"\t"<<umRef[pos][0].cord<<"\t"<<qseq[umRef[pos][0].cord -1]<<endl;
 				}				
 			}
-				
 			lq = umRef[pos][0];
 			refPos = pos;
 			if(umRef[pos].size() >1)
