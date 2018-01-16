@@ -15,12 +15,12 @@ If you publish results obtained with this pipeline, please cite SVMU as describe
 2. Align the reference and your sample genomes using nucmer: 
 
  ```
-	nucmer -maxmatch --noextend -prefix sam2ref.mm ref.fasta sample.fasta
+	nucmer -maxmatch -prefix sam2ref.mm ref.fasta sample.fasta
 	
  ```
-Unfortunately, svmu has a high memory footprint (we are working to reduce it) so if your svmu run crashes due to memory, run nucmer as follows -
+Unfortunately, svmu has a high memory footprint (we are working to reduce it) so if your svmu run crashes due to memory, you may run nucmer as follows -
  ```
-	nucmer -mumreference --noextend -prefix sam2ref.mr ref.fasta sample.fasta
+	nucmer -mumreference -prefix sam2ref.mr ref.fasta sample.fasta
 
  ```
 
@@ -42,4 +42,4 @@ Unfortunately, svmu has a high memory footprint (we are working to reduce it) so
 	
 	trans.txt: A bed file with the reference genomic regions that have been putatively translocated (may not include TEs). 
 
-We are continuously working on this and other tools that facilitate variant detection from a population samples of high quality genomes. If you have an idea or suggestion (including collaboration ideas, write to me or J.J. Emerson or Anthony Long).
+This is work in progress. Final goal is to facilitate variant detection from a population samples of high quality genomes. If you have an idea or suggestion (including collaboration ideas, write to me).
