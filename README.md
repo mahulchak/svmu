@@ -24,6 +24,8 @@ Unfortunately, svmu has a high memory footprint (we are working to reduce it) so
 
  ```
 
+<b>If you are trying to find large (>100bp) indels and inversions, mumreference works better (less time and memory) than the maxmatch algorithm. maxmatch is sometimes better for CNV detection. If you want to increase the resolution of mutation detection, adding '--noextend' may be helpful.</b>
+
 3. Run svmu on the delta file.
 
  ```
@@ -42,4 +44,4 @@ Unfortunately, svmu has a high memory footprint (we are working to reduce it) so
 	
 	trans.txt: A bed file with the reference genomic regions that have been putatively translocated (may not include TEs). 
 
-This is work in progress. Final goal is to facilitate variant detection from a population samples of high quality genomes. If you have an idea or suggestion (including collaboration ideas, write to me).
+This is work in progress so do examine the output. Final goal is to facilitate variant detection from a population samples of high quality genomes. If you have an idea or suggestion (including collaboration ideas, write to me).
