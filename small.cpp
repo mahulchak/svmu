@@ -131,7 +131,7 @@ void readUniq(ifstream & fin,vector<mI> & cm, map<int,vector<qord> > & umRef,vec
 			Len = stoi(line.substr(pos1));//from last space till end. This is qLen
 			indexAln = refName + qName;
 			count = -1;
-			if(masterHQ.size() == 0)//if they have not been created
+			if((masterHQ.size() == 0) && (qName == cm[0].qn))//if they have not been created
 			{
 				masterHQ = makeChromBucket(Len);//Here Len is qLen
 			}
