@@ -15,16 +15,16 @@ If you publish results obtained with this pipeline, please cite SVMU as describe
 2. Align the reference and your sample genomes using nucmer: 
 
  ```
-	nucmer -maxmatch -prefix sam2ref.mm ref.fasta sample.fasta
+	nucmer -maxmatch -noextend -prefix sam2ref.mm ref.fasta sample.fasta
 	
  ```
 Unfortunately, svmu has a high memory footprint (we are working to reduce it) so if your svmu run crashes due to memory, you may run nucmer as follows -
  ```
-	nucmer -mumreference -prefix sam2ref.mr ref.fasta sample.fasta
+	nucmer -mumreference -noextend -prefix sam2ref.mr ref.fasta sample.fasta
 
  ```
 
-<b>If you are trying to find large (>100bp) indels and inversions, mumreference works better (less time and memory) than the maxmatch algorithm. maxmatch is sometimes better for CNV detection. If you want to increase the resolution of mutation detection, adding '--noextend' may be helpful.</b>
+<b>If you are trying to find large (>100bp) indels and inversions, mumreference works better (less time and memory) than the maxmatch algorithm. maxmatch is sometimes better for CNV detection. 
 
 3. Run svmu on the delta file.
 
