@@ -24,7 +24,7 @@ Unfortunately, svmu has a high memory footprint (we are working to reduce it) so
 
  ```
 
-<b>If you are trying to find large (>100bp) indels and inversions, mumreference works better (less time and memory) than the maxmatch algorithm. maxmatch is sometimes better for CNV detection. 
+If you are trying to find large (>100bp) indels and inversions, mumreference works better (less time and memory) than the maxmatch algorithm. maxmatch is sometimes better for CNV detection. 
 
 3. Run svmu on the delta file.
 
