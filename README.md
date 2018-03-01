@@ -29,10 +29,12 @@ If you are trying to find large (>100bp) indels and inversions, mumreference wor
 3. Run svmu on the delta file.
 
  ```
-	svmu sam2ref.mm.delta ref.fasta sample.fasta n > sample.small.txt
+	svmu sam2ref.mm.delta ref.fasta sample.fasta n cnv_mode> sample.small.txt
 
  ```
-  n represents the number of unique mum/syntenic blocks that should be present between two sequences to find the SVs between them. It can be 5, or 10, or 100 (a future update will likely get rid of this parameter). The program generates several files as output: 
+ <b>n</b> represents the number of unique mum/syntenic blocks that should be present between two sequences to find the SVs between them. It can be 5, or 10, or 100 (a future update will likely get rid of this parameter). 
+  
+ <b>cnv_mode</b> should be 'h' or 'l', depending on whether you want to perform a highly sensitive (and slow) search (h) for CNVs or moderately sensitive (and significantly faster) search (l) for CNV detection. The program generates several files as output: 
 
 	sv.txt: A tab delimited file that summarizes structural mutations (indels, CNVs, inversions) in the sample genome with respect to the reference genome.  
 
