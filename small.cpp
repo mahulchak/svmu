@@ -245,12 +245,13 @@ void callSmall(mI & mi,map<int,vector<qord> > & umRef, string & refseq, string &
 				}
 				if(mi.y1 > mi.y2) //if inverted
 				{
-					if(qseq[umRef[pos][0].cord -1] == comp(refseq[pos]))
+//cout<<pos<<"\t"<<umRef[pos][0].cord<<"\t"<<qseq.size()<<"\t"<<refseq.size()<<endl;
+					if(((int(qseq[umRef[pos][0].cord -1]) - int(comp(refseq[pos]))) == 0) || (abs(int(qseq[umRef[pos][0].cord -1]) - int(comp(refseq[pos]))) == 32)) //both are same case or different case
 					{
 						qseq[umRef[pos][0].cord -1] = refseq[pos];
 					}
 				}
-				if(refseq[pos] != qseq[umRef[pos][0].cord -1])
+				if((int(refseq[pos])-int(qseq[umRef[pos][0].cord -1]) != 0) && (abs(int(refseq[pos])-int(qseq[umRef[pos][0].cord -1])) != 32))
 				{
 					fsmall<<refName<<"\t"<<pos+1<<"\t"<<refseq[pos]<<"\tSNP\t"<<umRef[pos][0].name<<"\t"<<umRef[pos][0].cord<<"\t"<<qseq[umRef[pos][0].cord -1]<<endl;
 				}
@@ -284,7 +285,15 @@ void callSmall(mI & mi,map<int,vector<qord> > & umRef, string & refseq, string &
 //cout<<tempmi.rn<<" "<<tempmi.x1<<" "<<tempmi.x2<<" "<<tempmi.qn<<" "<<tempmi.y1<<" "<<tempmi.y2<<endl;
 				}
 			
-				if(refseq[pos] != qseq[umRef[pos][0].cord -1])
+				//if(refseq[pos] != qseq[umRef[pos][0].cord -1])
+				if(mi.y1 > mi.y2) //if inverted
+				{
+					if(((int(qseq[umRef[pos][0].cord -1]) - int(comp(refseq[pos]))) == 0) || (abs(int(qseq[umRef[pos][0].cord -1]) - int(comp(refseq[pos]))) == 32)) //both are same case or different case
+					{
+						qseq[umRef[pos][0].cord -1] = refseq[pos];
+					}
+				}
+				if((int(refseq[pos])-int(qseq[umRef[pos][0].cord -1]) != 0) && (abs(int(refseq[pos])-int(qseq[umRef[pos][0].cord -1])) != 32))
 				{
 					fsmall<<refName<<"\t"<<pos+1<<"\t"<<refseq[pos]<<"\tSNP\t"<<umRef[pos][0].name<<"\t"<<umRef[pos][0].cord<<"\t"<<qseq[umRef[pos][0].cord -1]<<endl;
 				}				
@@ -304,21 +313,45 @@ void callSmall(mI & mi,map<int,vector<qord> > & umRef, string & refseq, string &
 char comp(char & N) //return the complementary nucleotide
 {
 	char c;
+	if(N == 'N')
+	{
+		c = 'N';
+	}
+	if(N == 'n')
+	{
+		c = 'n';
+	}
 	if(N == 'A')
 	{
 		c = 'T';
 	}
-	else if(N == 'T')
+	if(N == 'a')
+	{
+		c = 't';
+	}
+	if(N == 'T')
 	{
 		c = 'A';
 	}
-	else if(N == 'G')
+	if(N == 't')
+	{
+		c = 'a';
+	}
+	if(N == 'G')
 	{
 		c = 'C';
+	}
+	if(N == 'g')
+	{
+		c = 'c';
 	}	
-	else if(N == 'C')
+	if(N == 'C')
 	{
 		c = 'G';
+	}
+	if(N == 'c')
+	{
+		c = 'g';
 	}
 
 return c;

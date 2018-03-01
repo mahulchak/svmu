@@ -20,39 +20,6 @@ ccov makeChromBucket(int refLen)
 return v;
 }	
 ///////////////////////////////////////////////////////////
-int findDist(int & x1,int & y1, int & c) //c is the intercept of the absolute diagonal
-{
-	int c1 = 0, dist =0;
-	
-	c1 = abs(x1 - y1);
-	
-	dist = abs(c1 -c);
-	dist = int(dist/sqrt(2));
-
-	return dist;
-}
-///////////////////////////////////////////////////////////
-//bool chkOverlap(int & x1, int & x2,int & y1, int &y2) 
-bool detectShadow(mI & mum, vector<mI> & mums, unsigned int i) //return whether mum is shadow mum or not
-{
-	unsigned int count = 0;
-	bool found = false;
-	while((found == false) && (count<mums.size())) // end of mum reference cannot be beyond mums[i] start if mum is a shadow
-	{
-		if((!(mum.x1<mums[count].x1)) && (!(mum.x2>mums[count].x2)) && (count != i))
-		{
-			found =true;
-		}
-		if((!(mum.y1 < mums[count].y1)) && (!(mum.y2 > mums[count].y2)) && (count != i))
-		{
-			found = true;
-		}
-	count++;
-	}
-
-return found;
-}
-/////////////////////////////////////////////////////////
 void storeCords(ccov & masterRef,ccov & masterQ, mI & mi)
 {
 
@@ -79,7 +46,7 @@ void storeCords(ccov & masterRef,ccov & masterQ, mI & mi)
 	}
 }
 ///////////////////////////////////////////////////////
-void storeCords(map<int,vq> & mRef, mI & mi)
+void storeCords(map<int,vq> & mRef, mI & mi,ofstream & fout)
 {	
 	int refC = mi.x1;
 	int ci = refC * (-1); //ci is minus i
@@ -97,6 +64,7 @@ void storeCords(map<int,vq> & mRef, mI & mi)
 				temp.name = mi.qn;
 				temp.cord = qC-1;
 				mRef[refC-1].push_back(temp);
+//fout<<mi.rn<<"\t"<<refC<<"\t"<<mi.qn<<"\t"<<qC<<endl;
 			}
 			if((find(mi.mv.begin(),mi.mv.end(),refC) != mi.mv.end()) && (find(mi.mv.begin(),mi.mv.end(),ci) == mi.mv.end())) //position has insertion
 			{
@@ -104,11 +72,13 @@ void storeCords(map<int,vq> & mRef, mI & mi)
 				temp.name = mi.qn;
 				temp.cord = qC-1;
 				mRef[refC-1].push_back(temp);
+//fout<<mi.rn<<"\t"<<refC<<"\t"<<mi.qn<<"\t"<<qC<<endl;
 			}
 			if((find(mi.mv.begin(),mi.mv.end(),refC) == mi.mv.end()) && (find(mi.mv.begin(),mi.mv.end(),ci) != mi.mv.end())) //position has deletion
 			{
 				qC++;
 			}
+//fout<<mi.rn<<"\t"<<refC<<"\t"<<mi.qn<<"\t"<<qC<<endl;
 		}
 	}
 	if(mi.y1 > mi.y2 )//if two are on different strands
@@ -124,6 +94,7 @@ void storeCords(map<int,vq> & mRef, mI & mi)
 				temp.name = mi.qn;
 				temp.cord = qC+1;	
 				mRef[refC-1].push_back(temp);
+//fout<<mi.rn<<"\t"<<refC<<"\t"<<mi.qn<<"\t"<<qC<<endl;
 			}
 			if((find(mi.mv.begin(),mi.mv.end(),refC) != mi.mv.end()) && (find(mi.mv.begin(),mi.mv.end(),ci) == mi.mv.end())) //position has insertion
 			{
@@ -131,10 +102,12 @@ void storeCords(map<int,vq> & mRef, mI & mi)
 				temp.name = mi.qn;
 				temp.cord = qC+1;
 				mRef[refC-1].push_back(temp);				
+//fout<<mi.rn<<"\t"<<refC<<"\t"<<mi.qn<<"\t"<<qC<<endl;
 			}
 			if((find(mi.mv.begin(),mi.mv.end(),refC) == mi.mv.end()) && (find(mi.mv.begin(),mi.mv.end(),ci) != mi.mv.end())) //position has deletion
 			{
 				qC--;
+//fout<<mi.rn<<"\t"<<refC<<"\t"<<mi.qn<<"\t"<<qC<<endl;
 			}
 		}
 	}
@@ -228,54 +201,16 @@ vector<double> getCoverage(mI & mi, ccov & masterRef, ccov & masterQ)
 	cc.push_back(c);
 	return cc;
 }		
-//////////////////////////////////////////////////////
-mI findClosest(mI & mi, vector<mI> & mums, unsigned int i,ccov & masterRef, ccov & masterQ)
-{
-	map<double,mI> storeDist;
-	map<double,mI>::iterator it;
-	double d1 =0, d2 =0, d = 0;
-	int ty1 =0, ty2 =0; //to switch the coordinates of the inverted MUMs
-	vector<double> vd;
-	ty1 = mi.y2;
-	
-	if(mi.y1 > mi.y2) // if reverse oriented
-	{
-		ty1 = mi.y1;
-	}
-
-	for(unsigned int j=i+1; j <mums.size();j++)
-	{
-		vd = getCoverage(mums[j],masterRef,masterQ);
-		if(mums[j].y1 > mums[j].y2) //on the other strand
-		{
-			ty2 = mums[j].y2; //swap the values
-			d1 = pow(abs(mi.x2 - mums[j].x1),2);
-			d2 = pow(abs(ty1 - ty2),2);
-              		d = sqrt(d1+d2);
-		}
-		if(mums[j].y1 < mums[j].y2)
-		{
-			d1 = pow(abs(mi.x2 -mums[j].x1),2);
-			d2 = pow(abs(ty1 - mums[j].y1),2);
-			d = sqrt(d1+d2);
-		}
-//cout << mi.x2<<"\t"<<mi.y2<<"\t"<<mums[j].x1<<"\t"<< mums[j].y1<<endl;
-		storeDist[d] = mums[j];
-		
-	}
-	
-	it = storeDist.begin();
-	 		
-return it->second;
-}
 ////////////////////////////////////////////////////
 mI findClosest(mI & mi, vector<mI> & mums)
 {
 	map<double,mI> storeDist;
 	map<double,mI>::iterator it;
-	double d1 =0, d2 =0, d = 0;
+	double d1 =0, d2 =0, d = 0,Dist= 0;
 	int ty1 =0, ty2 =0; //to switch the coordinates of the inverted MUMs
 	ty1 = mi.y1;
+	Dist = sqrt(pow(abs(mi.x2-mi.x1),2)+pow(abs(mi.y1-mi.y2),2));
+	//Dist = abs(mi.x2 - mi.x1);
 	if(mi.y1 > mi.y2) // if reverse oriented
 	{
 		ty1 = mi.y1;
@@ -284,57 +219,54 @@ mI findClosest(mI & mi, vector<mI> & mums)
 	{
 		if(mums[j].y1 > mums[j].y2) //on the other strand
 		{
-			ty2 = mums[j].y1; //swap the values
-			d1 = pow(abs(mi.x1 - mums[j].x1),2);
+			//if(mi.c != 'r')//if both ends are not inverted
+			//{
+				//ty2 = mums[j].y2; //swap the values
+			//	ty2 = mums[j].y1;
+			//}
+			//if(mi.c == 'r')
+			//{
+			//	ty2 = mums[j].y1;
+			//}
+			if(abs(mums[j].y2-mi.y1) > abs(mums[j].y1 - mi.y1))
+			{
+				ty2 = mums[j].y1;
+			}
+			if(abs(mums[j].y2-mi.y1) < abs(mums[j].y1 - mi.y1))
+			{
+				ty2 = mums[j].y2;
+			}
+			d1 = pow(abs(mi.x1 - max(mums[j].x1,mi.x1)),2);//if start of mum preceeds the gap start then effective mum start is the gap start. will do it for query too.
 			d2 = pow(abs(ty1 - ty2),2);
 			 d = abs(sqrt(d1+d2));
-//if(mi.x1 == 627788){cout<<mums[j].x1<<" "<<mums[j].x2<<" "<<mums[j].y1<<" "<<mums[j].y2<<"\t"<<d2<<"\t"<<d<<endl;}
 		}
 		if(mums[j].y1 < mums[j].y2)
 		{
-			d1 = pow(abs(mi.x1 -mums[j].x1),2);
+			d1 = pow(abs(mi.x1 -max(mums[j].x1,mi.x1)),2);
 			d2 = pow(abs(ty1 - mums[j].y1),2);
-			d = sqrt(d1+d2);
+			d = abs(sqrt(d1+d2));
 		}
+		//d = abs(mums[j].x1 - mi.x1); 
 		storeDist[d] = mums[j];
 	}
 	it = storeDist.begin();
+	//if(it->first >(2*Dist))
+//	cout << mi.rn<<"\t"<<mi.x1<<"\t"<<mi.x2<<"\t"<<mi.qn<<"\t"<<mi.y1<<"\t"<<mi.y2<<"\t"<<it->second.rn<<"\t"<<it->second.x1<<"\t"<<it->second.x2<<"\t"<<it->second.y1<<"\t"<<it->second.y2<<"\t"<<it->first<<"\t"<<Dist<<"\t"<<d1<<"\t"<<d2<<endl;
+	if(it->first > Dist)
+	{
+		it->second.y1 = 0;
+	}
 return it->second;
 }
 ////////////////////////////////////////////////////
-//void splitByCoverage(chromPair & cp, ccov & chrom,vector<mI> & mums, ccov & masterRef, ccov & masterQ) // returns the percentage of gap filled by the mi in mums
-void splitByCoverage(chromPair & cp, ccov & chrom, ccov & masterQ,ofstream & findel)
+void splitByCoverageSen(chromPair & cp, ccov & chrom, ccov & masterQ)
 {
 	int cov=0, lastcov=0, nextcov =0;
 	//vector<mI> mum;
 	mI mi,tempmi,gapmi;
 	vector<double> vd;
 	mi.x1 =1;
-	mi.x1 = cp.cm[0].x1;
-	bool flag = false;
-	for(unsigned int j=0;j<cp.cm.size();j++)
-	{
-		//for(unsigned int i =1; i<chrom.size()-1;i++)
-		mi.x1 = cp.cm[j].x1;
-		if(j>0)
-		{
-			gapmi.x1 = min(cp.cm[j-1].x2,cp.cm[j].x1);
-			gapmi.x2 = max(cp.cm[j-1].x2,cp.cm[j].x1);
-			gapmi.y1 = min(cp.cm[j-1].y2, cp.cm[j].y1);
-			gapmi.y2 = max(cp.cm[j-1].y2, cp.cm[j].y1);
-			vd = getCoverage(gapmi,chrom,masterQ);
-			if(vd[0] < 0.5)
-			{
-				findel<<cp.cm[j].rn<<"\t"<<gapmi.x1<<"\t"<<gapmi.x2<<"\tREF_INS\t"<<cp.cm[j].qn<<"\t"<<gapmi.y1<<"\t"<<gapmi.y2<<endl;
-				flag = true;
-			}
-			if((vd[1]<0.5) && (flag == false) )
-			{
-				findel<<cp.cm[j].rn<<"\t"<<gapmi.x1<<"\t"<<gapmi.x2<<"\tQUERY_INS\t"<<cp.cm[j].qn<<"\t"<<gapmi.y1<<"\t"<<gapmi.y2<<endl;				
-			}
-			flag = false;
-		}
-		for(int i = cp.cm[j].x1-1; i<cp.cm[j].x2;i++)
+		for(unsigned int i= 1;i<chrom.size()-1;i++)
 		{
 			cov = chrom[i];
 			lastcov = chrom[i-1];
@@ -348,8 +280,8 @@ void splitByCoverage(chromPair & cp, ccov & chrom, ccov & masterQ,ofstream & fin
 				mi.x2 = i+1;
 			mi.rn = cp.cm[0].rn;
 			mi.qn = cp.cm[0].qn;
-				if(chrom[mi.x1-1] >1)
-				//if(chrom[mi.x1-1] > 0) //this is to count for those which are fewer in query than reference
+				//if(chrom[mi.x1-1] >1)
+				if(chrom[mi.x1-1] > 0)
 				{
 					mi.y1 = 0;
 					mi.y2 = 0;
@@ -364,28 +296,66 @@ void splitByCoverage(chromPair & cp, ccov & chrom, ccov & masterQ,ofstream & fin
 					}
 //cout<<mi.rn<<"\t"<<mi.x1<<"\t"<<mi.x2<<"\t"<<chrom[mi.x1-1]<<"\t"<<chrom[mi.x2-1]<<endl;
 				}
-				//if(chrom[mi.x1-1] ==0) 
-				//{
-				//	cp.in.push_back(mi);
-//cout<<mi.rn<<"\t"<<mi.x1<<"\t"<<mi.x2<<"\t"<<chrom[mi.x1-1]<<endl;
 			}
 						
 //cout<<mi.x1<<"\t"<<mi.x2<<"\t"<<mi.y1<<"\t"<<mi.y2<<"\t"<<vd[0]<<"\t"<<vd[1]<<endl;
 		}
-	}
 		
-//return mum;	
-}						
+}
+///////////////////////////////////////////////////
+void splitByCoverage(chromPair & cp, ccov & chrom, ccov & masterQ)
+{
+	int cov=0, lastcov=0, nextcov =0;
+	mI mi,tempmi,gapmi;
+	vector<double> vd;
+	mi.x1 =1;
+	mi.x1 = cp.cm[0].x1;
+	for(unsigned int j=0;j<cp.cm.size();j++)
+	{	mi.x1 = cp.cm[j].x1;
+		for(int i = cp.cm[j].x1-1; i<cp.cm[j].x2;i++)
+		{
+			cov = chrom[i];
+			lastcov = chrom[i-1];
+			nextcov = chrom[i+1];
+			if((cov != lastcov) && (cov == nextcov))
+			{
+				mi.x1 = i+1;
+			}
+			if((cov == lastcov) && (cov != nextcov))
+			{
+				mi.x2 = i+1;
+				mi.rn = cp.cm[0].rn;
+				mi.qn = cp.cm[0].qn;
+				if(chrom[mi.x1-1] >1)
+				{
+					mi.y1 = 0;
+					mi.y2 = 0;
+					if((cp.cc.size() == 0) && (mi.x2 -mi.x1 >20)) //at least 20 bp or more should show cnv
+					{
+						cp.cc.push_back(mi);
+					}
+					if((cp.cc.size() >0) && !(mi == cp.cc[cp.cc.size()-1]) && (mi.x2-mi.x1>20) && (find(cp.cc.begin(),cp.cc.end(),mi) == cp.cc.end()))
+					{
+						cp.cc.push_back(mi);
+					}
+				}
+			}
+		}
+	}
+}	
+						
 /////////////////////////////////////////////////
 void gapCloser(mI & mi, vector<mI> ncm, vector<mI> & cm)
 {
 	mI tempmi;\
 	vector<mI> smum; //selected mums that overlap with the gap.
-	if((mi.x2 - mi.x1>0) && (mi.y2 - mi.y1 >0)) //checking if both of them has gaps. needs to do this for inverted sequences
+	//if((mi.x2 - mi.x1>0) && (mi.y2 - mi.y1 >0)) //checking if both of them has gaps. needs to do this for inverted sequences
+	if(mi.x2 - mi.x1>0)
 	{
 		for(unsigned int i = 0;i<ncm.size();i++)
 		{
-			if((!(ncm[i].x2 < mi.x1) && !(max(ncm[i].y1,ncm[i].y2)<mi.y1)) && (!(ncm[i].x1>mi.x2) && !(min(ncm[i].y1,ncm[i].y2)>mi.y2))) //ncm mum does not fall outside
+			if((!(ncm[i].x2 < mi.x1)) && (!(max(ncm[i].y1,ncm[i].y2)<min(mi.y1,mi.y2))) && (!(ncm[i].x1>mi.x2)) && (!(min(ncm[i].y1,ncm[i].y2)>max(mi.y2,mi.y1)))) //ncm mum does not fall outside
+			//if((!(ncm[i].x2 < mi.x1)) && (!(ncm[i].x1>mi.x2)))
 			{
 				smum.push_back(ncm[i]);
 //cout<<ncm.size()<<"\t"<<i<<"\t"<<mi.rn<<"\t"<<mi.qn<<mi.x1<<"\t"<<mi.x2<<"\t"<<mi.y1<<"\t"<<mi.y2<<"\t"<<ncm[i].x1<<"\t"<<ncm[i].x2<<"\t"<<ncm[i].y1<<"\t"<<ncm[i].y2<<endl;
@@ -394,12 +364,15 @@ void gapCloser(mI & mi, vector<mI> ncm, vector<mI> & cm)
 		if(smum.size()>0)
 		{	
 			tempmi = findClosest(mi,smum); //find the closest mum from the ncm pool
-			cm.push_back(tempmi);
+			if(tempmi.y1 != 0)
+			{
+				cm.push_back(tempmi);
 //cout<<tempmi.rn<<" "<<tempmi.x1<<" "<<tempmi.x2<<" "<<tempmi.y1<<" "<<tempmi.y2<<endl;
-			mi.x1 = tempmi.x2+1; //adjust the gap coordinates
-			mi.y1 = max(tempmi.y1,tempmi.y2)+1; //adjust the gap coordinates
-			gapCloser(mi,smum,cm);//need to make it dependent on the size of ncm if ncm size does not change, that mean no more solution is there
-			
+				mi.x1 = tempmi.x2+1; //adjust the gap coordinates
+				mi.y1 = max(tempmi.y1,tempmi.y2)+1; //adjust the gap coordinates
+				gapCloser(mi,smum,cm);//need to make it dependent on the size of ncm if ncm size does not change, that mean no more solution is there
+			}
+					
 		}
 	}
 	else
@@ -450,18 +423,20 @@ vector<mI> findQuery(map<int,vq> & mRef, mI & mi,ccov & masterRef, ccov & master
 	mI tmi;//this is to add the coverage info as the last element of mums
 	int rcov =0,cov1 =0, tdcov = 0;
 	vector<int> vi;
-	bool found =false;
-	sort(mRef[mi.x1].begin(),mRef[mi.x1].end());
-	sort(mRef[mi.x2].begin(),mRef[mi.x2].end());
+	bool found =true;
+//	sort(mRef[mi.x1].begin(),mRef[mi.x1].end());
+//	sort(mRef[mi.x2].begin(),mRef[mi.x2].end());
 	//for(unsigned int j=0; j<mRef[mi.x1].size();j++)
 	for(int j=0; j<masterRef[mi.x1-1];j++)
 	{
+//cout<<mi.x1<<"\t"<<mi.x2<<"\ttotal requested coverage\t"<<masterRef[mi.x1-1]<<"\tand\t"<<masterRef[mi.x2-1]<<"\texisting coverage\t"<<mRef[mi.x1].size()<<"\tand\t"<<mRef[mi.x2].size()<<endl;
 		mums[j].x1 = mi.x1;
 		mums[j].x2 = mi.x2;
 		mums[j].y1 = mRef[mi.x1][j].cord;	
 		mums[j].y2 = mRef[mi.x2][j].cord;
 		mums[j].qn = mRef[mi.x1][j].name;
 		mums[j].rn = mi.rn;
+//cout<<mums[j].rn<<"\t"<<mums[j].x1<<"\t"<<mums[j].x2<<"\t"<<mums[j].qn<<"\t"<<mums[j].y1<<"\t"<<mums[j].y2<<endl;
 		if(j ==0)
 		{
 			qnames.push_back(mums[j].qn);
@@ -473,28 +448,33 @@ vector<mI> findQuery(map<int,vq> & mRef, mI & mi,ccov & masterRef, ccov & master
 	}
 	for(unsigned int i = 0; i< mums.size();i++)
 	{
-		vd = getCoverage(mums[i],masterRef,masterQ); //add these in the function arguments
+		vd = getCoverage(mums[i],masterRef,masterQ,0.5); //add these in the function arguments
 		rcov = nearestInt(vd[0]);
 		cov1 = nearestInt(vd[1]);	
-		vd = getCoverage(mums[i],masterRef,masterHQ);//being done for masterHQ and NOT masterQ
+//cout<<mums[i].rn<<"\t"<<mums[i].x1<<"\t"<<mums[i].x2<<"\t"<<mums[i].qn<<"\t"<<mums[i].y1<<"\t"<<mums[i].y2<<"\t"<<rcov<<"\t"<<cov1<<endl;
+		vd = getCoverage(mums[i],masterRef,masterHQ,0.5);//being done for masterHQ and NOT masterQ
 		tdcov = nearestInt(vd[1]);
 		if(rcov != cov1) //if they are unequal. counts both less and more copies
 	//	if(rcov > cov1) //counts only copies which are more
 		{
 			found = true;
+			tmi.x1 = rcov;
+			tmi.x2 = cov1;
+			tmi.y1 = tdcov;
 		}
 		else
 		{
 			found = false;
+			break;
 		}
 		if((qnames.size() > 1)) //present in more than 1 chromosomes/contigs
 		{
 			mums[i].qn = mums[i].qn + " trans";
 		}	
 	}
-	tmi.x1 = rcov;
-	tmi.x2 = cov1;
-	tmi.y1 = tdcov;
+//	tmi.x1 = rcov;
+//	tmi.x2 = cov1;
+//	tmi.y1 = tdcov;
 	mums.push_back(tmi);//add the coverage info as the last element. 
 	if(found == false)
 	{
@@ -523,9 +503,7 @@ void xtracTrans(map<int,vq> & mRef,vector<mI> & cm, ofstream & ftest)
 	//vector<mI> qcm = cm;
 	int k = cm.size()-1;//to use for traversing the vector in reverse direction
 	//sort(qcm.begin(),qcm.end(),qusort); //sorted cm based on query coordinates
-	int chromCt = 0;
 	mI gapmi;
-	vector<string> qname;
 	for(unsigned int i= 1;i<cm.size()-1;i++)
 	{
 		gapmi.rn = cm[i-1].rn;
@@ -554,26 +532,5 @@ void xtracTrans(map<int,vq> & mRef,vector<mI> & cm, ofstream & ftest)
 				ftest<<cm[k-i].rn<<"\t"<<cm[k-i].x1<<"\t"<<cm[k-i].x2<<"\tTRANSLOC\t"<<cm[k-i].qn<<"\t"<<cm[k-i].y1<<"\t"<<cm[k-i].y2<<endl;
 			}
 		}
-		for(int j= gapmi.x1; j<gapmi.x2; j++)
-		{
-			for(unsigned int ct = 0;ct<mRef[j-1].size();ct++)
-			{
-				if(find(qname.begin(),qname.end(),mRef[j-1][ct].name) == qname.end()) // if the query name is absent
-				{
-					qname.push_back(mRef[j-1][ct].name);
-				}
-				if(qname.size() == 2) //if qname has more than 1 element
-				{
-					chromCt++;
-					ct = mRef[j-1].size(); //once more than 1 chromosome has been found for this position, break the loop
-				}
-			}
-			qname.clear();
-		}
-		if((chromCt > ((gapmi.x2-gapmi.x1) *0.8)) && ((gapmi.x2 -gapmi.x1) > 100)) // if more than 70% of the gap map to more than one chromosome and length is at least 10bp
-		{
-			ftest<<gapmi.rn<<"\t"<<gapmi.x1<<"\t"<<gapmi.x2<<"\tTRANSPOSED_REF_INS\t"<<gapmi.qn<<"\t"<<gapmi.y1<<"\t"<<gapmi.y2<<endl;
-		}
-		chromCt = 0; //reset chromosome count to 0
 	}
 }

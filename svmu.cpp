@@ -11,7 +11,7 @@ int main(int argc, char *argv[])
 {
 	if(argc <2)
 	{
-		cerr<<"Usage: "<<argv[0]<<" foo.delta ref.fasta query.fasta cutoff"<<endl;
+		cerr<<"Usage: "<<argv[0]<<" foo.delta ref.fasta query.fasta cutoff mode(h/l)"<<endl;
 		exit(EXIT_FAILURE);
 	}
 
@@ -41,10 +41,11 @@ int main(int argc, char *argv[])
 	vector<mI> vmi,tempVmi;
 	size_t pos1,pos2,namePos;
 	
-	ifstream fin, refFasta, qFasta;
-	ofstream fout,fcnv,fsmall,ftrans,findel;
+	ifstream fin, refFasta, qFasta,fcm;
+	ofstream fout,fcnv,fsmall,ftrans,findel,fcords;
 	fin.open(argv[1]);
-	
+	fcords.open("cords.txt");
+	fcm.open("cm.txt");
 	while(getline(fin,line))
 	{
 		
@@ -91,7 +92,7 @@ int main(int argc, char *argv[])
 				tempmi.mv = vi;
 				//allChrom[indexAln].mums.push_back(tempmi);
 				storeCords(masterRef[refName],masterQ[qName],tempmi);
-				storeCords(mRef[refName],tempmi);
+				storeCords(mRef[refName],tempmi,fcords);
 				tempmi.mv.clear();//delete this?
 				allChrom[indexAln].mums.push_back(tempmi);
 //cout<<refName<<"\t"<<refStart<<"\t"<<refEnd<<"\t"<<qName<<"\t"<<qStart<<"\t"<<qEnd<<"\t"<<allChrom[indexAln].mums.size()<<endl;
@@ -121,7 +122,6 @@ int main(int argc, char *argv[])
 		}
 	}
 	fin.close();
-
 	for(chroms::iterator it = allChrom.begin();it!= allChrom.end();it++)
 	{
 		indexAln = it->first;
@@ -152,18 +152,6 @@ int main(int argc, char *argv[])
 		}
 		forCount = 0;
 		revCount = 0;
-		//if(indexAln == "2L2L")
-		//{
-		//for(int j =6100162;j<6101000;j++)
-		//{
-		//	cout<<"ref"<<"\t"<<j;
-		//	for(unsigned int ct=0;ct<mRef["ref"][j].size();ct++)
-		//	{
-		//		cout<<"\t"<<mRef["ref"][j][ct].name<<"\t"<<mRef["ref"][j][ct].cord;
-		//	}
-		//	cout<<endl;
-		//}
-		//}
 		for(unsigned int i= 0; i<allChrom[indexAln].mums.size();i++)
 		{
 			tempmi = allChrom[indexAln].mums[i];
@@ -240,49 +228,49 @@ int main(int argc, char *argv[])
 				}
 				allChrom[indexAln].cm.push_back(tempmi);
 				count = count + tempmi.x2 - tempmi.x1; //keeping a count of total unique alignment
-				cout<<"cm\t"<<indexAln<<"\t"<<tempmi.x1<<"\t"<<tempmi.x2<<"\t"<<tempmi.y1<<"\t"<<tempmi.y2<<"\t"<<vd[0]<<"\t"<<vd[1]<<endl;
+//				cout<<"cm\t"<<indexAln<<"\t"<<tempmi.x1<<"\t"<<tempmi.x2<<"\t"<<tempmi.y1<<"\t"<<tempmi.y2<<"\t"<<vd[0]<<"\t"<<vd[1]<<endl;
 			}
 			
 			else
 			{
-				cout<<"ncm\t"<<indexAln<<"\t"<<tempmi.x1<<"\t"<<tempmi.x2<<"\t"<<tempmi.y1<<"\t"<<tempmi.y2<<"\t"<<vd[0]<<"\t"<<vd[1]<<endl;
-				 allChrom[indexAln].ncm.push_back(tempmi);
+				allChrom[indexAln].ncm.push_back(tempmi);
 				
 			}
 		}
-
+		allChrom[indexAln].mums.clear(); //free up the memory
 		if(allChrom[indexAln].cm.size()>cutoff)
 		{
-//cout<<indexAln<<"\t"<<allChrom[indexAln].cm.size()<<"\t"<<cutoff<<endl;
 			hcp[allChrom[indexAln].cm[0].rn].push_back(indexAln);//homologous alignment
 			
 			for(unsigned int i=0;i<allChrom[indexAln].gap.size();i++)
 			{
-//				tempmi = allChrom[indexAln].gap[i];
-				if(allChrom[indexAln].gap[i].y1 <allChrom[indexAln].gap[i].y2) // if forward strand
-
+				if(allChrom[indexAln].gap[i].c != 'r')
 				{
 					gapCloser(allChrom[indexAln].gap[i], allChrom[indexAln].ncm, allChrom[indexAln].cm);
 				}
-					if(allChrom[indexAln].gap[i].c == 'r')
+				if(allChrom[indexAln].gap[i].c == 'r')
 				{
 					gapCloserRev(allChrom[indexAln].gap[i], allChrom[indexAln].ncm, allChrom[indexAln].cm);
 				}
 			}
 			//sort(allChrom[indexAln].cm.begin(),allChrom[indexAln].cm.end(),qusort);
-			//sort(allChrom[indexAln].cm.begin(),allChrom[indexAln].cm.end());
-			//for(unsigned int i=0;i<allChrom[indexAln].cm.size();i++)
-			//{
-			//	tempmi = allChrom[indexAln].cm[i];
-			//	cout<<"cm\t"<<indexAln<<"\t"<<tempmi.x1<<"\t"<<tempmi.x2<<"\t"<<tempmi.y1<<"\t"<<tempmi.y2<<endl;
-			//}			
-			
+			allChrom[indexAln].gap.clear();//free up memory;will create gaps again later
+				
+			sort(allChrom[indexAln].cm.begin(),allChrom[indexAln].cm.end());
+			for(unsigned int i=0;i<allChrom[indexAln].cm.size()-1;i++)
+			{
+				tempmi = allChrom[indexAln].cm[i];
+				fcm<<tempmi.rn<<"\t"<<tempmi.x1<<"\t"<<tempmi.x2<<"\t"<<tempmi.qn<<"\t"<<tempmi.y1<<"\t"<<tempmi.y2<<endl;
+					
+			}
+					
 		}
 
 		allChrom[indexAln].mums.clear(); //free up the memory
 		allChrom[indexAln].gap.clear();//free up memory;will create gaps again later
 		count = 0; //reset count for the next alignment
 	}
+	fcm.close();
 //cout<<"Done with gap filling "<<endl;	
 	ftrans.open("trans.txt");	
 	for(map<string,vector<string> >::iterator it = hcp.begin(); it != hcp.end();it++)
@@ -300,15 +288,6 @@ int main(int argc, char *argv[])
 		}
 	}
 	ftrans.close();
-	//for(int j = 13900084;j<13906487;j++)
-	//{
-	//	cout<<"2LSuper-Scaffold_16"<<"\t"<<j;
-	//	for(unsigned int ct=0;ct<umRef["2L"][j].size();ct++)
-	//	{
-	//		cout<<"\t"<<umRef["2L"][j][ct].name<<"\t"<<umRef["2L"][j][ct].cord;
-	//	}
-	//	cout<<endl;
-	//}
 	
 	refFasta.open(argv[2]);//read in the reference fasta
 	readfasta(refFasta,refseq);//load them into memory
@@ -330,7 +309,14 @@ int main(int argc, char *argv[])
 			indexAln = hcp[refName][i];
 			qName = allChrom[indexAln].mums[i].qn;
 			sort(allChrom[indexAln].cm.begin(),allChrom[indexAln].cm.end());
-			splitByCoverage(allChrom[indexAln],masterRef[refName],masterQ[qName],findel);
+			if(argv[5][0] =='h')
+			{
+				splitByCoverageSen(allChrom[indexAln],masterRef[refName],masterQ[qName]);
+			}
+			else
+			{
+				splitByCoverage(allChrom[indexAln],masterRef[refName],masterQ[qName]);	
+			}
 			allChrom[indexAln].gap.clear();//flushing the gaps vector
 			for(unsigned int j=0; j<allChrom[indexAln].cc.size();j++)
 			{
@@ -340,7 +326,7 @@ int main(int argc, char *argv[])
 					vmi.insert(vmi.end(),tempVmi.begin(),tempVmi.end());
 					for(unsigned int i=0; i< tempVmi.size()-1;i++)//last element of tempVmi has the coverage info
 					{
-						fcnv<<tempVmi[i].rn<<"\t"<<tempVmi[i].x1<<"\t"<<tempVmi[i].x2<<"\tCNV\t"<<tempVmi[i].qn<<"\t"<<tempVmi[i].y1<<"\t"<<tempVmi[i].y2<<"\t"<<setfill('0')<<setw(10)<<tempVmi[i].x1<<tempVmi[i].rn<<"\t"<<tempVmi[tempVmi.size()-1].x1<<"\t"<<tempVmi[tempVmi.size()-1].x2<<"\t"<<tempVmi[tempVmi.size()-1].y1<<endl;
+						fcnv<<tempVmi[i].rn<<"\t"<<tempVmi[i].x1<<"\t"<<tempVmi[i].x2<<"\tCNV\t"<<tempVmi[i].qn<<"\t"<<tempVmi[i].y1<<"\t"<<tempVmi[i].y2<<"\t"<<setfill('0')<<setw(10)<<tempVmi[i].x1<<tempVmi[i].rn<<"\t"<<tempVmi[i].x2-tempVmi[i].x1<<"\t"<<tempVmi[tempVmi.size()-1].x1<<"\t"<<tempVmi[tempVmi.size()-1].x2<<"\t"<<tempVmi[tempVmi.size()-1].y1<<endl;
 					}
 				}
 			}
@@ -353,6 +339,7 @@ int main(int argc, char *argv[])
 	fcnv.close();	
 	fsmall.close();
 	findel.close();
+	fcords.close();
 return 0;
 }
 			

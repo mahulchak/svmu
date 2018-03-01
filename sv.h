@@ -50,7 +50,9 @@ class chromPair {
 	public:
 	vector<mI> mums;	
 	vector<mI> cm; //conserved mems
+	vector<mI> cmr; //conserved reverse
 	vector<mI> ncm; //conserved mems from reverse side
+	vector<mI> ncmr;//non-conserved reverse
 	vector<mI> gap; //gaps are represented as mums
 	vector<mI> cc; //cnv candidates
 //	vector<mI> in;//stores insertion mums in reference
@@ -61,7 +63,7 @@ bool qusort(mI mi1, mI mi2); //to sort the mI based on query coordinates
 vector<int> makeChromBucket(int refLen);
 void storeCords(vector<int> & masterRef,vector<int> & masterQ, mI & mi);
 void storeCords(vector<int> & masterQ, mI & mi);//overloaded
-void storeCords(map<int,vector<qord> > & mRef, mI & mi); //overloaded
+void storeCords(map<int,vector<qord> > & mRef, mI & mi, ofstream & fout); //overloaded
 void storeCordsCm(map<int,vector<qord>> & mRef, mI & mi);
 int findDist(int & x1, int & y1, int & c);//distance between the diagonal and the other MUMs
 bool detectShadow(mI & mum, vector<mI> & mums, unsigned int n);
@@ -70,7 +72,8 @@ mI findClosest(mI & mi, vector<mI> & mums);//overloaded function
 vector<double> getCoverage(mI & mi, vector<int> & masterRef,vector<int> & masterQ);
 vector<double> getCoverage(mI & mi, vector<int> & masterRef,vector<int> & masterQ,float p);
 //void splitByCoverage(chromPair & cp,vector<int> & chrom, vector<mI> & mums,vector<int> & masterRef, vector<int> & masterQ);
-void splitByCoverage(chromPair & cp,vector<int> & rchrom,vector<int> & qchrom,ofstream & findel);
+void splitByCoverage(chromPair & cp,vector<int> & rchrom,vector<int> & qchrom);
+void splitByCoverageSen(chromPair & cp,vector<int> & rchrom,vector<int> & qchrom);
 void gapCloser(mI & mi, vector<mI> ncm, vector<mI>& cm);
 void gapCloserRev(mI & mi, vector<mI> ncm, vector<mI> & cm);
 vector<mI> findQuery(map<int,vector<qord> > & mRef, mI & mi,vector<int> & masterRef, vector<int> & masterQ,vector<int> & masterHQ);
