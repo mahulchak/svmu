@@ -41,8 +41,8 @@ int main(int argc, char *argv[])
 	vector<mI> vmi,tempVmi;
 	size_t pos1,pos2,namePos;
 	
-	ifstream fin, refFasta, qFasta,fcm;
-	ofstream fout,fcnv,fsmall,ftrans,findel,fcords;
+	ifstream fin, refFasta, qFasta;
+	ofstream fout,fcnv,fsmall,ftrans,findel,fcords,fcm;
 	fin.open(argv[1]);
 	fcords.open("cords.txt");
 	fcm.open("cm.txt");
