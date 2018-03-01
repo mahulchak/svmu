@@ -34,13 +34,13 @@ If you are trying to find large (>100bp) indels and inversions, mumreference wor
  ```
   n represents the number of unique mum/syntenic blocks that should be present between two sequences to find the SVs between them. It can be 5, or 10, or 100 (a future update will likely get rid of this parameter). The program generates several files as output: 
 
-	sv.txt: A bed file that summarizes structural mutations (indels, CNVs, inversions) in the sample genome with respect to the reference genome.  
+	sv.txt: A tab delimited file that summarizes structural mutations (indels, CNVs, inversions) in the sample genome with respect to the reference genome.  
 
-	small.txt: A bed file containing SNPs and small indels that occur within syntenic blocks (or MUMs).
+	small.txt: A tab delimited file containing SNPs and small indels that occur within syntenic blocks (or MUMs).
 
-	cnv_all.txt: A bed file with all the reference genomic regions that are present in higher copy numbers (>1) in the sample genome. Those with "trans" in their names mean either it is a transposable element or non-TE copies of a gene in different chromosomes.
+	cnv_all.txt: A tab delimited file with all the reference genomic regions that are present in higher copy numbers (>1) in the sample genome. Those with "trans" in their names mean either it is a transposable element or non-TE copies of a gene in different chromosomes.
 
-	indel.txt: A bed file with all the reference and quesry genomic regions that are missing in the other genome. 
+	indel.txt: A tab delimited file with all the reference and quesry genomic regions that are missing in the other genome. 
 	
 	trans.txt: A bed file with the reference genomic regions that have been putatively translocated (may not include TEs). 
 
@@ -48,4 +48,9 @@ This is work in progress so do examine the output. Final goal is to facilitate v
 
 
 Note:
-If you are using SVMU for your research, please keep in mind that SVMU has not been extensively tested genomes bigger than Drosophila. So there is no gurantee that it will work well with other genomes.
+If you are using SVMU for your research, please keep in mind that SVMU has not been extensively tested on genomes bigger than Drosophila. So there is no gurantee that it will work well with other genomes. Currently it requires 4GB memory for yeast genome and 50GB memory for <i>D. melanogaster</i> genome.
+
+KNOWN ISSUES:
+1. If the reverse complementary strand of a chromosome was sequenced (relative to the reference), svmu will identify whole sequence as 'INV' or inverted. A simple workaround is to do grep -v 'INV' on your sv.txt file. A future fix will take care of this issue.
+2. White space in fasta headers will cause segfault in svmu that is because nucmer strips all text following white space or tab present in the fasta headers.
+
