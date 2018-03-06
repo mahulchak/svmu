@@ -48,7 +48,7 @@ void annotGaps(vector<mI> & cm, map<int,vq> & mRef, ccov & masterRef, ccov & mas
 			cov =getCoverage(cnvmi,masterRef,masterQ,0.5);
 			if(nearestInt(cov[0]) > nearestInt(cov[1])) //if copy number in different
 			{ 
-				if((cov[0] >4) || (cov[1] >4))
+				if((cov[0] >3) || (cov[1] >3)) 
 				{
 					fout<<cnvmi.rn<<"\t"<<cnvmi.x1<<"\t"<<cnvmi.x2<<"\tnCNV\t"<<cnvmi.qn<<"\t"<<cnvmi.y1<<"\t"<<cnvmi.y2<<"\t"<<setfill('0')<<setw(10)<<cnvmi.x1<<cnvmi.rn<<"\t"<<(cnvmi.x2 -cnvmi.x1)<<"\t"<<cov[0]<<"\t"<<nearestInt(cov[1])<<endl;
 				}
@@ -84,8 +84,9 @@ void annotGaps(vector<mI> & cm, map<int,vq> & mRef, ccov & masterRef, ccov & mas
 			else
 			{
 				gapmi.rn = cm[i-1].rn;
-				gapmi.x1 = min(cm[i-1].x2,cm[i].x1);
-				gapmi.x2 = max(cm[i-1].x2,cm[i].x1);
+				gapmi.x1 = cm[i-1].x2;
+				gapmi.x2 = cm[i].x1;
+				gapmi.qn = cm[i-1].qn;
 				if(cm[i].y1 >cm[i].y2) //inverted
 				{
 					gapmi.y1 = min(cm[i-1].y2,cm[i].y1);
@@ -174,8 +175,11 @@ void annotGaps(vector<mI> & cm, map<int,vq> & mRef, ccov & masterRef, ccov & mas
 			if(refOvl < qOvl)
 			{
 				gapmi.rn = cm[i-1].rn;
-				gapmi.x1 = min(cm[i-1].x2,cm[i].x1);
-                                gapmi.x2 = max(cm[i-1].x2,cm[i].x1);
+				//gapmi.x1 = min(cm[i-1].x2,cm[i].x1);
+				gapmi.x1 = cm[i-1].x2;
+                                //gapmi.x2 = max(cm[i-1].x2,cm[i].x1);
+                                gapmi.x2 = cm[i].x1;
+				gapmi.qn = cm[i-1].qn;
 				if(cm[i].y1 >cm[i].y2) //inverted
 				{
 					gapmi.y1 = min(cm[i-1].y2,cm[i].y1);
@@ -213,7 +217,8 @@ void annotGaps(vector<mI> & cm, map<int,vq> & mRef, ccov & masterRef, ccov & mas
 	
 void findCnvOverlap(vector<mI> & cnv,mI & mi,vector<mI> & storedCNV,ccov & masterRef, ccov & masterQ,ofstream & fout, int & id) //returns a cnv if it overlaps a gap
 {
-	mI tempmi,insmi;//tempmi is cnv and mi is the gapmi
+	mI tempmi,insmi,oriSpanmi;//tempmi is cnv and mi is the gapmi
+	oriSpanmi = mi;//to hold the original mi x1 and x2 and y1 and y2
 	int ovl =0;
 	unsigned int count = 0;
 	vector<mI> cnvCt;
@@ -245,7 +250,7 @@ void findCnvOverlap(vector<mI> & cnv,mI & mi,vector<mI> & storedCNV,ccov & maste
 						vd = getCoverage(tempmi,masterRef,masterQ,0.5);
 if(vd[0] >vd[1])
 {
-	if((vd[0] >4) || (vd[1] >4)) //if coverage of either is greater than 4
+	if((vd[0] >3) || (vd[1] >3)) //if coverage of either is greater than 4
 	{
 		fout<<tempmi.rn<<"\t"<<tempmi.x1<<"\t"<<tempmi.x2<<"\tnCNV\t"<<tempmi.qn<<"\t"<<tempmi.y1<<"\t"<<tempmi.y2<<"\t"<<setfill('0')<<setw(10)<<tempmi.x1<<tempmi.rn<<"\t"<<tempmi.x2-tempmi.x1<<"\t"<<vd[0]<<"\t"<<vd[1]<<endl;
 	}
@@ -294,13 +299,15 @@ if(vd[0] >vd[1])
 						vd = getCoverage(tempmi,masterRef,masterQ,0.5);
 if(vd[0]>vd[1])
 {
-	if((vd[0] >4) && (vd[1] >4))
+	if((vd[0] >3) && (vd[1] >3))
 	{
-		fout<<tempmi.rn<<"\t"<<tempmi.x1<<"\t"<<tempmi.x2<<"\tnCNV\t"<<tempmi.qn<<"\t"<<tempmi.y1<<"\t"<<tempmi.y2<<"\t"<<setfill('0')<<setw(10)<<tempmi.x1<<tempmi.rn<<"\t"<<tempmi.x2-tempmi.x1<<"\t"<<vd[0]<<"\t"<<vd[1]<<endl;
+		//fout<<tempmi.rn<<"\t"<<tempmi.x1<<"\t"<<tempmi.x2<<"\tnCNV\t"<<tempmi.qn<<"\t"<<tempmi.y1<<"\t"<<tempmi.y2<<"\t"<<setfill('0')<<setw(10)<<tempmi.x1<<tempmi.rn<<"\t"<<tempmi.x2-tempmi.x1<<"\t"<<vd[0]<<"\t"<<vd[1]<<endl;
+		fout<<oriSpanmi.rn<<"\t"<<oriSpanmi.x1<<"\t"<<max(oriSpanmi.x1,oriSpanmi.x2)<<"\tCNV-INS\t"<<oriSpanmi.qn<<"\t"<<oriSpanmi.y1<<"\t"<<oriSpanmi.y2<<"\t"<<setfill('0')<<setw(10)<<tempmi.x1<<tempmi.rn<<"\t"<<oriSpanmi.y1-oriSpanmi.y2<<"\t"<<vd[0]<<"\t"<<vd[1]<<endl;
 	}
 	else
 	{
 		fout<<tempmi.rn<<"\t"<<tempmi.x1<<"\t"<<tempmi.x2<<"\theCNV\t"<<tempmi.qn<<"\t"<<tempmi.y1<<"\t"<<tempmi.y2<<"\t"<<setfill('0')<<setw(10)<<tempmi.x1<<tempmi.rn<<"\t"<<tempmi.x2-tempmi.x1<<"\t"<<vd[0]<<"\t"<<vd[1]<<endl;
+		//fout<<oriSpanmi.rn<<"\t"<<oriSpanmi.x1<<"\t"<<max(oriSpanmi.x1,oriSpanmi.x2)<<"\tCNV-INS\t"<<oriSpanmi.qn<<"\t"<<oriSpanmi.y1<<"\t"<<oriSpanmi.y2<<"\t"<<setfill('0')<<setw(10)<<tempmi.x1<<tempmi.rn<<"\t"<<oriSpanmi.y1-oriSpanmi.y2<<"\t"<<vd[0]<<"\t"<<vd[1]<<endl;
 	}
 }
 						storedCNV.push_back(tempmi);

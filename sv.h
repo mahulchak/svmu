@@ -72,8 +72,8 @@ mI findClosest(mI & mi, vector<mI> & mums);//overloaded function
 vector<double> getCoverage(mI & mi, vector<int> & masterRef,vector<int> & masterQ);
 vector<double> getCoverage(mI & mi, vector<int> & masterRef,vector<int> & masterQ,float p);
 //void splitByCoverage(chromPair & cp,vector<int> & chrom, vector<mI> & mums,vector<int> & masterRef, vector<int> & masterQ);
-void splitByCoverage(chromPair & cp,vector<int> & rchrom,vector<int> & qchrom);
-void splitByCoverageSen(chromPair & cp,vector<int> & rchrom,vector<int> & qchrom);
+void splitByCoverage(chromPair & cp,map<int,vector<qord> > & mRef,vector<int> & rchrom,vector<int> & qchrom);
+void splitByCoverageSen(chromPair & cp,map<int,vector<qord> > & mRef,vector<int> & rchrom,vector<int> & qchrom);
 void gapCloser(mI & mi, vector<mI> ncm, vector<mI>& cm);
 void gapCloserRev(mI & mi, vector<mI> ncm, vector<mI> & cm);
 vector<mI> findQuery(map<int,vector<qord> > & mRef, mI & mi,vector<int> & masterRef, vector<int> & masterQ,vector<int> & masterHQ);

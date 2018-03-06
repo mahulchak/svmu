@@ -49,34 +49,56 @@ void storeCords(ccov & masterRef,ccov & masterQ, mI & mi)
 void storeCords(map<int,vq> & mRef, mI & mi,ofstream & fout)
 {	
 	int refC = mi.x1;
-	int ci = refC * (-1); //ci is minus i
+	int ci = 0; //assuming that the first base in a mum will not have an insertion in query
 	qord temp;
+	vector<int>:: iterator it;
 	if(mi.y1 < mi.y2 ) //both are on the same strand
 	{
 		int qC = mi.y1;
 		while( refC<mi.x2+1)
 		{
-		
 			if((find(mi.mv.begin(),mi.mv.end(),refC) == mi.mv.end()) && (find(mi.mv.begin(),mi.mv.end(),ci) == mi.mv.end())) //if this position does not have a indel
 			{
+				temp.name = mi.qn;
+				temp.cord = qC;
+				mRef[refC-1].push_back(temp);
 				refC++;
 				qC++;
-				temp.name = mi.qn;
-				temp.cord = qC-1;
-				mRef[refC-1].push_back(temp);
+				ci = refC * (-1);
+				if(find(mi.mv.begin(),mi.mv.end(),ci) != mi.mv.end())//if the next is a del
+				{
+					temp.name = mi.qn;
+					temp.cord = qC;
+					mRef[refC-1].push_back(temp);
+				}
 //fout<<mi.rn<<"\t"<<refC<<"\t"<<mi.qn<<"\t"<<qC<<endl;
 			}
-			if((find(mi.mv.begin(),mi.mv.end(),refC) != mi.mv.end()) && (find(mi.mv.begin(),mi.mv.end(),ci) == mi.mv.end())) //position has insertion
+			if((find(mi.mv.begin(),mi.mv.end(),refC) != mi.mv.end())) //position has insertion
 			{
-				refC++;
 				temp.name = mi.qn;
-				temp.cord = qC-1;
+				temp.cord = qC-1;//because when insertion begins, query cord does not increase
 				mRef[refC-1].push_back(temp);
+				refC++;
+				ci = refC * (-1);
 //fout<<mi.rn<<"\t"<<refC<<"\t"<<mi.qn<<"\t"<<qC<<endl;
 			}
-			if((find(mi.mv.begin(),mi.mv.end(),refC) == mi.mv.end()) && (find(mi.mv.begin(),mi.mv.end(),ci) != mi.mv.end())) //position has deletion
+			if((find(mi.mv.begin(),mi.mv.end(),ci) != mi.mv.end())) //position has deletion
 			{
 				qC++;
+				it = find(mi.mv.begin(),mi.mv.end(),ci);
+				it++;
+				--ci;
+				while((*it == -1) && (it != mi.mv.end()))
+				{
+					qC++;
+					it++;
+				}
+				if((*it != -1) || (it == mi.mv.end()))
+				{
+					refC++;
+					qC++;
+					ci = refC * (-1);
+				}
 			}
 //fout<<mi.rn<<"\t"<<refC<<"\t"<<mi.qn<<"\t"<<qC<<endl;
 		}
@@ -84,29 +106,50 @@ void storeCords(map<int,vq> & mRef, mI & mi,ofstream & fout)
 	if(mi.y1 > mi.y2 )//if two are on different strands
 	{
 		int qC = mi.y1; //y1 is bigger than y2
-	
 		while(refC<mi.x2+1)
 		{
 			if((find(mi.mv.begin(),mi.mv.end(),refC) == mi.mv.end()) && (find(mi.mv.begin(),mi.mv.end(),ci) == mi.mv.end())) //if this position does not have a indel
 			{
+				temp.name = mi.qn;
+				temp.cord = qC;	
+				mRef[refC-1].push_back(temp);
 				refC++;
 				qC--;
-				temp.name = mi.qn;
-				temp.cord = qC+1;	
-				mRef[refC-1].push_back(temp);
+				ci = refC * (-1);
+				if(find(mi.mv.begin(),mi.mv.end(),ci) != mi.mv.end())
+				{
+					temp.name = mi.qn;
+					temp.cord = qC;
+					mRef[refC-1].push_back(temp);
+				}
 //fout<<mi.rn<<"\t"<<refC<<"\t"<<mi.qn<<"\t"<<qC<<endl;
 			}
-			if((find(mi.mv.begin(),mi.mv.end(),refC) != mi.mv.end()) && (find(mi.mv.begin(),mi.mv.end(),ci) == mi.mv.end())) //position has insertion
+			if((find(mi.mv.begin(),mi.mv.end(),refC) != mi.mv.end())) //position has insertion
 			{
-				refC++;
 				temp.name = mi.qn;
 				temp.cord = qC+1;
 				mRef[refC-1].push_back(temp);				
+				refC++;
+				ci = refC * (-1);
 //fout<<mi.rn<<"\t"<<refC<<"\t"<<mi.qn<<"\t"<<qC<<endl;
 			}
-			if((find(mi.mv.begin(),mi.mv.end(),refC) == mi.mv.end()) && (find(mi.mv.begin(),mi.mv.end(),ci) != mi.mv.end())) //position has deletion
+			if((find(mi.mv.begin(),mi.mv.end(),ci) != mi.mv.end())) //position has deletion
 			{
-				qC--;
+				--qC;
+				it = find(mi.mv.begin(),mi.mv.end(),ci);
+				it++;
+				--ci;
+				while((*it == -1) && (it != mi.mv.end()))
+				{
+					--qC;
+					it++;
+				}
+				if((*it != -1) || (it == mi.mv.end()))//stretch of -1 has ended
+				{
+					refC++;
+					--qC;
+					ci = refC * (-1);
+				}
 //fout<<mi.rn<<"\t"<<refC<<"\t"<<mi.qn<<"\t"<<qC<<endl;
 			}
 		}
@@ -259,7 +302,7 @@ mI findClosest(mI & mi, vector<mI> & mums)
 return it->second;
 }
 ////////////////////////////////////////////////////
-void splitByCoverageSen(chromPair & cp, ccov & chrom, ccov & masterQ)
+void splitByCoverageSen(chromPair & cp, map<int,vq> & mRef,ccov & chrom, ccov & masterQ)
 {
 	int cov=0, lastcov=0, nextcov =0;
 	//vector<mI> mum;
@@ -274,12 +317,20 @@ void splitByCoverageSen(chromPair & cp, ccov & chrom, ccov & masterQ)
 			if((cov != lastcov) && (cov == nextcov))
 			{
 				mi.x1 = i+1;			
+				while(mRef[mi.x1-1].size() != chrom[mi.x1-1])
+				{
+					mi.x1++;
+				}
 			}
 			if((cov == lastcov) && (cov != nextcov))
 			{
 				mi.x2 = i+1;
-			mi.rn = cp.cm[0].rn;
-			mi.qn = cp.cm[0].qn;
+				while(mRef[mi.x2-1].size() != chrom[mi.x2-1])
+				{
+					--mi.x2;
+				}
+				mi.rn = cp.cm[0].rn;
+				mi.qn = cp.cm[0].qn;
 				//if(chrom[mi.x1-1] >1)
 				if(chrom[mi.x1-1] > 0)
 				{
@@ -303,7 +354,8 @@ void splitByCoverageSen(chromPair & cp, ccov & chrom, ccov & masterQ)
 		
 }
 ///////////////////////////////////////////////////
-void splitByCoverage(chromPair & cp, ccov & chrom, ccov & masterQ)
+void splitByCoverage(chromPair & cp,map<int,vq> & mRef, ccov & chrom, ccov & masterQ)
+//void splitByCoverage(chromPair & cp, ccov & chrom, ccov & masterQ)
 {
 	int cov=0, lastcov=0, nextcov =0;
 	mI mi,tempmi,gapmi;
@@ -315,18 +367,30 @@ void splitByCoverage(chromPair & cp, ccov & chrom, ccov & masterQ)
 		for(int i = cp.cm[j].x1-1; i<cp.cm[j].x2;i++)
 		{
 			cov = chrom[i];
+			//cov = mRef[i].size();
 			lastcov = chrom[i-1];
+			//lastcov = mRef[i-1].size();
 			nextcov = chrom[i+1];
+			//nextcov = mRef[i+1].size();
 			if((cov != lastcov) && (cov == nextcov))
 			{
 				mi.x1 = i+1;
+				while(mRef[mi.x1-1].size() != chrom[mi.x1-1])
+				{
+					mi.x1++;
+				}
 			}
 			if((cov == lastcov) && (cov != nextcov))
 			{
 				mi.x2 = i+1;
+				while(mRef[mi.x2-1].size() != chrom[mi.x2-1])
+				{
+					--mi.x2;
+				}
 				mi.rn = cp.cm[0].rn;
 				mi.qn = cp.cm[0].qn;
 				if(chrom[mi.x1-1] >1)
+				//if(mRef[mi.x1-1].size()>1)
 				{
 					mi.y1 = 0;
 					mi.y2 = 0;
@@ -429,12 +493,12 @@ vector<mI> findQuery(map<int,vq> & mRef, mI & mi,ccov & masterRef, ccov & master
 	//for(unsigned int j=0; j<mRef[mi.x1].size();j++)
 	for(int j=0; j<masterRef[mi.x1-1];j++)
 	{
-//cout<<mi.x1<<"\t"<<mi.x2<<"\ttotal requested coverage\t"<<masterRef[mi.x1-1]<<"\tand\t"<<masterRef[mi.x2-1]<<"\texisting coverage\t"<<mRef[mi.x1].size()<<"\tand\t"<<mRef[mi.x2].size()<<endl;
+cout<<mi.x1<<"\t"<<mi.x2<<"\ttotal requested coverage\t"<<masterRef[mi.x1-1]<<"\tand\t"<<masterRef[mi.x2-1]<<"\texisting coverage\t"<<mRef[mi.x1-1].size()<<"\tand\t"<<mRef[mi.x2-1].size()<<endl;
 		mums[j].x1 = mi.x1;
 		mums[j].x2 = mi.x2;
-		mums[j].y1 = mRef[mi.x1][j].cord;	
-		mums[j].y2 = mRef[mi.x2][j].cord;
-		mums[j].qn = mRef[mi.x1][j].name;
+		mums[j].y1 = mRef[mi.x1-1][j].cord;	
+		mums[j].y2 = mRef[mi.x2-1][j].cord;
+		mums[j].qn = mRef[mi.x1-1][j].name;
 		mums[j].rn = mi.rn;
 //cout<<mums[j].rn<<"\t"<<mums[j].x1<<"\t"<<mums[j].x2<<"\t"<<mums[j].qn<<"\t"<<mums[j].y1<<"\t"<<mums[j].y2<<endl;
 		if(j ==0)
@@ -446,13 +510,12 @@ vector<mI> findQuery(map<int,vq> & mRef, mI & mi,ccov & masterRef, ccov & master
 			qnames.push_back(mums[j].qn);
 		}
 	}
-	for(unsigned int i = 0; i< mums.size();i++)
+	for(unsigned int i=0;i<mums.size();i++)
 	{
-		vd = getCoverage(mums[i],masterRef,masterQ,0.5); //add these in the function arguments
+		vd = getCoverage(mums[i],masterRef,masterQ);
 		rcov = nearestInt(vd[0]);
-		cov1 = nearestInt(vd[1]);	
-//cout<<mums[i].rn<<"\t"<<mums[i].x1<<"\t"<<mums[i].x2<<"\t"<<mums[i].qn<<"\t"<<mums[i].y1<<"\t"<<mums[i].y2<<"\t"<<rcov<<"\t"<<cov1<<endl;
-		vd = getCoverage(mums[i],masterRef,masterHQ,0.5);//being done for masterHQ and NOT masterQ
+		cov1 = nearestInt(vd[1]);
+		vd = getCoverage(mums[i],masterRef,masterHQ);//being done for masterHQ and NOT masterQ
 		tdcov = nearestInt(vd[1]);
 		if(rcov != cov1) //if they are unequal. counts both less and more copies
 	//	if(rcov > cov1) //counts only copies which are more

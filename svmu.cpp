@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
 	size_t pos1,pos2,namePos;
 	
 	ifstream fin, refFasta, qFasta;
-	ofstream fout,fcnv,fsmall,ftrans,findel,fcords,fcm;
+	ofstream fout,fcm,fcnv,fsmall,ftrans,findel,fcords;
 	fin.open(argv[1]);
 	fcords.open("cords.txt");
 	fcm.open("cm.txt");
@@ -77,15 +77,23 @@ int main(int argc, char *argv[])
 		if((line.size() <10) && (refName != "") && (count > -1))
 		{
 			
-			indelPos = abs(stoi(line));
-			refStart = refStart + indelPos;
-			if(indelPos <0)
-			{	
-				refStart = refStart * (-1);
-
+			//indelPos = abs(stoi(line));
+			indelPos = stoi(line);
+			if(indelPos < -1)
+			{
+				refStart = refStart + abs(indelPos) -1;
+				vi.push_back(refStart*-1);
 			}
-			vi.push_back(refStart);
-		
+			if(indelPos == -1)
+			{
+				vi.push_back(-1);
+			}
+			if(indelPos > 0)	
+			{	
+				refStart = refStart + abs(indelPos);
+				vi.push_back(refStart);
+			}
+					
 //cout<<refName<<"\t"<<indelPos<<" " <<refStart<<"\t"<<refEnd<<"\t"<<qName<<"\t"<<qStart<<"\t"<<qEnd<<endl;
 			if(indelPos ==0) //reached the end of the indel description
 			{
@@ -311,11 +319,11 @@ int main(int argc, char *argv[])
 			sort(allChrom[indexAln].cm.begin(),allChrom[indexAln].cm.end());
 			if(argv[5][0] =='h')
 			{
-				splitByCoverageSen(allChrom[indexAln],masterRef[refName],masterQ[qName]);
+				splitByCoverageSen(allChrom[indexAln],mRef[refName],masterRef[refName],masterQ[qName]);
 			}
 			else
 			{
-				splitByCoverage(allChrom[indexAln],masterRef[refName],masterQ[qName]);	
+				splitByCoverage(allChrom[indexAln],mRef[refName],masterRef[refName],masterQ[qName]);	
 			}
 			allChrom[indexAln].gap.clear();//flushing the gaps vector
 			for(unsigned int j=0; j<allChrom[indexAln].cc.size();j++)
