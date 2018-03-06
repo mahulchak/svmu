@@ -493,7 +493,7 @@ vector<mI> findQuery(map<int,vq> & mRef, mI & mi,ccov & masterRef, ccov & master
 	//for(unsigned int j=0; j<mRef[mi.x1].size();j++)
 	for(int j=0; j<masterRef[mi.x1-1];j++)
 	{
-cout<<mi.x1<<"\t"<<mi.x2<<"\ttotal requested coverage\t"<<masterRef[mi.x1-1]<<"\tand\t"<<masterRef[mi.x2-1]<<"\texisting coverage\t"<<mRef[mi.x1-1].size()<<"\tand\t"<<mRef[mi.x2-1].size()<<endl;
+//cout<<mi.x1<<"\t"<<mi.x2<<"\ttotal requested coverage\t"<<masterRef[mi.x1-1]<<"\tand\t"<<masterRef[mi.x2-1]<<"\texisting coverage\t"<<mRef[mi.x1-1].size()<<"\tand\t"<<mRef[mi.x2-1].size()<<endl;
 		mums[j].x1 = mi.x1;
 		mums[j].x2 = mi.x2;
 		mums[j].y1 = mRef[mi.x1-1][j].cord;	
