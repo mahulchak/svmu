@@ -25,27 +25,29 @@ int main(int argc, char *argv[])
 	
 	map<string,map<int,vq> > mRef; //stores the coordinates of query on reference chromosomes
 	map<string,map<int,vq> > umRef;//stores the coordinates of unique reference to query map; requires re-reading the file
+	map<string,vector<mI> > mir;//stores all reference mums, but does not store query coordinates
+	map<string,vector<mI> > miq; // stores all query mums, but does not store reference coordinates
 	map<string,string> refseq;
 	map<string,string> qseq;
 	map<string,vector<int> > seqLen;//length of sequences.first element is ref and second is query
 	map<string,bool> qStrand; //stores whether query strand is forward strand or reverse strand
-	mI tempmi,gapmi,prevmi;
+	mI tempmi,prevmi,temprmi,tempmi2;
 
 	string foo = string(argv[1]);
 	string line, chromName,refName,qName,indexAln;
-	int refStart = 0, refEnd = 0, qStart = 0, qEnd = 0, refLen =0, qLen =0, count = -1,indelPos =0, forCount =0, revCount = 0;
+	int refStart = 0, refEnd = 0, qStart = 0, qEnd = 0, refLen =0, qLen =0, count = -1,indelPos =0, forCount =0, revCount = 0,index =0;
 	unsigned int cutoff = 0;
 	cutoff = stoi(argv[4]);
+	double hcr;//homolog cutoff ratio
 	vector<double> vd;
 	vector<int> vi;
-	vector<mI> vmi,tempVmi;
+	vector<mI> vmi,tempVmi,vm,qvm,gapmi;//qvm is query sorted vm
 	size_t pos1,pos2,namePos;
 	
 	ifstream fin, refFasta, qFasta;
-	ofstream fout,fcm,fcnv,fsmall,ftrans,findel,fcords;
+	ofstream fout,fcnv,fsmall,ftrans,findel,fcords;
 	fin.open(argv[1]);
 	fcords.open("cords.txt");
-	fcm.open("cm.txt");
 	while(getline(fin,line))
 	{
 		
@@ -77,7 +79,6 @@ int main(int argc, char *argv[])
 		if((line.size() <10) && (refName != "") && (count > -1))
 		{
 			
-			//indelPos = abs(stoi(line));
 			indelPos = stoi(line);
 			if(indelPos < -1)
 			{
@@ -88,22 +89,20 @@ int main(int argc, char *argv[])
 			{
 				vi.push_back(-1);
 			}
-			if(indelPos > 0)	
-			{	
-				refStart = refStart + abs(indelPos);
+			if(indelPos > 0)
+			{
+				refStart = refStart + abs(indelPos);	
 				vi.push_back(refStart);
 			}
 					
-//cout<<refName<<"\t"<<indelPos<<" " <<refStart<<"\t"<<refEnd<<"\t"<<qName<<"\t"<<qStart<<"\t"<<qEnd<<endl;
 			if(indelPos ==0) //reached the end of the indel description
 			{
 				tempmi.mv = vi;
-				//allChrom[indexAln].mums.push_back(tempmi);
 				storeCords(masterRef[refName],masterQ[qName],tempmi);
-				storeCords(mRef[refName],tempmi,fcords);
+				//storeCords(mRef[refName],tempmi,fcords);
 				tempmi.mv.clear();//delete this?
 				allChrom[indexAln].mums.push_back(tempmi);
-//cout<<refName<<"\t"<<refStart<<"\t"<<refEnd<<"\t"<<qName<<"\t"<<qStart<<"\t"<<qEnd<<"\t"<<allChrom[indexAln].mums.size()<<endl;
+//cout<<indexAln<<tempmi.x1<<'\t'<<tempmi.x2<<'\t'<<tempmi.qn<<'\t'<<tempmi.y1<<'\t'<<tempmi.y2<<endl;
 				vi.clear();//reset it once its values are used
 			}
 				
@@ -112,7 +111,7 @@ int main(int argc, char *argv[])
 		}
 		if((line.find('>') == string::npos) && (line.size() >10) && (refName != "")) //when describing alignment segments
 		{
-		
+//cout<<line<<endl;
 				tempmi.rn = refName;
 				tempmi.qn = qName;		
 				refStart = stoi(line,&pos1);
@@ -123,7 +122,7 @@ int main(int argc, char *argv[])
 				tempmi.x2 = refEnd;
 				tempmi.y1 = qStart;
 				tempmi.y2 = qEnd;
-
+//cout<<refName<<"\t"<<refStart<<"\t"<<refEnd<<"\t"<<qName<<"\t"<<qStart<<"\t"<<qEnd<<"\t"<<allChrom[indexAln].mums.size()<<endl;
 				count = 0;
 	//			--refStart;//to count the mutation distance
 
@@ -132,155 +131,119 @@ int main(int argc, char *argv[])
 	fin.close();
 	for(chroms::iterator it = allChrom.begin();it!= allChrom.end();it++)
 	{
+		vm.clear();
+		qvm.clear();
+		tempVmi.clear();
 		indexAln = it->first;
+		count = 0;
 		sort(allChrom[indexAln].mums.begin(),allChrom[indexAln].mums.end());
-		for(unsigned int i = 0; i< allChrom[indexAln].mums.size();i++)
+		if(allChrom[indexAln].mums.size() >2)
 		{
-			tempmi = allChrom[indexAln].mums[i];
-			vd = getCoverage(tempmi,masterRef[tempmi.rn],masterQ[tempmi.qn]);
-			if((vd[0] <1.3) && (vd[1]<1.3))
+			for(unsigned int i = 0; i<allChrom[indexAln].mums.size();i++)
 			{
-				if(tempmi.y1>tempmi.y2)
+				tempmi = allChrom[indexAln].mums[i];
+				fcords<<tempmi.rn<<'\t'<<tempmi.x1<<'\t'<<tempmi.x2<<'\t'<<tempmi.qn<<'\t'<<tempmi.y1<<'\t'<<tempmi.y2<<endl;
+				if(findInnie(allChrom[indexAln].mums,tempmi) == false)
 				{
-					revCount++;
-				}
-				else
-				{
-					forCount++;
-				}
-			}
-		}
-		if(revCount > forCount)
-		{
-			qStrand[indexAln] = true;//yes it is reverse strand
-		}
-		else
-		{
-			qStrand[indexAln] = false;
-		}
-		forCount = 0;
-		revCount = 0;
-		for(unsigned int i= 0; i<allChrom[indexAln].mums.size();i++)
-		{
-			tempmi = allChrom[indexAln].mums[i];
-			vd = getCoverage(tempmi,masterRef[tempmi.rn],masterQ[tempmi.qn]);
-			if((vd[0] <1.3) && (vd[1]<1.3))
-			{
-				if(allChrom[indexAln].cm.size() == 0)
-				{
-					gapmi.rn = tempmi.rn;
-					gapmi.qn = tempmi.qn;
-					gapmi.x1 = 1;
-					gapmi.x2 = tempmi.x1;
-					if(qStrand[indexAln] == false)
+					vd = getCoverage(tempmi,masterRef[tempmi.rn],masterQ[tempmi.qn],0.3);
+					if((vd[0] <2) && (vd[1]<2))
 					{
-						gapmi.y1 = 1;
-						gapmi.y2 = min(tempmi.y1,tempmi.y2);
-						gapmi.c = 'f';
-					}
-					else	
-					{
-						gapmi.y1 = seqLen[indexAln][1];//the largest length. correct this after the next element
-						gapmi.y2 = max(tempmi.y1,tempmi.y2);
-						gapmi.c = 'r';
-					}
-					allChrom[indexAln].gap.push_back(gapmi);
-				}
-					
-				if(allChrom[indexAln].cm.size() >0)//once more than one element has been entered
-				{	
-					prevmi = allChrom[indexAln].cm[allChrom[indexAln].cm.size() -1];//the previous mi
-					refStart = allChrom[indexAln].cm[allChrom[indexAln].cm.size() -1].x2;
-					//if((prevmi.y1 <prevmi.y2) && (tempmi.y1 <tempmi.y2))
-					//{
-					//	qStart = max(allChrom[indexAln].cm[allChrom[indexAln].cm.size() -1].y2,allChrom[indexAln].cm[allChrom[indexAln].cm.size() -1].y1);
-					//}
-					if((prevmi.y1 > prevmi.y2) && (tempmi.y1 > tempmi.y2))
-					{
-						qStart = min(allChrom[indexAln].cm[allChrom[indexAln].cm.size() -1].y2,allChrom[indexAln].cm[allChrom[indexAln].cm.size() -1].y1);
+						qvm.push_back(tempmi);
+						count = tempmi.x2 - tempmi.x1; //count the alignment length
+//cout<<"cm\t"<<tempmi.rn<<'\t'<<tempmi.x1<<'\t'<<tempmi.x2<<'\t'<<tempmi.qn<<'\t'<<tempmi.y1<<'\t'<<tempmi.y2<<'\t'<<vd[0]<<'\t'<<vd[1]<<endl;
 					}
 					else
 					{
-						qStart = max(allChrom[indexAln].cm[allChrom[indexAln].cm.size() -1].y2,allChrom[indexAln].cm[allChrom[indexAln].cm.size() -1].y1);
+						vm.push_back(tempmi);
+						allChrom[indexAln].ncm.push_back(tempmi);
 					}
-					gapmi.rn = tempmi.rn;
-					gapmi.qn = tempmi.qn;
-					if(refStart < tempmi.x1)
+				}
+				else
+				{
+					tempVmi.push_back(tempmi);
+				}
+			}
+			sort(allChrom[indexAln].mums.begin(),allChrom[indexAln].mums.end(),qusort);
+			for(unsigned int i =0;i<tempVmi.size();i++)
+			{
+				tempmi = tempVmi[i];
+				if(findInnieQ(allChrom[indexAln].mums,tempmi) == true)
+				{
+//cout<<"shadow\t"<<tempmi.rn<<'\t'<<tempmi.x1<<'\t'<<tempmi.x2<<'\t'<<tempmi.qn<<'\t'<<tempmi.y1<<'\t'<<tempmi.y2<<endl;
+				}
+				else
+				{
+cout<<"noshadow\t"<<tempmi.rn<<'\t'<<tempmi.x1<<'\t'<<tempmi.x2<<'\t'<<tempmi.qn<<'\t'<<tempmi.y1<<'\t'<<tempmi.y2<<endl;
+				}
+			}
+			if(qvm.size()>1)
+			{
+				//vm = tempVmi;//vm has the ncm
+				sort(vm.begin(),vm.end());
+				sort(tempVmi.begin(),tempVmi.end(),qusort);
+				sort(qvm.begin(),qvm.end());
+	//		cout<<indexAln<<"\tLength is\t"<<count<<"\t"<<qvm[qvm.size()-1].x2-qvm[0].x1<<"\t"<<hcr<<"\t"<<qvm[qvm.size()-1].x2<<'\t'<<qvm[0].x1<<endl;
+				for(unsigned int i = 0;i<qvm.size();i++)
+				{
+					prevmi = qvm[i];
+					if(allChrom[indexAln].cm.size() > 0)
 					{
-						if(!((prevmi.y1 >prevmi.y2) && (tempmi.y1 >tempmi.y2))) //not both of them are inverted
-						{	
-							gapmi.x1 = refStart;
-							gapmi.x2 = tempmi.x1;
-							gapmi.y1 = qStart;
-							gapmi.y2 = min(tempmi.y1,tempmi.y2);
-							gapmi.c = 'f';
-							if(gapmi.y2 - gapmi.y1 >0)
-							{
-								allChrom[indexAln].gap.push_back(gapmi);
-							}
-						}
-						if((prevmi.y1 > prevmi.y2) && (tempmi.y1 > tempmi.y2))
-						{
-							gapmi.x1 = refStart;
-							gapmi.x2 = tempmi.x1;
-							gapmi.y1 = qStart;
-							gapmi.y2 = max(tempmi.y1,tempmi.y2);
-							gapmi.c = 'r';
-							if(gapmi.y1 - gapmi.y2 >0)
-							{
-								allChrom[indexAln].gap.push_back(gapmi);
-							}
-						}
+						temprmi = allChrom[indexAln].cm[allChrom[indexAln].cm.size()-1];
 					}
-					
-				}
-				allChrom[indexAln].cm.push_back(tempmi);
-				count = count + tempmi.x2 - tempmi.x1; //keeping a count of total unique alignment
-//				cout<<"cm\t"<<indexAln<<"\t"<<tempmi.x1<<"\t"<<tempmi.x2<<"\t"<<tempmi.y1<<"\t"<<tempmi.y2<<"\t"<<vd[0]<<"\t"<<vd[1]<<endl;
-			}
-			
-			else
-			{
-				allChrom[indexAln].ncm.push_back(tempmi);
-				
-			}
-		}
-		allChrom[indexAln].mums.clear(); //free up the memory
-		if(allChrom[indexAln].cm.size()>cutoff)
-		{
-			hcp[allChrom[indexAln].cm[0].rn].push_back(indexAln);//homologous alignment
-			
-			for(unsigned int i=0;i<allChrom[indexAln].gap.size();i++)
-			{
-				if(allChrom[indexAln].gap[i].c != 'r')
+					allChrom[indexAln].cm.push_back(qvm[i]);
+					if(prevmi.x1 - temprmi.x1 > 100)
+					{
+						if((prevmi.y1 > prevmi.y2) && (temprmi.y1 > temprmi.y2) && \
+						 (temprmi.y2 - prevmi.y1 >100)) // inverted
+						{
+							tempmi2.rn = prevmi.rn;
+							tempmi2.x1 = temprmi.x2;
+							tempmi2.x2 = prevmi.x1;
+							tempmi2.qn = prevmi.qn;
+							tempmi2.y1 = temprmi.y2;
+							tempmi2.y2 = prevmi.y1;
+						}
+						if((prevmi.y1 < prevmi.y2) && (temprmi.y1 < temprmi.y2) && \
+						(prevmi.y1 - temprmi.y2 > 100)) //forward
+						{
+							tempmi2.rn = prevmi.rn;
+							tempmi2.x1 = temprmi.x2;
+							tempmi2.x2 = prevmi.x1;
+							tempmi2.qn = prevmi.qn;
+							tempmi2.y1 = temprmi.y1;
+							tempmi2.y2 = prevmi.y1;
+						}
+						if(tempmi2.x1 != 0)
+						{
+//cout<<tempmi2.rn<<"\t"<<tempmi2.x1<<"\t"<<tempmi2.x2<<"\t"<<tempmi2.qn<<"\t"<<tempmi2.y1<<"\t"<<tempmi2.y2<<endl;
+							gapmi.push_back(tempmi2);
+							tempmi2.x1 = 0; // reset it
+						}
+					}//this is for x>100				
+				}//this is for the for loop
+				if(allChrom[indexAln].cm.size() > 0)
 				{
-					gapCloser(allChrom[indexAln].gap[i], allChrom[indexAln].ncm, allChrom[indexAln].cm);
-				}
-				if(allChrom[indexAln].gap[i].c == 'r')
-				{
-					gapCloserRev(allChrom[indexAln].gap[i], allChrom[indexAln].ncm, allChrom[indexAln].cm);
-				}
-			}
-			//sort(allChrom[indexAln].cm.begin(),allChrom[indexAln].cm.end(),qusort);
-			allChrom[indexAln].gap.clear();//free up memory;will create gaps again later
+					for(unsigned int i =0;i<gapmi.size();i++)
+					{	
+						tempmi = gapmi[i];
+						gapCloser(tempmi,vm,allChrom[indexAln].cm);
+					}
+					hcp[allChrom[indexAln].cm[0].rn].push_back(indexAln);//homologous alignment
+					sort(allChrom[indexAln].cm.begin(),allChrom[indexAln].cm.end());
+				}					
 				
-			sort(allChrom[indexAln].cm.begin(),allChrom[indexAln].cm.end());
-			for(unsigned int i=0;i<allChrom[indexAln].cm.size()-1;i++)
-			{
-				tempmi = allChrom[indexAln].cm[i];
-				fcm<<tempmi.rn<<"\t"<<tempmi.x1<<"\t"<<tempmi.x2<<"\t"<<tempmi.qn<<"\t"<<tempmi.y1<<"\t"<<tempmi.y2<<endl;
-					
-			}
-					
-		}
-
-		allChrom[indexAln].mums.clear(); //free up the memory
-		allChrom[indexAln].gap.clear();//free up memory;will create gaps again later
+			}//qvm.size()>0
+			vm.clear();
+			qvm.clear();
+		}//vm.size()>2
 		count = 0; //reset count for the next alignment
+		allChrom[indexAln].mums.clear();
 	}
-	fcm.close();
-//cout<<"Done with gap filling "<<endl;	
-	ftrans.open("trans.txt");	
+cout<<"Done with gap filling "<<endl;	
+	fcords.close();
+	//ftrans.open("trans.txt");		
+	if(argv[5][0] == 'h')
+	{
 	for(map<string,vector<string> >::iterator it = hcp.begin(); it != hcp.end();it++)
 	{
 		refName = it->first;
@@ -288,14 +251,15 @@ int main(int argc, char *argv[])
 		{
 			fin.open(argv[1]);
 			indexAln = hcp[refName][i];
-			qName = allChrom[indexAln].mums[i].qn;
+			qName = allChrom[indexAln].cm[0].qn;
 			sort(allChrom[indexAln].cm.begin(),allChrom[indexAln].cm.end());
-			xtracTrans(mRef[refName],allChrom[indexAln].cm,ftrans);//sort it inside the function
+			//xtracTrans(mRef[refName],allChrom[indexAln].cm,ftrans);//sort it inside the function
 			readUniq(fin,allChrom[indexAln].cm,umRef[refName],masterHQ[qName]);
 			fin.close();
 		}
 	}
-	ftrans.close();
+	}
+	//ftrans.close();
 	
 	refFasta.open(argv[2]);//read in the reference fasta
 	readfasta(refFasta,refseq);//load them into memory
@@ -317,28 +281,10 @@ int main(int argc, char *argv[])
 			indexAln = hcp[refName][i];
 			qName = allChrom[indexAln].mums[i].qn;
 			sort(allChrom[indexAln].cm.begin(),allChrom[indexAln].cm.end());
-			if(argv[5][0] =='h')
-			{
-				splitByCoverageSen(allChrom[indexAln],mRef[refName],masterRef[refName],masterQ[qName]);
-			}
-			else
-			{
-				splitByCoverage(allChrom[indexAln],mRef[refName],masterRef[refName],masterQ[qName]);	
-			}
+			sort(allChrom[indexAln].ncm.begin(),allChrom[indexAln].ncm.end());
 			allChrom[indexAln].gap.clear();//flushing the gaps vector
-			for(unsigned int j=0; j<allChrom[indexAln].cc.size();j++)
-			{
-				tempVmi = findQuery(mRef[refName],allChrom[indexAln].cc[j],masterRef[refName],masterQ[qName], masterHQ[qName]);
-				if(tempVmi.size()>0)
-				{
-					vmi.insert(vmi.end(),tempVmi.begin(),tempVmi.end());
-					for(unsigned int i=0; i< tempVmi.size()-1;i++)//last element of tempVmi has the coverage info
-					{
-						fcnv<<tempVmi[i].rn<<"\t"<<tempVmi[i].x1<<"\t"<<tempVmi[i].x2<<"\tCNV\t"<<tempVmi[i].qn<<"\t"<<tempVmi[i].y1<<"\t"<<tempVmi[i].y2<<"\t"<<setfill('0')<<setw(10)<<tempVmi[i].x1<<tempVmi[i].rn<<"\t"<<tempVmi[i].x2-tempVmi[i].x1<<"\t"<<tempVmi[tempVmi.size()-1].x1<<"\t"<<tempVmi[tempVmi.size()-1].x2<<"\t"<<tempVmi[tempVmi.size()-1].y1<<endl;
-					}
-				}
-			}
-			annotGaps(allChrom[indexAln].cm,mRef[refName],masterRef[refName],masterQ[qName],vmi,umRef[refName],refseq[refName],qseq[qName],seqLen[indexAln],fout,fsmall,id);			
+			vmi = allChrom[indexAln].ncm;
+			annotGaps(allChrom[indexAln].cm,masterRef[refName],masterQ[qName],vmi,umRef[refName],refseq[refName],qseq[qName],seqLen[indexAln],fout,fsmall,id);			
 			
 			
 		}
@@ -347,7 +293,7 @@ int main(int argc, char *argv[])
 	fcnv.close();	
 	fsmall.close();
 	findel.close();
-	fcords.close();
+	
 return 0;
 }
 			
