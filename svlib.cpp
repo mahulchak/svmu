@@ -8,8 +8,8 @@ using vq = vector<qord>;
 /////////////////////////////////////////////////////////
 bool qusort(mI mi1, mI mi2)
 {
-	//return (min(mi1.y1,mi1.y2) < min(mi2.y1,mi2.y2)) ||((min(mi1.y1,mi1.y2) == min(mi2.y1,mi2.y2)) && (max(mi1.y1,mi1.y2)<max(mi2.y1,mi2.y2)));
-	return(max(mi1.y1,mi1.y2) < max(mi2.y1,mi2.y2)) || ((max(mi1.y1,mi1.y2) == max(mi2.y1,mi2.y2)) && (min(mi1.y1,mi1.y2) > min(mi1.y1,mi1.y2)));
+	return (min(mi1.y1,mi1.y2) < min(mi2.y1,mi2.y2)) ||((min(mi1.y1,mi1.y2) == min(mi2.y1,mi2.y2)) && (max(mi1.y1,mi1.y2)<max(mi2.y1,mi2.y2)));
+	//return(max(mi1.y1,mi1.y2) < max(mi2.y1,mi2.y2)) || ((max(mi1.y1,mi1.y2) == max(mi2.y1,mi2.y2)) && (min(mi1.y1,mi1.y2) > min(mi1.y1,mi1.y2)));
 }
 //////////////////////////////////////////////////////
 ccov makeChromBucket(int refLen)
@@ -27,67 +27,51 @@ bool msort(mI mi1, mI mi2)
 	return	(mi1.x2 < mi2.x2) || ((mi1.x2 == mi2.x2) && (mi1.x1 > mi2.x1));
 }
 /////////////////////////////////////////////////////////
-bool isort(mI m1, mI m2)
+bool lsort(mI m1,mI m2)
 {
-	return (max(m1.mv[0],m1.mv[1])<max(m2.mv[0],m2.mv[1]));
-}
-//////////////////////////////////////////////////////////
-bool iqsort(mI m1, mI m2)
-{
-	return (min(m1.mv[0],m1.mv[1]) < min(m2.mv[0],m2.mv[1]));
-}
-///////////////////////////////////////////////////////////
-bool dsort(mI m1,mI m2)
-{
-	if((m1.x2 != m2.x2)||(m1.x1 != m2.x1))
-		return m1.x2 < m2.x2;
-	return m1.y2 < m2.y2;
+	return (m1.l>m2.l) || ((m1.l == m2.l) && (m1.x1<m2.x1));
 }	
 ////////////////////////////////////////////////////////////
-bool findInnie(vector<mI> & mums,mI mi)
+void findInnie(vector<mI> & mums,mI & mi)
 {
 	int i = 0;
-	//int i = int(mums.size()) -1;
-	bool found = false;
-	//while(!(mi.x2 >mums[i].x2))//until they become just on more than equal
 	while((mi.x2 > mums[i].x1) && (i<mums.size()))
-	//while((mi.x2 < mums[i].x1) && (i>0))
 	{
 //cout<<"debug\t"<<mi.rn<<'\t'<<mi.x1<<'\t'<<mi.x2<<'\t'<<mums[i].rn<<'\t'<<mums[i].x1<<'\t'<<mums[i].x2<<endl;
 		if((mi.x1 > (mums[i].x1-1)) && (mi.x2 < (mums[i].x2+1)))
-		//if((mi.x1 > (mums[i].x1)) && (mi.x2 < (mums[i].x2)))
 		{
 //cout<<"debug\t"<<mi.rn<<'\t'<<mi.x1<<'\t'<<mi.x2<<'\t'<<mums[i].rn<<'\t'<<mums[i].x1<<'\t'<<mums[i].x2<<endl;
 			if(!(mi == mums[i]))
 			{
 //cout<<"debug\t"<<mi.rn<<'\t'<<mi.x1<<'\t'<<mi.x2<<'\t'<<mums[i].rn<<'\t'<<mums[i].x1<<'\t'<<mums[i].x2<<endl;
-				found = true;
-				break;
+				if(mi.c == 'q')
+				{
+					mi.c = 'd';
+					break;
+				}
+				else
+				{
+					mi.c = 'r';
+				}
 			}
 		}
-		++i;
-		//--i;
-	}
-	return found;
-}
-/////////////////////////////////////////////////////////////
-bool findInnieQ(vector<mI> & mums,mI mi) // checks if mi query embeds into another query
-{
-	int i =0;
-	bool found = false;
-	while((max(mi.y2,mi.y1)) > (min(mums[i].y1,mums[i].y2)) && (i<mums.size()))
-	{
 		if((min(mi.y1,mi.y2) > (min(mums[i].y1,mums[i].y2)-1)) && (max(mi.y2,mi.y1) <(max(mums[i].y2,mums[i].y1)+1)))
 		{
 			if(!(mi == mums[i]))
 			{
-				found = true;
-				break;
+				if(mi.c == 'r')
+				{
+					mi.c = 'd';
+					break;
+				}
+				else
+				{
+					mi.c = 'q';
+				}
 			}
 		}
 		++i;
 	}
-	return found;
 }
 ////////////////////////////////////////////////////////////////////
 void storeCords(ccov & masterRef,ccov & masterQ, mI & mi)
@@ -115,6 +99,49 @@ void storeCords(ccov & masterRef,ccov & masterQ, mI & mi)
 		masterQ[j]++;
 	}
 }
+///////////////////////////////////////////////////////
+void storeNameCount(ccov & chromDensityRef,ccov & chromDensityQ,map<string,int> & lookUpRef,map<string,int> & lookUpQ,mI & mi)
+{
+
+	int ty1 = 0, ty2 =0;
+
+	if(mi.y1 > mi.y2)//if reverse oriented
+	{
+		ty1 = mi.y2;
+		ty2 = mi.y1;
+	}
+	if(mi.y1 < mi.y2)//forward oriented
+	{
+		ty1 = mi.y1;
+		ty2 = mi.y2;
+        }
+	for(int i = mi.x1-1; i<mi.x2;i++)
+	{
+		if((chromDensityRef[i] >0) && (chromDensityRef[i] != lookUpQ[mi.qn]))//if the existing position does not have the same chrom and has not already been mapped to >2 chroms
+		{
+			chromDensityRef[i] = -2;
+		}
+		if(chromDensityRef[i] == 0)//no chrom name has been recorded yet
+		{
+			chromDensityRef[i] = lookUpQ[mi.qn];
+		}
+			
+	}
+
+	for(int i = ty1-1; i<ty2;i++)
+	{
+		if((chromDensityQ[i] >0) && (chromDensityQ[i] != lookUpRef[mi.rn]))//if the existing position does not have the same chrom and has not already been mapped to >2 chroms
+		{
+			chromDensityQ[i] = -2;
+
+		}
+		if(chromDensityQ[i] == 0)//no chrom name has been recorded yet
+		{
+			chromDensityQ[i] = lookUpRef[mi.rn];
+		}
+	}
+}
+
 ///////////////////////////////////////////////////////
 vector<double> getCoverage(mI & mi, ccov & masterRef, ccov & masterQ, float p)
 {
@@ -187,7 +214,7 @@ vector<double> getCoverage(mI & mi, ccov & masterRef, ccov & masterQ)
 	int d = 0, cov = 0;
 	double c;
 	vector<double> cc;
-	d = mi.x2 - mi.x1;
+	d = max(mi.x2 - mi.x1,1);//to avoid using 0
 	for(int i = mi.x1-1;i<mi.x2;i++)
 	{
 		cov = cov + masterRef[i];
@@ -195,10 +222,39 @@ vector<double> getCoverage(mI & mi, ccov & masterRef, ccov & masterQ)
 	c = cov/double(d);
 	cc.push_back(c);
 	cov = 0;
-	d = abs(mi.y1-mi.y2);
+	d = max(abs(mi.y1-mi.y2),1);//to avoid using 0
 	for(int i = min(mi.y1,mi.y2)-1;i<max(mi.y1,mi.y2);i++)
 	{
 		cov = cov + masterQ[i];
+	}
+	c = cov/double(d);
+	cc.push_back(c);
+	return cc;
+}
+////////////////////////////////////////////////////////////
+vector<double> getChromCount(mI & mi, ccov & chromDensityRef, ccov & chromDensityQ)
+{
+	vector<double> cc;
+	double c;
+	int d = 0, cov = 0;
+	d = max(abs(mi.x1 - mi.x2),1);
+	for(int i = mi.x1-1;i<mi.x2;i++)
+	{
+		if(chromDensityRef[i] == -2)
+		{
+                	++cov;
+		}
+	}
+	c = double(cov)/double(d);
+	cc.push_back(c);
+	cov = 0;
+	d = max(abs(mi.y1-mi.y2),1);
+	for(int i = min(mi.y1,mi.y2)-1;i<max(mi.y1,mi.y2);i++)
+	{
+		if(chromDensityQ[i] == -2)
+		{
+			++cov;
+		}
 	}
 	c = cov/double(d);
 	cc.push_back(c);
@@ -209,55 +265,70 @@ mI findClosest(mI & mi, vector<mI> & mums)
 {
 	map<double,mI> storeDist;
 	map<double,mI>::iterator it;
-	double d1 =0, d2 =0, d = 0,Dist= 0,rd1 =0,rd2=0,rd=0;
+	double d1 =0, d2 =0, d = 0,Dist= 0,rd2=0,rd=0;
 	mI invmi;//store the swapped gapmi
-	Dist = sqrt(pow(abs(mi.x2-mi.x1),2)+pow(abs(mi.y1-mi.y2),2));
+	sort(mums.begin(),mums.end(),lsort);//sort the mums by length
+	//Dist = sqrt(pow(abs(mi.x2-mi.x1),2)+pow(abs(mi.y1-mi.y2),2));
 	invmi = mi;
 	invmi.y1 = mi.y2;//invmi is reverse complement of gapmi
 	invmi.y2 = mi.y1;
 	for(unsigned int j=0; j <mums.size();j++)
 	{
-		d1 = pow(abs(mi.x1 - mums[j].x1),2);//if start of mum preceeds the gap start then effective mum start is the gap start. will do it for query too.
-		d2 = pow(abs(mi.y1 - mums[j].y1),2);
-		d = abs(sqrt(d1+d2));
-		rd1 = pow(abs(invmi.x1 - mums[j].x1),2);
-		rd2 = pow(abs(invmi.y1 - mums[j].y1),2);
-		rd = abs(sqrt(rd1 + rd2));
-		if(d < rd) // if forward orientation is closer
+		if((mums[j].rn == mi.rn) && (mums[j].qn == mi.qn))
 		{
-			storeDist[d] = mums[j];
-		}
-		if(rd < d)
-		{
-			storeDist[rd] = mums[j];
+			d1 = pow(abs(mi.x1 - max(mums[j].x1,mi.x1)),2);//if start of mum preceeds the gap start then effective mum start is the gap start. will do it for query too.
+			d2 = pow(abs(mi.y1 - mums[j].y1),2);
+			d = abs(sqrt(d1+d2));
+			rd2 = pow(abs(invmi.y1 - mums[j].y1),2);
+			rd = abs(sqrt(d1 + rd2));
+			if(d < rd) // if forward orientation is closer
+			{
+				storeDist[d] = mums[j];
+			}
+			if(rd < d)
+			{
+				storeDist[rd] = mums[j];
+			}
 		}
 	}
 	it = storeDist.begin();
-	//if(it->first >(2*Dist))
-//cout << mi.rn<<"\t"<<mi.x1<<"\t"<<mi.x2<<"\t"<<mi.qn<<"\t"<<mi.y1<<"\t"<<mi.y2<<"\t"<<it->second.rn<<"\t"<<it->second.x1<<"\t"<<it->second.x2<<"\t"<<it->second.y1<<"\t"<<it->second.y2<<"\t"<<it->first<<"\t"<<Dist<<"\t"<<d1<<"\t"<<d2<<endl;
-//	if(it->first > Dist)
-//	{
-//		it->second.y1 = 0;
-//	}
-return it->second;
+	if( mums[0] == mums[1])
+	{
+		return it->second;
+	}
+	else
+	{
+		return mums[0];//return the mum
+	}
 }
 ////////////////////////////////////////////////////
 void gapCloser(mI & mi, vector<mI> ncm, vector<mI> & cm)
 {
 	mI tempmi;
+	mI gapRight,gapLeft;//two sides of the new split gap
 	vector<mI> smum; //selected mums that overlap with the gap.
-	if(mi.x2 - mi.x1>0)
+	int refOvl =0, qOvl =0;
+	double refProp, qProp;
+	if((mi.x2 > mi.x1) && (mi.y2 > mi.y1)) //gaps in both ref and query exist, and in forward strand. inverted coordinates are converted to forward coordinates. so gaps are always in forward direction
 	{
+//cout<<"GAPS\t"<<mi.rn<<'\t'<<mi.x1<<'\t'<<mi.x2<<'\t'<<mi.qn<<'\t'<<mi.y1<<'\t'<<mi.y2<<endl;
 		for(unsigned int i = 0;i<ncm.size();i++)
 		{
-			if((!(ncm[i].x2 < mi.x1)) && (!(max(ncm[i].y1,ncm[i].y2)<min(mi.y1,mi.y2))) && (!(ncm[i].x1>mi.x2)) && (!(min(ncm[i].y1,ncm[i].y2)>max(mi.y2,mi.y1)))) //ncm mum does not fall outside
+			//if((!(ncm[i].x2 < mi.x1)) && (!(max(ncm[i].y1,ncm[i].y2)<min(mi.y1,mi.y2))) && (!(ncm[i].x1>mi.x2)) && (!(min(ncm[i].y1,ncm[i].y2)>max(mi.y2,mi.y1)))) //ncm mum does not fall outside
+			if((!(ncm[i].x2 < mi.x1)) && (!(ncm[i].x1 > mi.x2)) && (mi.rn == ncm[i].rn) && (mi.qn == ncm[i].qn))
 			{
-				smum.push_back(ncm[i]);
-//if(mi.rn == "2L")
-//{
-//cout<<ncm.size()<<"\t"<<i<<"\t"<<mi.rn<<"\t"<<mi.qn<<mi.x1<<"\t"<<mi.x2<<"\t"<<mi.y1<<"\t"<<mi.y2<<"\t"<<ncm[i].x1<<"\t"<<ncm[i].x2<<"\t"<<ncm[i].y1<<"\t"<<ncm[i].y2<<endl;
-//cout<<ncm.size()<<endl;
-//}
+				if((!(max(ncm[i].y2,ncm[i].y1) < mi.y1)) && (!(min(ncm[i].y1,ncm[i].y2) > mi.y2)))
+				{
+					refOvl = min(ncm[i].x2,mi.x2) - max(ncm[i].x1,mi.x1);
+					refProp = double(refOvl)/double(ncm[i].x2-ncm[i].x1);
+					qOvl = min(max(ncm[i].y1,ncm[i].y2),mi.y2) - max(min(ncm[i].y1,ncm[i].y2),mi.y1);
+					qProp = double(qOvl)/double(abs(ncm[i].y2-ncm[i].y1));
+					if((refProp>0.5) && (qProp>0.5))
+					{				
+						smum.push_back(ncm[i]);
+//cout<<mi.rn<<'\t'<<mi.x1<<'\t'<<mi.x2<<'\t'<<mi.qn<<'\t'<<mi.y1<<'\t'<<mi.y2<<'\t'<<ncm[i].rn<<'\t'<<ncm[i].x1<<'\t'<<ncm[i].x2<<'\t'<<ncm[i].qn<<'\t'<<'\t'<<ncm[i].y1<<'\t'<<ncm[i].y2<<endl;
+					}
+				}
 			}
 		}
 		if(smum.size()>0)
@@ -266,47 +337,119 @@ void gapCloser(mI & mi, vector<mI> ncm, vector<mI> & cm)
 			if(tempmi.y1 != 0) // add the condition that when it is forward this happens
 			{
 				cm.push_back(tempmi);
-//if(tempmi.rn == "2R")
-//{
-//	cout<<"cm\t"<<tempmi.rn<<" "<<tempmi.x1<<" "<<tempmi.x2<<" "<<tempmi.qn<<" "<<tempmi.y1<<" "<<tempmi.y2<<endl;
-//}
-				mi.x1 = tempmi.x2+1; //adjust the gap coordinates
+				gapRight.rn = mi.rn;
+				gapRight.qn = mi.qn;
+				gapRight.x1 = min(tempmi.x2+1,mi.x2); //adjust the gap coordinates
+				gapRight.x2 = mi.x2;
+				gapLeft.x1 = mi.x1;
+				gapLeft.x2 = max(tempmi.x1,mi.x1);
+				gapLeft.rn = mi.rn;
+				gapLeft.qn = mi.qn;
+
 				if(tempmi.y1 < tempmi.y2)//forward oriented
 				{
-					mi.y1 = tempmi.y2+1; //adjust the gap coordinates
+					gapRight.y1 = min(max(tempmi.y2+1,tempmi.y1),mi.y2); //adjust the gap coordinates
+					gapRight.y2 = mi.y2;
+					gapLeft.y1 = mi.y1;
+					gapLeft.y2 = max(min(tempmi.y1,tempmi.y2+1),mi.y1);
 				}
 				if(tempmi.y1 > tempmi.y2)//reverse oriented
 				{
-					if(abs(mi.y1-tempmi.y1) < abs(mi.y2 - tempmi.y2))//if tempmi is closer to the leftgap end
-					{
-						mi.y1 = tempmi.y1 +1;
-					}
-					if(abs(mi.y1-tempmi.y1) > abs(mi.y2 - tempmi.y2))
-					{
-						mi.y2 = tempmi.y2 -1;
-					}
+					gapRight.y1 = min(max(tempmi.y1 +1,tempmi.y2),mi.y2);
+					gapRight.y2 = mi.y2;
+					gapLeft.y1 = mi.y1;
+					gapLeft.y2 = max(min(tempmi.y2,tempmi.y1+1),mi.y1);	
 				}
-				gapCloser(mi,smum,cm);//need to make it dependent on the size of ncm if ncm size does not change, that mean no more solution is there
+//cout<<"tempmi\t"<<tempmi.rn<<'\t'<<tempmi.x1<<'\t'<<tempmi.x2<<'\t'<<tempmi.qn<<'\t'<<tempmi.y1<<'\t'<<tempmi.y2<<endl;
+//cout<<"Right\t"<<gapRight.rn<<'\t'<<gapRight.x1<<'\t'<<gapRight.x2<<'\t'<<gapRight.qn<<'\t'<<gapRight.y1<<'\t'<<gapRight.y2<<endl;
+//cout<<"Left\t"<<gapLeft.rn<<'\t'<<gapLeft.x1<<'\t'<<gapLeft.x2<<'\t'<<gapLeft.qn<<'\t'<<gapLeft.y1<<'\t'<<gapLeft.y2<<endl;
+				gapCloser(gapRight,smum,cm);//need to make it dependent on the size of ncm if ncm size does not change, that mean no more solution is there
+				gapCloser(gapLeft,smum,cm);
 			}
 					
 		}
 	}
-	else
-	{
-		//return;
-	}
-	
+		
 }
 /////////////////////////////////////////////////////
+mI returnMumByQ1(int & y1,vector<mI> & mums)//returns the mum from query sorted mums which has the same y1 as y1
+{
+	unsigned int i =0;
+	unsigned int k = mums.size()-1;
+	mI tempmi;
+	while((mums[i].y1 != y1) && (mums[k-i].y1 != y1) && (i<mums.size()))
+	{
+		++i;
+	}
+	if((i == mums.size()-1) || (i == 0))
+	{
+		if(mums[i].y1 == y1)
+		{
+			tempmi = mums[i];
+		}
+		if(mums[k-i].y1 == y1)
+		{
+			tempmi = mums[k-i];
+		}
+
+	}	
+	else
+	{
+		if(mums[i].y1 == y1)
+		{
+			tempmi = mums[i+1];
+		}
+		if(mums[k-i].y1 == y1)
+                {
+			tempmi = mums[(k-i)+1];
+                }
+
+	}
+	return tempmi;
+}
+///////////////////////////////////////////////////////////
+mI returnMumByQ2(int & y1,vector<mI> & mums)//returns the mum from query sorted mums which has the same y1 as y1
+{
+	unsigned int i = 0;
+	unsigned int k = mums.size()-1;
+	mI tempmi;
+	while((mums[i].y1 != y1) && (mums[k-i].y1 != y1) && (i<mums.size()))
+	{
+		++i;
+	}
+	if((i == 0) || (i == mums.size()-1))
+	{
+		if(mums[i].y1 == y1)
+		{
+			tempmi = mums[i];
+		}
+		if(mums[k-i].y1 == y1)
+		{
+			tempmi = mums[k-i];
+		}
+	}
+	else
+	{
+		if(mums[i].y1 == y1)
+		{
+			tempmi = mums[i-1];
+		}
+		if(mums[k-i].y1 == y1)
+		{
+			tempmi = mums[(k-i)-1];
+		}
+	}
+	return tempmi;
+}
+///////////////////////////////////////////////////////
 void gapCloserRev(mI & mi, vector<mI> ncm, vector<mI> & cm)
 {
 	mI tempmi;
 	vector<mI> smum; //selected mums that overlap with the gap.
-	if((mi.x2 - mi.x1>0) && (mi.y1 - mi.y2 >0)) //checking if both of them has gaps. this is for inverted sequences
+	if((mi.x2 > mi.x1) && (mi.y1 > mi.y2)) //checking if both of them has gaps. this is for inverted sequences
 	{
 		for(unsigned int i = 0;i<ncm.size();i++)
 		{
-			//if ncm[i] is also on reverse strand
 			if((!(ncm[i].x2 < mi.x1) && !(min(ncm[i].y1,ncm[i].y2)>mi.y1)) && (!(ncm[i].x1>mi.x2)) && (!(max(ncm[i].y1,ncm[i].y2)<mi.y2))) //ncm mum does not fall outside
 			{
 				smum.push_back(ncm[i]);

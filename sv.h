@@ -26,6 +26,7 @@ struct mI {
         int y2;//query end
         char c;//qualifier. special comments or information can be added to this:i=inversion;
 	vector<int> mv;        
+	int l;//length of the MUM
         bool operator < (const mI& mum1) const
         {
                 return(x1 < mum1.x1) || ((x1 == mum1.x1) && (x2 < mum1.x2));
@@ -64,30 +65,29 @@ vector<int> makeChromBucket(int refLen);
 bool msort(mI mi1, mI mi2);
 bool isort(mI m1, mI m2);
 bool iqsort(mI m1, mI m2);
-bool dsort(mI m1,mI m2);
+bool lsort(mI m1,mI m2);
 void storeCords(vector<int> & masterRef,vector<int> & masterQ, mI & mi);
 void storeCords(vector<int> & masterQ, mI & mi);//overloaded
+void storeNameCount(vector<int> & chromDensityRef,vector<int> & chromDensityQ,map<string,int> & lookUpRef,map<string,int> & lookUpQ, mI & mi);
 void storeCords(map<int,vector<qord> > & mRef, mI & mi, ofstream & fout); //overloaded
 void storeCordsCm(map<int,vector<qord>> & mRef, mI & mi);
-int findDist(int & x1, int & y1, int & c);//distance between the diagonal and the other MUMs
-bool detectShadow(mI & mum, vector<mI> & mums, unsigned int n);
-mI findClosest(mI & mi, vector<mI> & mums,unsigned int i, vector<int> & masterRef,vector<int> & masterQ);
 mI findClosest(mI & mi, vector<mI> & mums);//overloaded function
 vector<double> getCoverage(mI & mi, vector<int> & masterRef,vector<int> & masterQ);
 vector<double> getCoverage(mI & mi, vector<int> & masterRef,vector<int> & masterQ,float p);
-//void splitByCoverage(chromPair & cp,vector<int> & chrom, vector<mI> & mums,vector<int> & masterRef, vector<int> & masterQ);
+vector<double> getChromCount(mI & mi, vector<int> & chromDensityRef, vector<int> & chromDensityQ);
 void gapCloser(mI & mi, vector<mI> ncm, vector<mI>& cm);
+mI returnMumByQ1(int & y1,vector<mI> & mums);
+mI returnMumByQ2(int & y1,vector<mI> & mums);
 void gapCloserRev(mI & mi, vector<mI> ncm, vector<mI> & cm);
 int nearestInt(double d);
-void annotGaps(vector<mI> & cm,vector<int> & masterRef, vector<int> & masterQ,vector<mI> & cnv,map<int,vector<qord> > & umRef, string & refseq, string & qseq,vector<int> & seqlen,ofstream & fout, ofstream & fsmall,int & id);
+void annotGaps(vector<mI> & cm,vector<int> & masterRef, vector<int> & masterQ,vector<int> & chromDensityRef, vector<int> & chromDensityQ,vector<mI> & cnv,map<int,vector<qord> > & umRef, string & refseq, string & qseq,vector<int> & seqlen,ofstream & fout, ofstream & fsmall,int & id);
 void readUniq(ifstream & fin,vector<mI> & cm, map<int,vector<qord> > & umRef,vector<int> & masterHQ);
 void callSmall(mI & mi,map<int,vector<qord> > & umRef, string & refseq, string & qseq,vector<int> & seqlen,ofstream & fsmall);
-void findCnvOverlap(vector<mI> & cnv,mI & mi,vector<mI> & storedCNV,vector<int> & masterRef, vector<int> & masterQ, ofstream & fout, int & id);
-void findCnvOverlapInRef(vector<mI> & cnv,mI & mi,vector<mI> & storedCNV,ofstream & fout);
-mI findDup(mI & mi1, mI & mi2);
+void findCnvOverlap(mI & gapmi,vector<mI> ncm, vector<mI> cnv, vector<int> & masterRef, vector<int> & masterQ,vector<int> & chromDensityRef,vector<int> & chromDensityQ,ofstream & fout, int & id);
+//void findCnvOverlapInRef(vector<mI> & cnv,mI & mi,vector<mI> & storedCNV,ofstream & fout);
+mI findDupRef(mI & mi1, mI & mi2);
+mI findDupQ(mI m1, mI m2);
 char comp(char & N);
-void xtracTrans(map<int,vector<qord> > & mRef, vector<mI> & cm,ofstream & ftest);
-vector<int> findInvertSpan(vector<mI> & cm, int i);
-bool findInnie(vector<mI> & mums,mI mi);
-bool findInnieQ(vector<mI> & mums,mI mi);
+void findInnie(vector<mI> & mums,mI & mi);
+
 #endif
