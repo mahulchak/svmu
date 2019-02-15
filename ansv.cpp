@@ -19,40 +19,46 @@ void annotGaps(vector<mI> & cm, ccov & masterRef, ccov & masterQ, ccov & chromDe
 {
 	vector<double> cov(2);//stores coverage for ref and query intervals
 	vector<int> vi;
-	mI gapmi,cnrmi,cnqmi,thismi,nextmi,prevmi,tempmi;
+	mI gapmi,cnrmi,cnqmi,thismi,nextmi,tempmi;
 	vector<mI> storedCNV, tempVmi;
-	int refGap =0, qGap = 0;
-	tempVmi.assign(cm.begin(),cm.end());
+	tempVmi = cm;
 	sort(tempVmi.begin(),tempVmi.end(),qusort);//sort it by Q cords for resolving for-rev junctions
-	for(unsigned int i=0; i< cm.size()-1;i++)
+	for(unsigned int i=0; i<cm.size()-1;i++)
 	{
+//cout<<cm[i].rn<<'\t'<<cm[i].x1<<'\t'<<cm[i].x2<<'\t'<<cm[i].qn<<'\t'<<cm[i].y1<<'\t'<<cm[i].y2<<endl;
 		thismi = cm[i];
 		nextmi = cm[i+1];
-		if(i>0) //else i-1 becomes meaningless
-		{
-			prevmi = cm[i-1];
-		}
+
 		gapmi.rn = thismi.rn;//should be same chromosomes
 		gapmi.qn = thismi.qn;//same as above
 		//callSmall(tempmi,umRef,refseq,qseq,seqLen,fsmall);//activate this to call SNPs and small indels
 		if((thismi.y1 > thismi.y2) && (nextmi.y1 > nextmi.y2)) // two subsequent mums are inverted
 		{
+//			tempmi = returnMumByQ2(thismi.y1,tempVmi);//returns the previous mi.y1
 			gapmi.x1 = thismi.x2;
-			gapmi.x2 = max(nextmi.x1,thismi.x2);
-			gapmi.y1 = min(nextmi.y1,thismi.y2);//maintain the forward strand style for gaps. i.e. small to large
+			gapmi.x2 = nextmi.x1;
+			gapmi.y1 = min(nextmi.y1,thismi.y2);//maintain the forward strand style for gaps
 			gapmi.y2 = thismi.y2;
-			gapmi.c = 'i';//not needed but book keeping
+			gapmi.c = 'i';//not needed but bookkeeping
 			cov = getCoverage(thismi,masterRef,masterQ,0.5);//medican coverage of the interval
 			cnqmi = findDupQ(thismi,nextmi);
                         fout<<thismi.rn<<"\t"<<thismi.x1<<"\t"<<thismi.x2<<"\tINV\t"<<thismi.qn<<"\t"<<thismi.y2<<"\t"<<thismi.y1<<"\t"<<setfill('0')<<setw(10)<<id++<<"\t"<<cm[i].x2-cm[i].x1<<"\t"<<cov[0]<<"\t"<<cov[1]<<endl;
+//cout<<"this\t"<<thismi.rn<<'\t'<<thismi.x1<<'\t'<<thismi.x2<<'\t'<<thismi.qn<<'\t'<<thismi.y1<<'\t'<<thismi.y2<<endl;
+//cout<<"next\t"<<nextmi.rn<<'\t'<<nextmi.x1<<'\t'<<nextmi.x2<<'\t'<<nextmi.qn<<'\t'<<nextmi.y1<<'\t'<<nextmi.y2<<endl;
+//cout<<"temp\t"<<tempmi.rn<<'\t'<<tempmi.x1<<'\t'<<tempmi.x2<<'\t'<<tempmi.qn<<'\t'<<tempmi.y1<<'\t'<<tempmi.y2<<endl;
+//cout<<"gap\t"<<gapmi.rn<<'\t'<<gapmi.x1<<'\t'<<gapmi.x2<<'\t'<<gapmi.qn<<'\t'<<gapmi.y1<<'\t'<<gapmi.y2<<endl;
 		}
 		if((thismi.y2 > thismi.y1) && (nextmi.y2 > nextmi.y1)) // both are forward
 		{
+//			tempmi = returnMumByQ1(thismi.y1,tempVmi);//returns the next mi.y1
 			gapmi.x1 = thismi.x2;
 			gapmi.x2 = max(nextmi.x1,thismi.x2);
 			gapmi.y1 = thismi.y2;
 			gapmi.y2 = max(nextmi.y1,thismi.y2);
 			cnqmi = findDupQ(thismi,nextmi);
+//cout<<"this\t"<<thismi.rn<<'\t'<<thismi.x1<<'\t'<<thismi.x2<<'\t'<<thismi.qn<<'\t'<<thismi.y1<<'\t'<<thismi.y2<<endl;
+//cout<<"next\t"<<nextmi.rn<<'\t'<<nextmi.x1<<'\t'<<nextmi.x2<<'\t'<<nextmi.qn<<'\t'<<nextmi.y1<<'\t'<<nextmi.y2<<endl;
+//cout<<"temp\t"<<tempmi.rn<<'\t'<<tempmi.x1<<'\t'<<tempmi.x2<<'\t'<<tempmi.qn<<'\t'<<tempmi.y1<<'\t'<<tempmi.y2<<endl;
 		}
 		if((thismi.y2 > thismi.y1) && (nextmi.y1 > nextmi.y2)) //first is forward but second is reverse
 		{
@@ -62,29 +68,29 @@ void annotGaps(vector<mI> & cm, ccov & masterRef, ccov & masterQ, ccov & chromDe
 			gapmi.y1 = thismi.y2;
 			gapmi.y2 = max(min(tempmi.y1,tempmi.y2),thismi.y2);
 			cnqmi = findDupQ(thismi,tempmi);
-//cout<<"this\t"<<thismi.rn<<'\t'<<thismi.x1<<'\t'<<thismi.x2<<'\t'<<thismi.qn<<'\t'<<thismi.y1<<'\t'<<thismi.y2<<endl;
+//cout<<"this FR\t"<<thismi.rn<<'\t'<<thismi.x1<<'\t'<<thismi.x2<<'\t'<<thismi.qn<<'\t'<<thismi.y1<<'\t'<<thismi.y2<<endl;
 //cout<<"next\t"<<nextmi.rn<<'\t'<<nextmi.x1<<'\t'<<nextmi.x2<<'\t'<<nextmi.qn<<'\t'<<nextmi.y1<<'\t'<<nextmi.y2<<endl;
 //cout<<"temp\t"<<tempmi.rn<<'\t'<<tempmi.x1<<'\t'<<tempmi.x2<<'\t'<<tempmi.qn<<'\t'<<tempmi.y1<<'\t'<<tempmi.y2<<endl;
 //cout<<"gap\t"<<gapmi.rn<<'\t'<<gapmi.x1<<'\t'<<gapmi.x2<<'\t'<<gapmi.qn<<'\t'<<gapmi.y1<<'\t'<<gapmi.y2<<endl;
 		}
 		if((i>0) && (thismi.y1 > thismi.y2) && (nextmi.y2 > nextmi.y1)) //reverse followed by forward
 		{
+//cout<<"this\t"<<thismi.rn<<'\t'<<thismi.x1<<'\t'<<thismi.x2<<'\t'<<thismi.qn<<'\t'<<thismi.y1<<'\t'<<thismi.y2<<endl;
+//cout<<"next\t"<<nextmi.rn<<'\t'<<nextmi.x1<<'\t'<<nextmi.x2<<'\t'<<nextmi.qn<<'\t'<<nextmi.y1<<'\t'<<nextmi.y2<<endl;
 			tempmi = returnMumByQ2(nextmi.y1,tempVmi);//finds the previous query cord
 			gapmi.x1 = thismi.x2;
 			gapmi.x2 = max(nextmi.x1,thismi.x2);
 			gapmi.y1 = max(tempmi.y2,tempmi.y1);
 			gapmi.y2 = max(max(tempmi.y2,tempmi.y1),nextmi.y1);
 			cnqmi = findDupQ(tempmi,nextmi);
-//cout<<"this\t"<<thismi.rn<<'\t'<<thismi.x1<<'\t'<<thismi.x2<<'\t'<<thismi.qn<<'\t'<<thismi.y1<<'\t'<<thismi.y2<<endl;
+//cout<<"this RF\t"<<thismi.rn<<'\t'<<thismi.x1<<'\t'<<thismi.x2<<'\t'<<thismi.qn<<'\t'<<thismi.y1<<'\t'<<thismi.y2<<endl;
 //cout<<"next\t"<<nextmi.rn<<'\t'<<nextmi.x1<<'\t'<<nextmi.x2<<'\t'<<nextmi.qn<<'\t'<<nextmi.y1<<'\t'<<nextmi.y2<<endl;
 //cout<<"temp\t"<<tempmi.rn<<'\t'<<tempmi.x1<<'\t'<<tempmi.x2<<'\t'<<tempmi.qn<<'\t'<<tempmi.y1<<'\t'<<tempmi.y2<<endl;
 //cout<<"gap\t"<<gapmi.rn<<'\t'<<gapmi.x1<<'\t'<<gapmi.x2<<'\t'<<gapmi.qn<<'\t'<<gapmi.y1<<'\t'<<gapmi.y2<<endl;
-			cov = getCoverage(cm[i],masterRef,masterQ,0.5);
+			cov = getCoverage(thismi,masterRef,masterQ,0.5);
                         fout<<thismi.rn<<"\t"<<thismi.x1<<"\t"<<thismi.x2<<"\tINV\t"<<thismi.qn<<"\t"<<thismi.y2<<"\t"<<thismi.y1<<"\t"<<setfill('0')<<setw(10)<<id++<<"\t"<<thismi.x2-thismi.x1<<"\t"<<cov[0]<<"\t"<<cov[1]<<endl;
 		}
-				
 		cnrmi = findDupRef(thismi,nextmi);//find duplicates of ref segments
-		//cnqmi = findDupQ(thismi,nextmi);
 		if(cnrmi.x1 != 0)
 		{
 			cov =getCoverage(cnrmi,masterRef,masterQ,0.5); 
@@ -109,7 +115,6 @@ void annotGaps(vector<mI> & cm, ccov & masterRef, ccov & masterQ, ccov & chromDe
 				fout<<cnqmi.rn<<"\t"<<cnqmi.x1<<"\t"<<cnqmi.x2<<"\tCNV-R\t"<<cnqmi.qn<<"\t"<<cnqmi.y1<<"\t"<<cnqmi.y2<<"\t"<<setfill('0')<<setw(10)<<id++<<"\t"<<(cnqmi.x2 -cnqmi.x1)<<"\t"<<cov[0]<<"\t"<<nearestInt(cov[1])<<endl;
 			}
 		}
-
 		cnrmi.x1 = 0;//reset cnvmi.x1
 		cnqmi.x1 = 0;//reset cnqmi.x1;
 		findCnvOverlap(gapmi,cnv,storedCNV, masterRef, masterQ,chromDensityRef,chromDensityQ,fout,id);
@@ -126,12 +131,13 @@ void findCnvOverlap(mI & gapmi,vector<mI> ncm, vector<mI> cnv, ccov & masterRef,
 	double refProp = 0 , qProp = 0;//stores total overlap proportion
 	int refOvl =0,qOvl =0;
 	vector<double> vd(2),vn(2);
+//cout<<"gap\t"<<gapmi.rn<<'\t'<<gapmi.x1<<'\t'<<gapmi.x2<<'\t'<<gapmi.qn<<'\t'<<gapmi.y1<<'\t'<<gapmi.y2<<endl;
 	if((gapmi.x2 > gapmi.x1) || (gapmi.y2 > gapmi.y1)) //gaps in either ref or query exist, and in forward strand. inverted coordinates are converted to forward coordinates. so gaps are always in forward direction
 	{
 		for(unsigned int i = 0;i<ncm.size();i++)
 		{	
 			vn = getChromCount(ncm[i],chromDensityRef,chromDensityQ);
-			if((vn[0] < 0.5) && (vn[1] < 0.5))
+			if((vn[0] < 0.5) && (vn[1] < 0.5) && (ncm[i].x1 != 0) && (ncm[i].y1 != 0))
 			{
 				if(!(ncm[i].x2 < gapmi.x1) && !(ncm[i].x1 > gapmi.x2) && (ncm[i].rn == gapmi.rn) && (ncm[i].qn == gapmi.qn))
 				{
@@ -140,12 +146,11 @@ void findCnvOverlap(mI & gapmi,vector<mI> ncm, vector<mI> cnv, ccov & masterRef,
 					refProp = double(refOvl)/double(ncm[i].x2-ncm[i].x1);			
 					if(refProp >0.5) //at least 50% of the candidate mum overlaps the gap
 					{
+//cout<<"R-ovl\t"<<gapmi.rn<<'\t'<<gapmi.x1<<'\t'<<gapmi.x2<<'\t'<<gapmi.qn<<'\t'<<gapmi.y1<<'\t'<<gapmi.y2<<'\t'<<ncm[i].x1<<'\t'<<ncm[i].x2<<'\t'<<ncm[i].y1<<'\t'<<ncm[i].y2<<'\t'<<refOvl<<'\t'<<refProp<<endl;
 						ncm[i].c = 'r';//overlaps reference gaps
 						smum.push_back(ncm[i]);
 						ncm[i].x1 = 0;//not use it again for gap filling in any subsequent gaps
 						ncm[i].x2 = 0;
-//cout<<"R-ovl\t"<<gapmi.rn<<'\t'<<gapmi.x1<<'\t'<<gapmi.x2<<'\t'<<gapmi.qn<<'\t'<<gapmi.y1<<'\t'<<gapmi.y2<<'\t'<<ncm[i].x1<<'\t'<<ncm[i].x2<<'\t'<<ncm[i].y1<<'\t'<<ncm[i].y2<<'\t'<<refOvl<<'\t'<<refProp<<endl;
-
 					}
 				}
 				if((!(max(ncm[i].y2,ncm[i].y1) < gapmi.y1)) && (!(min(ncm[i].y1,ncm[i].y2) > gapmi.y2))&& (ncm[i].rn == gapmi.rn) && (ncm[i].qn == gapmi.qn))
@@ -155,18 +160,20 @@ void findCnvOverlap(mI & gapmi,vector<mI> ncm, vector<mI> cnv, ccov & masterRef,
 					qProp = double(qOvl)/double(abs(ncm[i].y2-ncm[i].y1));
 					if((qProp > 0.5) && (find(smum.begin(),smum.end(),ncm[i]) == smum.end()))
 					{
+//cout<<"Q-ovl\t"<<gapmi.rn<<'\t'<<gapmi.x1<<'\t'<<gapmi.x2<<'\t'<<gapmi.qn<<'\t'<<gapmi.y1<<'\t'<<gapmi.y2<<'\t'<<ncm[i].x1<<'\t'<<ncm[i].x2<<'\t'<<ncm[i].y1<<'\t'<<ncm[i].y2<<'\t'<<qOvl<<'\t'<<qProp<<endl;
 						ncm[i].c = 'q';
 						smum.push_back(ncm[i]);
 						ncm[i].y2 = 0;
 						ncm[i].y1 = 0;
-//cout<<"Q-ovl\t"<<gapmi.rn<<'\t'<<gapmi.x1<<'\t'<<gapmi.x2<<'\t'<<gapmi.qn<<'\t'<<gapmi.y1<<'\t'<<gapmi.y2<<'\t'<<ncm[i].x1<<'\t'<<ncm[i].x2<<'\t'<<ncm[i].y1<<'\t'<<ncm[i].y2<<'\t'<<qOvl<<'\t'<<qProp<<endl;
 					}
 				}
 			}
 		}
+//cout<<"2 gap\t"<<gapmi.rn<<'\t'<<gapmi.x1<<'\t'<<gapmi.x2<<'\t'<<gapmi.qn<<'\t'<<gapmi.y1<<'\t'<<gapmi.y2<<endl;
 		if(smum.size() >0)
 		{
 			tempmi = findClosest(gapmi,smum);
+//cout<<"Found tempmi\t"<<tempmi.rn<<"\t"<<tempmi.x1<<"\t"<<tempmi.x2<<"\t"<<tempmi.qn<<"\t"<<tempmi.y1<<"\t"<<tempmi.y2<<endl;
 			vd = getCoverage(tempmi,masterRef,masterQ);
 	//		vn = getChromCount(tempmi,chromDensityRef,chromDensityQ);
 			if(vd[0] >2 || vd[1] >2)
@@ -188,10 +195,10 @@ void findCnvOverlap(mI & gapmi,vector<mI> ncm, vector<mI> cnv, ccov & masterRef,
 				}
 				if(tempmi.c == 'q')
 				{
-					fout<<tempmi.rn<<"\t"<<tempmi.x1<<"\t"<<tempmi.x2<<"\tnCNV-NR\t"<<tempmi.qn<<"\t"<<tempmi.y1<<"\t"<<tempmi.y2<<"\t"<<setfill('0')<<setw(10)<<id++<<"\t"<<tempmi.x2-tempmi.x1<<"\t"<<vd[0]<<"\t"<<vd[1]<<vn[0]<<'\t'<<vn[1]<<endl;
+					fout<<tempmi.rn<<"\t"<<tempmi.x1<<"\t"<<tempmi.x2<<"\tnCNV-NR\t"<<tempmi.qn<<"\t"<<tempmi.y1<<"\t"<<tempmi.y2<<"\t"<<setfill('0')<<setw(10)<<id++<<"\t"<<tempmi.x2-tempmi.x1<<"\t"<<vd[0]<<"\t"<<vd[1]<<endl;
 				}
 			}
-			cnv.push_back(tempmi);
+		//	cnv.push_back(tempmi);
 			if(tempmi.c == 'r')//if the cnv is in reference
 			{
 				gapRight = gapmi; //asign the original gap and then the specific ones
@@ -212,6 +219,7 @@ void findCnvOverlap(mI & gapmi,vector<mI> ncm, vector<mI> cnv, ccov & masterRef,
 			}
 			findCnvOverlap(gapLeft,smum,cnv,masterRef,masterQ,chromDensityRef,chromDensityQ,fout,id);
 			findCnvOverlap(gapRight,smum,cnv,masterRef,masterQ,chromDensityRef,chromDensityQ,fout,id);
+//cout<<"3 gap\t"<<gapmi.rn<<'\t'<<gapmi.x1<<'\t'<<gapmi.x2<<'\t'<<gapmi.qn<<'\t'<<gapmi.y1<<'\t'<<gapmi.y2<<endl;
 		}
 		else//if no ncm is found then it is a gap in the reference or query
 		{
@@ -240,6 +248,7 @@ void findCnvOverlap(mI & gapmi,vector<mI> ncm, vector<mI> cnv, ccov & masterRef,
 				}
 				fout<<gapmi.rn<<"\t"<<gapmi.x1 <<"\t"<<gapmi.x2<<"\tDEL\t"<<gapmi.qn<<"\t"<<gapmi.y1<<"\t"<<gapmi.y2<<"\t"<<setfill('0')<<setw(10)<<id++<<"\t"<<abs(gapmi.x2-gapmi.x1)-abs(gapmi.y2-gapmi.y1)<<"\t"<<vd[0]<<"\t"<<vd[1]<<endl;
 			}
+//cout<<"4 gap\t"<<gapmi.rn<<'\t'<<gapmi.x1<<'\t'<<gapmi.x2<<'\t'<<gapmi.qn<<'\t'<<gapmi.y1<<'\t'<<gapmi.y2<<endl;
 		}		
 	}
 
@@ -283,7 +292,7 @@ mI findDupRef(mI & mi1, mI & mi2)//mi1 is upstream MUM and mi2 is downstream MUM
 	return tempmi;
 }
 /////////////////////////////////////////////////////////////////////////////	
-mI findDupQ(mI m1,mI m2)//m1 is thismi and m2 is nextmi
+mI findDupQ(mI & m1,mI & m2)//m1 is thismi and m2 is nextmi
 {
 	mI tempmi;
 	tempmi.rn = m1.rn;//just assign the names.
@@ -302,15 +311,16 @@ mI findDupQ(mI m1,mI m2)//m1 is thismi and m2 is nextmi
 	}
 	if((m1.y1 > m1.y2) && (m2.y1 > m2.y2))//both reverse
 	{
-		if(!(m2.y1 < m1.y2))
+		if(!(m2.y1 < m1.y2))//the beginning of next is not smaller than the end of this
 		{
 			tempmi.x1 = m2.x1;
 			tempmi.x2 = m2.x1 + (m2.y1 - m1.y2);
 			tempmi.y1 = m2.y1;//we can swap it with the number below to make it forward strand
 			tempmi.y2 = m1.y2;
+//cout<<m1.rn<<'\t'<<m1.x1<<'\t'<<m1.x2<<'\t'<<m1.qn<<'\t'<<m1.y1<<'\t'<<m1.y2<<m2.rn<<'\t'<<m2.x1<<'\t'<<m2.x2<<'\t'<<m2.qn<<'\t'<<m2.y1<<'\t'<<m2.y2<<endl;
 		}
 	}
-	if((m1.y1 < m2.y2) && (m2.y1 > m2.y2))
+	if((m1.y1 < m1.y2) && (m2.y1 > m2.y2))//this forward,next reverse
 	{
 		if(!(m2.y2 > m1.y2))
 		{
@@ -320,7 +330,7 @@ mI findDupQ(mI m1,mI m2)//m1 is thismi and m2 is nextmi
 			tempmi.y2 = m1.y2;
 		}
 	}
-	if((m1.y1 > m1.y2) && (m1.y2 > m2.y1))
+	if((m1.y1 > m1.y2) && (m2.y1 < m2.y2)) //this reverse, next forward
 	{
 		if(!(m2.y1 > m1.y1))
 		{

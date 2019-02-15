@@ -1,14 +1,3 @@
-//*****************THINGS TO FIX/IMPROVE******************
-//********************************************************
-//resolve the bug of repeated output of insertion or deletion
-//also check findDupRef output for inverted duplicates
-//check mutations where both genomes show duplications
-//write the trans potential duplicates to a file. this requires putting all MUMs into a vector
-//make sure that boundary of a translocated segment does not create ghost gap and ghost CNVs
-//DISTANT FUTURE:Get rid of coverage storage [future] and use overlapping but non-embedded MUMs as criteria for removal of both MUMs from getting into the preliminary cm list.
-//********************************************************
-//********************************************************
-
 #include<iostream>
 #include "sv.h"
 #include "seqIO.h"
@@ -52,7 +41,7 @@ int main(int argc, char *argv[])
 
 	string foo = string(argv[1]);
 	string line, chromName,refName,qName,indexAln;
-	int refStart = 0, refEnd = 0, qStart = 0, qEnd = 0, refLen =0, qLen =0, count = -1,indelPos =0,refChromCount=0,qChromCount = 0;
+	int refStart = 0, refEnd = 0, qStart = 0, qEnd = 0, refLen =0, qLen =0, count = -1,qGap =0, indelPos =0, refChromCount=0, qChromCount = 0;
 	unsigned int index = 0;
 	
 	vector<double> vd;
@@ -64,7 +53,7 @@ int main(int argc, char *argv[])
 	ofstream fout,fcnv,fsmall,ftrans,findel,fcords,fcm;
 	fin.open(argv[1]);
 	fcords.open("cords.txt");
-	fcm.open("cm.txt");
+	//fcm.open("cm.txt");
 	while(getline(fin,line))
 	{
 		
@@ -132,6 +121,7 @@ int main(int argc, char *argv[])
 		}
 	}
 	fin.close();
+	fcm.open("cm.txt");
 	for(chroms::iterator it = allChrom.begin();it!= allChrom.end();it++)
 	{
 		vm.clear();
@@ -146,30 +136,13 @@ int main(int argc, char *argv[])
 			{
 				tempmi = allChrom[indexAln].mums[i];
 				fcords<<tempmi.rn<<'\t'<<tempmi.x1<<'\t'<<tempmi.x2<<'\t'<<tempmi.qn<<'\t'<<tempmi.y1<<'\t'<<tempmi.y2<<endl;
-//				findInnie(allChrom[indexAln].mums,tempmi);
-//				if(tempmi.c != 'd')
-//				{
-//					tempVmi.push_back(tempmi);
-//				}
-//				else
-//				{
-//					allChrom[indexAln].ncm.push_back(tempmi);
-//				}
-//			}
-//			for(unsigned int i=0; i<tempVmi.size();i++)
-//			{
-//				tempmi = tempVmi[i];
-//				findInnie(tempVmi,tempmi);
-//				if((tempmi.c != 'r') && (tempmi.c != 'q'))
-//				{	
 				vd = getCoverage(tempmi,masterRef[tempmi.rn],masterQ[tempmi.qn],0.3);
 				if((vd[0] <2) && (vd[1]<2))
 				{
 					qvm.push_back(tempmi);
-					count = tempmi.x2 - tempmi.x1;
-cout<<"unique\t"<<tempmi.rn<<'\t'<<tempmi.x1<<'\t'<<tempmi.x2<<'\t'<<tempmi.qn<<'\t'<<tempmi.y1<<'\t'<<tempmi.y2<<'\t'<<endl;
+			//		count = tempmi.x2 - tempmi.x1;
+//cout<<"unique\t"<<tempmi.rn<<'\t'<<tempmi.x1<<'\t'<<tempmi.x2<<'\t'<<tempmi.qn<<'\t'<<tempmi.y1<<'\t'<<tempmi.y2<<'\t'<<endl;
 				}			
-//				}
 				else
 				{
 					allChrom[indexAln].ncm.push_back(tempmi);
@@ -255,12 +228,24 @@ cout<<"unique\t"<<tempmi.rn<<'\t'<<tempmi.x1<<'\t'<<tempmi.x2<<'\t'<<tempmi.qn<<
 						tempmi = gapmi[i];
 						gapCloser(tempmi,allChrom[indexAln].ncm,allChrom[indexAln].cm);
 					}
-					hcp[allChrom[indexAln].cm[0].rn].push_back(indexAln);//homologous alignment
+					//hcp[allChrom[indexAln].cm[0].rn].push_back(indexAln);//homologous alignment
 					sort(allChrom[indexAln].cm.begin(),allChrom[indexAln].cm.end());//sorting by length
+					vm = allChrom[indexAln].cm;
+					sort(vm.begin(),vm.end(),qusort);
 					for(unsigned int i = 0;i<allChrom[indexAln].cm.size();i++)
 					{
 						tempmi = allChrom[indexAln].cm[i];
+						count = count + (tempmi.x2-tempmi.x1);
+						if(i>0)
+						{
+							qGap = qGap + abs(max(vm[i-1].y1,vm[i-1].y2) - min(vm[i].y1,vm[i].y2));
+						}
 						fcm<<tempmi.rn<<"\t"<<tempmi.x1<<"\t"<<tempmi.x2<<"\t"<<tempmi.qn<<"\t"<<tempmi.y1<<"\t"<<tempmi.y2<<endl;
+					}
+			//		cout<<indexAln<<'\t'<<count<<'\t'<<qGap<<'\t'<<double(count)/double(qGap)<<endl;
+					if(double(count)/double(qGap) > 1)
+					{
+						hcp[allChrom[indexAln].cm[0].rn].push_back(indexAln);//homologous alignment
 					}
 				}					
 				
@@ -269,12 +254,11 @@ cout<<"unique\t"<<tempmi.rn<<'\t'<<tempmi.x1<<'\t'<<tempmi.x2<<'\t'<<tempmi.qn<<
 			tempVmi.clear();
 		}//vm.size()>2
 		count = 0; //reset count for the next alignment
+		qGap = 0;
 		allChrom[indexAln].mums.clear();
 	}
 	fcm.close();
-	//cout<<"Done with gap filling "<<endl;	
 	fcords.close();
-	//ftrans.open("trans.txt");		
 	if(argv[5][0] == 'h')
 	{
 	for(map<string,vector<string> >::iterator it = hcp.begin(); it != hcp.end();it++)
@@ -304,7 +288,7 @@ cout<<"unique\t"<<tempmi.rn<<'\t'<<tempmi.x1<<'\t'<<tempmi.x2<<'\t'<<tempmi.qn<<
 	fout.open("sv.txt");
 	fcnv.open("cnv_all.txt");
 	fsmall.open("small.txt");
-	findel.open("indel.txt");
+	//findel.open("indel.txt");
 	fout<<"REF_CHROM\tREF_START\tREF_END\tSV_TYPE\tQ_CHROM\tQ_START\tQ_END\tID\tLEN\tCOV_REF\tCOV_Q"<<endl;
 	for(map<string,vector<string> >::iterator it = hcp.begin(); it != hcp.end();it++)
 	{
@@ -329,7 +313,7 @@ cout<<"unique\t"<<tempmi.rn<<'\t'<<tempmi.x1<<'\t'<<tempmi.x2<<'\t'<<tempmi.qn<<
 	fout.close();
 	fcnv.close();	
 	fsmall.close();
-	findel.close();
+	//findel.close();
 	
 return 0;
 }

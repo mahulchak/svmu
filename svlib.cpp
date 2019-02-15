@@ -214,7 +214,7 @@ vector<double> getCoverage(mI & mi, ccov & masterRef, ccov & masterQ)
 	int d = 0, cov = 0;
 	double c;
 	vector<double> cc;
-	d = max(mi.x2 - mi.x1,1);//to avoid using 0
+	d = max(abs(mi.x2 - mi.x1),1);//to avoid using 0
 	for(int i = mi.x1-1;i<mi.x2;i++)
 	{
 		cov = cov + masterRef[i];
@@ -222,8 +222,9 @@ vector<double> getCoverage(mI & mi, ccov & masterRef, ccov & masterQ)
 	c = cov/double(d);
 	cc.push_back(c);
 	cov = 0;
+	d = 0;
 	d = max(abs(mi.y1-mi.y2),1);//to avoid using 0
-	for(int i = min(mi.y1,mi.y2)-1;i<max(mi.y1,mi.y2);i++)
+	for(int i = (min(mi.y1,mi.y2))-1;i<max(mi.y1,mi.y2);i++)
 	{
 		cov = cov + masterQ[i];
 	}
@@ -381,17 +382,9 @@ mI returnMumByQ1(int & y1,vector<mI> & mums)//returns the mum from query sorted 
 	{
 		++i;
 	}
-	if((i == mums.size()-1) || (i == 0))
+	if(mums[mums.size()-1].y1 == y1)
 	{
-		if(mums[i].y1 == y1)
-		{
-			tempmi = mums[i];
-		}
-		if(mums[k-i].y1 == y1)
-		{
-			tempmi = mums[k-i];
-		}
-
+		tempmi = mums[mums.size()-1];//there is no number after this so send it
 	}	
 	else
 	{
@@ -417,17 +410,11 @@ mI returnMumByQ2(int & y1,vector<mI> & mums)//returns the mum from query sorted 
 	{
 		++i;
 	}
-	if((i == 0) || (i == mums.size()-1))
+	if(mums[0].y1 == y1) //if the first element
 	{
-		if(mums[i].y1 == y1)
-		{
-			tempmi = mums[i];
-		}
-		if(mums[k-i].y1 == y1)
-		{
-			tempmi = mums[k-i];
-		}
+		tempmi = mums[0];//there is no element before this so send the same
 	}
+
 	else
 	{
 		if(mums[i].y1 == y1)
