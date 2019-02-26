@@ -1,11 +1,11 @@
 # svmu
 
-SVMU (Structural Variants from MUmmer) 0.2beta is part of our (Emerson lab at UCI) ongoing efforts to identify comprehensive sequence variants via alignment of two  contiguous genome assemblies. It calls SNPs, small indels, as well as duplicates, large indels, and inversions from whole genome alignments using MUMmer. 
-<b>It is still under development</b>. If you encounter an issue, please email me at mchakrab@uci.edu. This version replaces the earlier version of svmu. SVMU works with both MUMmer v3.23 and MUMmer v4.x.
+SVMU (Structural Variants from MUmmer) 0.3 is a revised version of SVMU 0.2. SVMU attempts to identify comprehensive sequence variants via alignment of two  contiguous genome assemblies. It calls SNPs, small indels, as well as duplicates, large indels, and inversions from whole genome alignments using MUMmer. 
+<b>It is still under active development and undergoing lot of changes. We are incorporating new features and fixing bugs. One major feature we are planning to add is incorporation of LASTZ output in svmu. So please bear with us during this transition</b>. If you encounter an issue, feel free to email me at mchakrab@uci.edu. SVMU works with both MUMmer v3.23 and MUMmer v4.x. Support for LASTZ is coming soon.
 
 NOTE: SVMU is currently in the middle of a big change, which will reduce memory usage drastically and increase accuracy of SV detection. Feel free to try the new version but be cautious with the results. However, if you are coming here looking for the svmu versions used in the A4 and DSPR papers, see below:
 
-If you publish results obtained with this pipeline, please cite SVMU as described here https://www.nature.com/articles/s41588-017-0010-y. the version used in this paper can be found here : https://github.com/mahulchak/svmu/releases/tag/v0.1beta. If you looking for the version that was used in the DSPR paper, please download commits prior to March 6,2018.
+If you publish results obtained with this pipeline, please cite SVMU as described here https://www.nature.com/articles/s41588-017-0010-y. the version used in this paper can be found here : https://github.com/mahulchak/svmu/releases/tag/v0.1beta. If you looking for the version that was used in the DSPR paper, please download the commits prior to March 6,2018.
 
 1. Download and compile the programs -
 
@@ -20,11 +20,6 @@ If you publish results obtained with this pipeline, please cite SVMU as describe
 	nucmer -maxmatch -prefix sam2ref.mm ref.fasta sample.fasta
 	
  ```
-Older version of svmu (prior to Mar 6, 2018) had a high memory footprint so if your svmu run crashes due to memory, you can try to run nucmer as follows (or use the latest,buggy version) -
- ```
-	nucmer -mumreference -noextend -prefix sam2ref.mr ref.fasta sample.fasta
-
- ```
 
 3. Run svmu on the delta file.
 
@@ -32,7 +27,7 @@ Older version of svmu (prior to Mar 6, 2018) had a high memory footprint so if y
 	svmu sam2ref.mm.delta ref.fasta sample.fasta n snp_mode> sample.small.txt
 
  ```
- <b>n</b> represents the number of unique mum/syntenic blocks that should be present between two sequences to find the SVs between them. It can be 5, or 10, or 100. We will get rid of this parameter very soon. 
+ <b>n</b> represents the number of unique mum/syntenic blocks that should be present between two sequences to find the SVs between them. It can be 5, or 10, or 100. 
   
  <b>snp_mode</b> should be 'h' or 'l', depending on whether you want to get the SNPs and small indels or not. 'h' will lead to higher memory usage and longer run times. The program generates several files as output: 
 
@@ -49,7 +44,9 @@ This is work in progress so do examine the output. Final goal is to facilitate v
 
 Finally, If you are using SVMU for your research, please keep in mind that SVMU has not been extensively tested on genomes bigger than Drosophila. So there is no gurantee that it will work well with other genomes. Currently it requires ~2.5G memory for the <i>D. melanogaster</i> genome.
 
-KNOWN ISSUES:
+KNOWN BUGS/BUGS WE ARE FIXING:
 1. If the reverse complementary strand of a chromosome was sequenced (relative to the reference), svmu will identify whole sequence as 'INV' or inverted. A simple workaround is to do grep -v 'INV' on your sv.txt file. A future fix will take care of this issue.
 2. White space in fasta headers will cause segfault in svmu because nucmer strips all text following white space or tab present in the fasta headers.
+3. Translocated segments may show up as large indels. We are working on an experimental fix.
+4. NUCMER is not very sensitive at divergent regions of the genome so we are bringing LASTZ into SVMU. MUMmer is not going away soon. LASTZ will complement the alignments NUCMER finds.
 
