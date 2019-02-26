@@ -29,15 +29,15 @@ struct mI {
 	int l;//length of the MUM
         bool operator < (const mI& mum1) const
         {
-                return(x1 < mum1.x1) || ((x1 == mum1.x1) && (x2 < mum1.x2));
-                //return(x2 < mum1.x2) || ((x2 == mum1.x2) && (x1 < mum1.x1));
+//sort the mums by ref chrom name and then by start cords of refs 
+                return (rn < mum1.rn)|| ((rn == mum1.rn) && (x1 < mum1.x1)) || ((rn == mum1.rn) && (x1 == mum1.x1) && (x2 < mum1.x2));
         }
         bool operator == (const mI& mum1) const
         {
                 return x1 == mum1.x1 && x2 == mum1.x2 && y1 == mum1.y1 && y2 == mum1.y2;
         }
         };
-//to store coordinates at base pair level
+
 struct qord {
 	string name;
 	int cord;
@@ -51,20 +51,14 @@ class chromPair {
 	public:
 	vector<mI> mums;	
 	vector<mI> cm; //conserved mems
-	vector<mI> cmr; //conserved reverse
 	vector<mI> ncm; //conserved mems from reverse side
-	vector<mI> ncmr;//non-conserved reverse
-	vector<mI> gap; //gaps are represented as mums
-	vector<mI> cc; //cnv candidates
-//	vector<mI> in;//stores insertion mums in reference
-//	vector<mI> del; //stores deletion mums in query
+	vector<mI> gap;
 };
 
 bool qusort(mI mi1, mI mi2); //to sort the mI based on query coordinates
 vector<int> makeChromBucket(int refLen);
 bool msort(mI mi1, mI mi2);
 bool isort(mI m1, mI m2);
-bool iqsort(mI m1, mI m2);
 bool lsort(mI m1,mI m2);
 void storeCords(vector<int> & masterRef,vector<int> & masterQ, mI & mi);
 void storeCords(vector<int> & masterQ, mI & mi);//overloaded
@@ -84,9 +78,8 @@ void annotGaps(vector<mI> & cm,vector<int> & masterRef, vector<int> & masterQ,ve
 void readUniq(ifstream & fin,vector<mI> & cm, map<int,vector<qord> > & umRef,vector<int> & masterHQ);
 void callSmall(mI & mi,map<int,vector<qord> > & umRef, string & refseq, string & qseq,vector<int> & seqlen,ofstream & fsmall);
 void findCnvOverlap(mI & gapmi,vector<mI> ncm, vector<mI> cnv, vector<int> & masterRef, vector<int> & masterQ,vector<int> & chromDensityRef,vector<int> & chromDensityQ,ofstream & fout, int & id);
-//void findCnvOverlapInRef(vector<mI> & cnv,mI & mi,vector<mI> & storedCNV,ofstream & fout);
 mI findDupRef(mI & mi1, mI & mi2);
-mI findDupQ(mI m1, mI m2);
+mI findDupQ(mI & m1, mI & m2);
 char comp(char & N);
 void findInnie(vector<mI> & mums,mI & mi);
 

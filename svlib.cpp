@@ -224,7 +224,7 @@ vector<double> getCoverage(mI & mi, ccov & masterRef, ccov & masterQ)
 	cov = 0;
 	d = 0;
 	d = max(abs(mi.y1-mi.y2),1);//to avoid using 0
-	for(int i = (min(mi.y1,mi.y2))-1;i<max(mi.y1,mi.y2);i++)
+	for(int i = (min(mi.y1,mi.y2)-1);i<max(mi.y1,mi.y2);i++)
 	{
 		cov = cov + masterQ[i];
 	}

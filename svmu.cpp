@@ -31,12 +31,10 @@ int main(int argc, char *argv[])
 	map<string,vector<string> > hcp;//hcp stands for homologous cp
 	
 	map<string,map<int,vq> > umRef;//stores the coordinates of unique reference to query map; requires re-reading the file
-	map<string,vector<mI> > mir;//stores all reference mums, but does not store query coordinates
-	map<string,vector<mI> > miq; // stores all query mums, but does not store reference coordinates
 	map<string,string> refseq;
 	map<string,string> qseq;
 	map<string,vector<int> > seqLen;//length of sequences.first element is ref and second is query
-	map<string,bool> qStrand; //stores whether query strand is forward strand or reverse strand
+	
 	mI tempmi,prevmi,temprmi,tempmi2;
 
 	string foo = string(argv[1]);
@@ -46,14 +44,13 @@ int main(int argc, char *argv[])
 	
 	vector<double> vd;
 	vector<int> vi;
-	vector<mI> vmi,tempVmi,vm,qvm,gapmi;//qvm is query sorted vm
+	vector<mI> vmi,tempVmi,vm,qvm,gapmi,mastermi;//mastermi holds all mums in a delta file
 	size_t pos1,pos2,namePos;
 	
 	ifstream fin, refFasta, qFasta;
 	ofstream fout,fcnv,fsmall,ftrans,findel,fcords,fcm;
 	fin.open(argv[1]);
 	fcords.open("cords.txt");
-	//fcm.open("cm.txt");
 	while(getline(fin,line))
 	{
 		
@@ -80,12 +77,10 @@ int main(int argc, char *argv[])
 			{
 				lookUpQ[qName] = ++qChromCount;
 			}
-//cout<<refName<<'\t'<<lookUpRef[refName]<<'\t'<<qName<<'\t'<<lookUpQ[qName]<<endl;
 			if(masterRef[refName].size() == 0)//if they have not been created
 			{
 				masterRef[refName] = makeChromBucket(refLen);
-				chromDensityRef[refName] = makeChromBucket(refLen);
-				
+				chromDensityRef[refName] = makeChromBucket(refLen);	
 			}
 			if(masterQ[qName].size() == 0)//if they have not been created
 			{
@@ -98,6 +93,7 @@ int main(int argc, char *argv[])
 			indelPos = stoi(line);
 			if(indelPos ==0) //reached the end of the indel description
 			{
+				mastermi.push_back(tempmi);//add to the master list
 				storeCords(masterRef[refName],masterQ[qName],tempmi);
 				allChrom[indexAln].mums.push_back(tempmi);
 				storeNameCount(chromDensityRef[refName],chromDensityQ[qName],lookUpRef,lookUpQ,tempmi);
@@ -242,7 +238,7 @@ int main(int argc, char *argv[])
 						}
 						fcm<<tempmi.rn<<"\t"<<tempmi.x1<<"\t"<<tempmi.x2<<"\t"<<tempmi.qn<<"\t"<<tempmi.y1<<"\t"<<tempmi.y2<<endl;
 					}
-			//		cout<<indexAln<<'\t'<<count<<'\t'<<qGap<<'\t'<<double(count)/double(qGap)<<endl;
+	//				cout<<indexAln<<'\t'<<count<<'\t'<<qGap<<'\t'<<double(count)/double(qGap)<<endl;
 					if(double(count)/double(qGap) > 1)
 					{
 						hcp[allChrom[indexAln].cm[0].rn].push_back(indexAln);//homologous alignment
@@ -275,15 +271,13 @@ int main(int argc, char *argv[])
 			fin.close();
 		}
 	}
-	}
-	//ftrans.close();
-	
-	refFasta.open(argv[2]);//read in the reference fasta
-	readfasta(refFasta,refseq);//load them into memory
-	refFasta.close();
-	qFasta.open(argv[3]);//read in the query fasta	
-	readfasta(qFasta,qseq);
-	qFasta.close();
+	}	
+	//refFasta.open(argv[2]);//read in the reference fasta
+	//readfasta(refFasta,refseq);//load them into memory
+	//refFasta.close();
+	//qFasta.open(argv[3]);//read in the query fasta	
+	//readfasta(qFasta,qseq);
+	//qFasta.close();
 	int id = 0;	
 	fout.open("sv.txt");
 	fcnv.open("cnv_all.txt");
@@ -296,17 +290,13 @@ int main(int argc, char *argv[])
 		for(unsigned int i = 0; i<hcp[refName].size();i++)
 		{		
 			indexAln = hcp[refName][i];
-			qName = allChrom[indexAln].mums[i].qn;
-			sort(allChrom[indexAln].cm.begin(),allChrom[indexAln].cm.end());
+			qName = allChrom[indexAln].cm[0].qn;
+//			sort(allChrom[indexAln].cm.begin(),allChrom[indexAln].cm.end());
 			sort(allChrom[indexAln].ncm.begin(),allChrom[indexAln].ncm.end());
-			allChrom[indexAln].gap.clear();//flushing the gaps vector
+//			allChrom[indexAln].gap.clear();//flushing the gaps vector
+			cout<<"The names are\t"<<refName<<'\t'<<qName<<endl;
 			vmi = allChrom[indexAln].ncm;
-			annotGaps(allChrom[indexAln].cm,masterRef[refName],masterQ[qName],chromDensityRef[refName],chromDensityQ[qName],vmi,umRef[refName],refseq[refName],qseq[qName],seqLen[indexAln],fout,fsmall,id);			
-	//		for(unsigned int k=0;k<allChrom[indexAln].ncm.size();k++)
-	//		{
-	//			tempmi = allChrom[indexAln].ncm[k];
-	//			fcnv<<tempmi.rn<<'\t'<<tempmi.x1<<'\t'<<tempmi.x2<<'\t'<<tempmi.qn<<'\t'<<tempmi.y1<<'\t'<<tempmi.y2<<"ND\t"<<tempmi.x2-tempmi.x1<<endl;
-	//		}
+			annotGaps(allChrom[indexAln].cm,masterRef[refName],masterQ[qName],chromDensityRef[refName],chromDensityQ[qName],vmi,umRef[refName],refseq[refName],qseq[qName],seqLen[indexAln],fout,fsmall,id);
 			
 		}
 	}
