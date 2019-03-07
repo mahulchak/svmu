@@ -1,9 +1,9 @@
 # svmu
 
-SVMU (Structural Variants from MUmmer) 0.3 is a revised version of SVMU 0.2. SVMU attempts to identify comprehensive sequence variants via alignment of two  contiguous genome assemblies. It calls SNPs, small indels, as well as duplicates, large indels, and inversions from whole genome alignments using MUMmer. 
-<b>It is still under active development and undergoing lot of changes. We are incorporating new features and fixing bugs. One major feature we are planning to add is incorporation of LASTZ output in svmu. So please bear with us during this transition</b>. If you encounter an issue, feel free to email me at mchakrab@uci.edu. SVMU works with both MUMmer v3.23 and MUMmer v4.x. Support for LASTZ is coming soon.
+SVMU (Structural Variants from MUmmer) 0.3 is a revised version of SVMU 0.2. SVMU attempts to identify comprehensive sequence variants via alignment of two  contiguous genome assemblies. It calls duplicates, large indels, inversions, small indels, SNPs from whole genome alignments using MUMmer. 
+<b>It is still under active development. We are incorporating new features and fixing bugs. One major feature we are planning to add is incorporation of LASTZ output in svmu. So please bear with us during this transition</b>. If you encounter an issue, feel free to email me at mchakrab@uci.edu. SVMU works with both MUMmer v3.23 and MUMmer v4.x. Support for LASTZ is coming soon.
 
-NOTE: SVMU is currently in the middle of a big change, which will reduce memory usage drastically and increase accuracy of SV detection. Feel free to try the new version but be cautious with the results. However, if you are coming here looking for the svmu versions used in the A4 and DSPR papers, see below:
+NOTE: Feel free to try the newest version but be cautious with the results. If you have an idea or suggestion (including collaboration ideas), write to me. However, if you are coming here looking for the svmu versions used in the A4 and DSPR papers, see below:
 
 If you publish results obtained with this pipeline, please cite SVMU as described here https://www.nature.com/articles/s41588-017-0010-y. the version used in this paper can be found here : https://github.com/mahulchak/svmu/releases/tag/v0.1beta. If you looking for the version that was used in the DSPR paper, please download the commits prior to March 6,2018.
 
@@ -38,9 +38,6 @@ If you publish results obtained with this pipeline, please cite SVMU as describe
 	cnv_all.txt: A tab delimited file with all the reference genomic regions that are present in higher copy numbers (>1) in the sample genome. Those with "trans" in their names mean either it is a transposable element or non-TE copies of a gene in different chromosomes.
 
 	cm.txt: A bed file with the reference genomic regions that have been putatively translocated (may not include TEs). 
-
-This is work in progress so do examine the output. Final goal is to facilitate variant detection from a population samples of high quality genomes. If you have an idea or suggestion (including collaboration ideas, write to me).
-
 
 Finally, If you are using SVMU for your research, please keep in mind that SVMU has not been extensively tested on genomes bigger than Drosophila. So there is no gurantee that it will work well with other genomes. Currently it requires ~2.5G memory for the <i>D. melanogaster</i> genome.
 
