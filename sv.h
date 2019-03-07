@@ -34,7 +34,7 @@ struct mI {
         }
         bool operator == (const mI& mum1) const
         {
-                return x1 == mum1.x1 && x2 == mum1.x2 && y1 == mum1.y1 && y2 == mum1.y2;
+                return x1 == mum1.x1 && x2 == mum1.x2 && y1 == mum1.y1 && y2 == mum1.y2 && rn == mum1.rn && qn == mum1.qn;
         }
         };
 
@@ -58,7 +58,6 @@ class chromPair {
 bool qusort(mI mi1, mI mi2); //to sort the mI based on query coordinates
 vector<int> makeChromBucket(int refLen);
 bool msort(mI mi1, mI mi2);
-bool isort(mI m1, mI m2);
 bool lsort(mI m1,mI m2);
 void storeCords(vector<int> & masterRef,vector<int> & masterQ, mI & mi);
 void storeCords(vector<int> & masterQ, mI & mi);//overloaded
@@ -77,7 +76,7 @@ int nearestInt(double d);
 void annotGaps(vector<mI> & cm,vector<int> & masterRef, vector<int> & masterQ,vector<int> & chromDensityRef, vector<int> & chromDensityQ,vector<mI> & cnv,map<int,vector<qord> > & umRef, string & refseq, string & qseq,vector<int> & seqlen,ofstream & fout, ofstream & fsmall,int & id);
 void readUniq(ifstream & fin,vector<mI> & cm, map<int,vector<qord> > & umRef,vector<int> & masterHQ);
 void callSmall(mI & mi,map<int,vector<qord> > & umRef, string & refseq, string & qseq,vector<int> & seqlen,ofstream & fsmall);
-void findCnvOverlap(mI & gapmi,vector<mI> ncm, vector<mI> cnv, vector<int> & masterRef, vector<int> & masterQ,vector<int> & chromDensityRef,vector<int> & chromDensityQ,ofstream & fout, int & id);
+void findCnvOverlap(mI & gapmi,vector<mI> ncm, vector<mI> & cnv, vector<int> & masterRef, vector<int> & masterQ,vector<int> & chromDensityRef,vector<int> & chromDensityQ,ofstream & fout, int & id);
 mI findDupRef(mI & mi1, mI & mi2);
 mI findDupQ(mI & m1, mI & m2);
 char comp(char & N);

@@ -156,6 +156,7 @@ int main(int argc, char *argv[])
 					prevmi = qvm[i];
 					temprmi = qvm[i+1];
 //cout<<"noshadow\t"<<prevmi.rn<<'\t'<<prevmi.x1<<'\t'<<prevmi.x2<<'\t'<<prevmi.qn<<'\t'<<prevmi.y1<<'\t'<<prevmi.y2<<'\t'<<endl;
+//cout<<tempVmi[i].rn<<'\t'<<tempVmi[i].x1<<'\t'<<tempVmi[i].x2<<'\t'<<tempVmi[i].qn<<'\t'<<tempVmi[i].y1<<'\t'<<tempVmi[i].y2<<endl;
 					//tempmi = returnMumByQ2(prevmi.y1,tempVmi);
 					allChrom[indexAln].cm.push_back(qvm[i]);
 					if(temprmi.x1 - prevmi.x2 > 100)
@@ -217,6 +218,7 @@ int main(int argc, char *argv[])
 						tempmi2.x1 = 0; // reset it
 					}				
 				}//this is for the for loop
+				allChrom[indexAln].cm.push_back(qvm[qvm.size()-1]);//add the last element
 				if(allChrom[indexAln].cm.size() > 0)
 				{
 					for(unsigned int i =0;i<gapmi.size();i++)
@@ -238,8 +240,8 @@ int main(int argc, char *argv[])
 						}
 						fcm<<tempmi.rn<<"\t"<<tempmi.x1<<"\t"<<tempmi.x2<<"\t"<<tempmi.qn<<"\t"<<tempmi.y1<<"\t"<<tempmi.y2<<endl;
 					}
-	//				cout<<indexAln<<'\t'<<count<<'\t'<<qGap<<'\t'<<double(count)/double(qGap)<<endl;
-					if(double(count)/double(qGap) > 1)
+//					cout<<indexAln<<'\t'<<count<<'\t'<<qGap<<'\t'<<double(count)/double(qGap)<<endl;
+					if((double(count)/double(qGap) > 1) && (allChrom[indexAln].cm.size()>1))//if more than 1 element is present then use it for variant calling
 					{
 						hcp[allChrom[indexAln].cm[0].rn].push_back(indexAln);//homologous alignment
 					}
@@ -294,7 +296,7 @@ int main(int argc, char *argv[])
 //			sort(allChrom[indexAln].cm.begin(),allChrom[indexAln].cm.end());
 			sort(allChrom[indexAln].ncm.begin(),allChrom[indexAln].ncm.end());
 //			allChrom[indexAln].gap.clear();//flushing the gaps vector
-			cout<<"The names are\t"<<refName<<'\t'<<qName<<endl;
+//			cout<<"The names are\t"<<refName<<'\t'<<qName<<endl;
 			vmi = allChrom[indexAln].ncm;
 			annotGaps(allChrom[indexAln].cm,masterRef[refName],masterQ[qName],chromDensityRef[refName],chromDensityQ[qName],vmi,umRef[refName],refseq[refName],qseq[qName],seqLen[indexAln],fout,fsmall,id);
 			

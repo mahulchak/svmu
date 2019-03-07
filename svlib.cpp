@@ -8,8 +8,9 @@ using vq = vector<qord>;
 /////////////////////////////////////////////////////////
 bool qusort(mI mi1, mI mi2)
 {
-	return (min(mi1.y1,mi1.y2) < min(mi2.y1,mi2.y2)) ||((min(mi1.y1,mi1.y2) == min(mi2.y1,mi2.y2)) && (max(mi1.y1,mi1.y2)<max(mi2.y1,mi2.y2)));
-	//return(max(mi1.y1,mi1.y2) < max(mi2.y1,mi2.y2)) || ((max(mi1.y1,mi1.y2) == max(mi2.y1,mi2.y2)) && (min(mi1.y1,mi1.y2) > min(mi1.y1,mi1.y2)));
+	//return (min(mi1.y1,mi1.y2) < min(mi2.y1,mi2.y2)) ||((min(mi1.y1,mi1.y2) == min(mi2.y1,mi2.y2)) && (max(mi1.y1,mi1.y2)<max(mi2.y1,mi2.y2)));
+	return (max(mi1.y1,mi1.y2) < max(mi2.y1,mi2.y2)) ||((max(mi1.y1,mi1.y2) == max(mi2.y1,mi2.y2)) && (min(mi1.y1,mi1.y2)>min(mi2.y1,mi2.y2)));
+
 }
 //////////////////////////////////////////////////////
 ccov makeChromBucket(int refLen)
@@ -286,20 +287,21 @@ mI findClosest(mI & mi, vector<mI> & mums)
 			{
 				storeDist[d] = mums[j];
 			}
-			if(rd < d)
+			else
 			{
 				storeDist[rd] = mums[j];
 			}
 		}
+//cout<<"dist\t"<<d<<'\t'<<rd<<'\t'<<mums[j].rn<<'\t'<<mums[j].x1<<'\t'<<mums[j].x2<<'\t'<<mums[j].qn<<'\t'<<mums[j].y1<<'\t'<<mums[j].y2<<endl;
 	}
 	it = storeDist.begin();
-	if( mums[0] == mums[1])
+	if((mums.size()>1)&& (mums[0].l == mums[1].l))//if both lengths are same, get the closest
 	{
 		return it->second;
 	}
 	else
 	{
-		return mums[0];//return the mum
+		return mums[0];//return the longest mum
 	}
 }
 ////////////////////////////////////////////////////
