@@ -118,6 +118,7 @@ int main(int argc, char *argv[])
 	}
 	fin.close();
 	fcm.open("cm.txt");
+	fcnv.open("cnv_all.txt");
 	for(chroms::iterator it = allChrom.begin();it!= allChrom.end();it++)
 	{
 		vm.clear();
@@ -142,6 +143,10 @@ int main(int argc, char *argv[])
 				else
 				{
 					allChrom[indexAln].ncm.push_back(tempmi);
+					if(vd[0] != vd[1])//spit out all MUMs with coverage difference
+					{
+						fcnv<<tempmi.rn<<'\t'<<tempmi.x1<<'\t'<<tempmi.x2<<'\t'<<tempmi.qn<<'\t'<<tempmi.y1<<'\t'<<tempmi.y2<<'\t'<<vd[0]<<'\t'<<vd[1]<<endl;
+					}
 				}
 //cout<<"noshadow\t"<<tempmi.rn<<'\t'<<tempmi.x1<<'\t'<<tempmi.x2<<'\t'<<tempmi.qn<<'\t'<<tempmi.y1<<'\t'<<tempmi.y2<<'\t'<<endl;
 			}
@@ -240,7 +245,7 @@ int main(int argc, char *argv[])
 						}
 						fcm<<tempmi.rn<<"\t"<<tempmi.x1<<"\t"<<tempmi.x2<<"\t"<<tempmi.qn<<"\t"<<tempmi.y1<<"\t"<<tempmi.y2<<endl;
 					}
-//					cout<<indexAln<<'\t'<<count<<'\t'<<qGap<<'\t'<<double(count)/double(qGap)<<endl;
+					cout<<indexAln<<'\t'<<count<<'\t'<<qGap<<'\t'<<double(count)/double(qGap)<<endl;
 					if((double(count)/double(qGap) > 1) && (allChrom[indexAln].cm.size()>1))//if more than 1 element is present then use it for variant calling
 					{
 						hcp[allChrom[indexAln].cm[0].rn].push_back(indexAln);//homologous alignment
@@ -257,6 +262,7 @@ int main(int argc, char *argv[])
 	}
 	fcm.close();
 	fcords.close();
+	fcnv.close();
 	if(argv[5][0] == 'h')
 	{
 	for(map<string,vector<string> >::iterator it = hcp.begin(); it != hcp.end();it++)

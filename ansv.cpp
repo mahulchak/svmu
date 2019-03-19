@@ -20,6 +20,8 @@ void annotGaps(vector<mI> & cm, ccov & masterRef, ccov & masterQ, ccov & chromDe
 	vector<double> cov(2);//stores coverage for ref and query intervals
 	vector<int> vi;
 	mI gapmi,cnrmi,cnqmi,thismi,nextmi,tempmi;
+	cnqmi.x1 = 0;//initialize
+	cnrmi.x1 = 0;//initialize to avoid surprises :)
 	vector<mI> storedCNV, tempVmi;
 	double cnvOvl =0; //checks whether ref and query CNVs overlap
 	tempVmi = cm;
@@ -64,7 +66,7 @@ void annotGaps(vector<mI> & cm, ccov & masterRef, ccov & masterQ, ccov & chromDe
 			gapmi.y1 = min(nextmi.y1,thismi.y2);//maintain the forward strand style for gaps
 			 gapmi.y2 = thismi.y2;
 			gapmi.c = 'i';//not needed but bookkeeping
-			cov = getCoverage(thismi,masterRef,masterQ);//medican coverage of the interval
+		//	cov = getCoverage(thismi,masterRef,masterQ);//medican coverage of the interval
 			cnqmi = findDupQ(thismi,nextmi);
                  //       fout<<thismi.rn<<"\t"<<thismi.x1<<"\t"<<thismi.x2<<"\tINV\t"<<thismi.qn<<"\t"<<thismi.y2<<"\t"<<thismi.y1<<"\t"<<setfill('0')<<setw(10)<<id++<<"\t"<<cm[i].x2-cm[i].x1<<"\t"<<nearestInt(cov[0])<<"\t"<<nearestInt(cov[1])<<endl;
 		}
@@ -90,27 +92,32 @@ void annotGaps(vector<mI> & cm, ccov & masterRef, ccov & masterQ, ccov & chromDe
 		}
 		if((i>0) && (thismi.y1 > thismi.y2) && (nextmi.y2 > nextmi.y1)) //reverse followed by forward
 		{
-			tempmi = returnMumByQ2(nextmi.y1,tempVmi);//finds the previous query cord
+//			tempmi = returnMumByQ2(nextmi.y1,tempVmi);//finds the previous query cord
 			gapmi.x1 = thismi.x2;
 			gapmi.x2 = max(nextmi.x1,thismi.x2);
-			gapmi.y1 = max(tempmi.y2,tempmi.y1);
-			gapmi.y2 = max(max(tempmi.y2,tempmi.y1),nextmi.y1);
-			cnqmi = findDupQ(tempmi,nextmi);
+			//gapmi.y1 = max(tempmi.y2,tempmi.y1);
+			gapmi.y1 = thismi.y1;
+			//gapmi.y2 = max(max(tempmi.y2,tempmi.y1),nextmi.y1);
+			gapmi.y2 = max(max(thismi.y1,thismi.y2),nextmi.y1);
+			//cnqmi = findDupQ(tempmi,nextmi);
+			cnqmi = findDupQ(thismi,nextmi);
 			cov = getCoverage(gapmi,masterRef,masterQ);
 			fout<<thismi.rn<<"\t"<<gapmi.x1<<"\t"<<gapmi.x2<<"\tINV\t"<<gapmi.qn<<"\t"<<gapmi.y1<<"\t"<<gapmi.y2<<"\t"<<setfill('0')<<setw(10)<<id++<<"\t"<<max(gapmi.x2-gapmi.x1,gapmi.y2-gapmi.y1)<<"\t"<<nearestInt(cov[0])<<"\t"<<nearestInt(cov[1])<<endl;
 		}
 		cnrmi = findDupRef(thismi,nextmi);//find duplicates of ref segments
 		cnvOvl = double(min((cnrmi.x2-cnrmi.x1),(cnqmi.x2-cnqmi.x1)))/double(max((cnrmi.x2-cnrmi.x1),(cnqmi.x2-cnqmi.x1)));
+//cout<<"CNQ\t"<<cnqmi.rn<<'\t'<<cnqmi.x1<<'\t'<<cnqmi.x2<<'\t'<<cnqmi.qn<<'\t'<<cnqmi.y1<<'\t'<<cnqmi.y2<<endl;
+//cout<<"CNR\t"<<cnrmi.rn<<'\t'<<cnrmi.x1<<'\t'<<cnrmi.x2<<'\t'<<cnrmi.qn<<'\t'<<cnrmi.y1<<'\t'<<cnrmi.y2<<endl;
 		if((cnrmi.x1 != 0) && (cnvOvl <0.3))//you can't have CNV both in reference and query
 		{
-			cov =getCoverage(cnrmi,masterRef,masterQ); 
+			cov =getCoverage(cnrmi,masterRef,masterQ,0.3); 
 			if((nearestInt(cov[0]) >2) || nearestInt((cov[1]) >2)) 
 			{
-				fout<<cnrmi.rn<<"\t"<<cnrmi.x1<<"\t"<<cnrmi.x2<<"\tnCNV-Q\t"<<cnrmi.qn<<"\t"<<cnrmi.y1<<"\t"<<cnrmi.y2<<"\t"<<setfill('0')<<setw(10)<<id++<<"\t"<<(cnrmi.x2 -cnrmi.x1)<<"\t"<<nearestInt(cov[0])<<"\t"<<nearestInt(cov[1])<<endl;
+				fout<<cnrmi.rn<<"\t"<<cnrmi.x1<<"\t"<<cnrmi.x2<<"\tnCNV-Q\t"<<cnrmi.qn<<"\t"<<cnrmi.y1<<"\t"<<cnrmi.y2<<"\t"<<setfill('0')<<setw(10)<<id++<<"\t"<<(cnrmi.x2 -cnrmi.x1)<<"\t"<<cov[0]<<"\t"<<cov[1]<<endl;
 			}
 			else
 			{
-				fout<<cnrmi.rn<<"\t"<<cnrmi.x1<<"\t"<<cnrmi.x2<<"\tCNV-Q\t"<<cnrmi.qn<<"\t"<<cnrmi.y1<<"\t"<<cnrmi.y2<<"\t"<<setfill('0')<<setw(10)<<id++<<"\t"<<(cnrmi.x2 -cnrmi.x1)<<"\t"<<nearestInt(cov[0])<<"\t"<<nearestInt(cov[1])<<endl;
+				fout<<cnrmi.rn<<"\t"<<cnrmi.x1<<"\t"<<cnrmi.x2<<"\tCNV-Q\t"<<cnrmi.qn<<"\t"<<cnrmi.y1<<"\t"<<cnrmi.y2<<"\t"<<setfill('0')<<setw(10)<<id++<<"\t"<<(cnrmi.x2 -cnrmi.x1)<<"\t"<<cov[0]<<"\t"<<cov[1]<<endl;
 			}
 		}
 		if((cnqmi.x1 != 0) && (cnqmi.x2 - cnqmi.x1 != 0) && (cnvOvl <0.3))
@@ -118,11 +125,11 @@ void annotGaps(vector<mI> & cm, ccov & masterRef, ccov & masterQ, ccov & chromDe
 			cov =getCoverage(cnqmi,masterRef,masterQ);
 			if((nearestInt(cov[0]) >2) || (nearestInt(cov[1]) >2))
 			{
-				fout<<cnqmi.rn<<"\t"<<cnqmi.x1<<"\t"<<cnqmi.x2<<"\tnCNV-R\t"<<cnqmi.qn<<"\t"<<cnqmi.y1<<"\t"<<cnqmi.y2<<"\t"<<setfill('0')<<setw(10)<<id++<<"\t"<<(cnqmi.x2 -cnqmi.x1)<<"\t"<<nearestInt(cov[0])<<"\t"<<nearestInt(cov[1])<<endl;
+				fout<<cnqmi.rn<<"\t"<<cnqmi.x1<<"\t"<<cnqmi.x2<<"\tnCNV-R\t"<<cnqmi.qn<<"\t"<<cnqmi.y1<<"\t"<<cnqmi.y2<<"\t"<<setfill('0')<<setw(10)<<id++<<"\t"<<(cnqmi.x2 -cnqmi.x1)<<"\t"<<cov[0]<<"\t"<<cov[1]<<endl;
 			}
 			else
 			{
-				fout<<cnqmi.rn<<"\t"<<cnqmi.x1<<"\t"<<cnqmi.x2<<"\tCNV-R\t"<<cnqmi.qn<<"\t"<<cnqmi.y1<<"\t"<<cnqmi.y2<<"\t"<<setfill('0')<<setw(10)<<id++<<"\t"<<(cnqmi.x2 -cnqmi.x1)<<"\t"<<nearestInt(cov[0])<<"\t"<<nearestInt(cov[1])<<endl;
+				fout<<cnqmi.rn<<"\t"<<cnqmi.x1<<"\t"<<cnqmi.x2<<"\tCNV-R\t"<<cnqmi.qn<<"\t"<<cnqmi.y1<<"\t"<<cnqmi.y2<<"\t"<<setfill('0')<<setw(10)<<id++<<"\t"<<(cnqmi.x2 -cnqmi.x1)<<"\t"<<cov[0]<<"\t"<<cov[1]<<endl;
 			}
 		}
 		cnrmi.x1 = 0;//reset cnvmi.x1
@@ -155,7 +162,7 @@ void findCnvOverlap(mI & gapmi,vector<mI> ncm, vector<mI> & cnv, ccov & masterRe
 	//				vn = getChromCount(ncm[i],chromDensityRef,chromDensityQ);	
 					refOvl = min(ncm[i].x2,gapmi.x2) - max(ncm[i].x1,gapmi.x1);//overlap between gap & ncm
 					refProp = double(refOvl)/double(ncm[i].x2-ncm[i].x1);			
-					if(refProp >0.5) //at least 50% of the candidate mum overlaps the gap
+					if(refProp >0.8) //at least 80% of the candidate mum overlaps the gap
 					{
 //cout<<"R-ovl\t"<<gapmi.rn<<'\t'<<gapmi.x1<<'\t'<<gapmi.x2<<'\t'<<gapmi.qn<<'\t'<<gapmi.y1<<'\t'<<gapmi.y2<<'\t'<<ncm[i].x1<<'\t'<<ncm[i].x2<<'\t'<<ncm[i].y1<<'\t'<<ncm[i].y2<<'\t'<<refOvl<<'\t'<<refProp<<endl;
 						ncm[i].c = 'r';//overlaps reference gaps
@@ -172,7 +179,7 @@ void findCnvOverlap(mI & gapmi,vector<mI> ncm, vector<mI> & cnv, ccov & masterRe
 	//				vn = getChromCount(ncm[i],chromDensityRef,chromDensityQ);
 					qOvl = min(max(ncm[i].y1,ncm[i].y2),gapmi.y2) - max(min(ncm[i].y1,ncm[i].y2),gapmi.y1);
 					qProp = double(qOvl)/double(abs(ncm[i].y2-ncm[i].y1));
-					if((qProp > 0.5) && (find(smum.begin(),smum.end(),ncm[i]) == smum.end()))
+					if((qProp > 0.8) && (find(smum.begin(),smum.end(),ncm[i]) == smum.end()))
 					{
 //cout<<"Q-ovl\t"<<gapmi.rn<<'\t'<<gapmi.x1<<'\t'<<gapmi.x2<<'\t'<<gapmi.qn<<'\t'<<gapmi.y1<<'\t'<<gapmi.y2<<'\t'<<ncm[i].x1<<'\t'<<ncm[i].x2<<'\t'<<ncm[i].y1<<'\t'<<ncm[i].y2<<'\t'<<qOvl<<'\t'<<qProp<<endl;
 						ncm[i].c = 'q';
@@ -193,29 +200,29 @@ void findCnvOverlap(mI & gapmi,vector<mI> ncm, vector<mI> & cnv, ccov & masterRe
 			if(find(cnv.begin(),cnv.end(),tempmi) == cnv.end())//tempmi is not present in cnv
 			{
 				//cnv.push_back(tempmi);
-				vd = getCoverage(tempmi,masterRef,masterQ);
+				vd = getCoverage(tempmi,masterRef,masterQ,0.3);
 //cout<<"CNV/TEMP\t"<<tempmi.rn<<'\t'<<tempmi.x1<<'\t'<<tempmi.x2<<'\t'<<tempmi.qn<<'\t'<<tempmi.y1<<'\t'<<tempmi.y2<<'\t'<<tempmi.c<<endl;
 		//		vn = getChromCount(tempmi,chromDensityRef,chromDensityQ);
 				if(nearestInt(vd[0]) >2 || nearestInt(vd[1]) >2)
 				{
 					if(tempmi.c == 'r')
 					{
-						fout<<tempmi.rn<<"\t"<<tempmi.x1<<"\t"<<tempmi.x2<<"\tnCNV-NR\t"<<tempmi.qn<<"\t"<<tempmi.y1<<"\t"<<tempmi.y2<<"\t"<<setfill('0')<<setw(10)<<id++<<"\t"<<tempmi.x2-tempmi.x1<<"\t"<<nearestInt(vd[0])<<"\t"<<nearestInt(vd[1])<<endl;
+						fout<<tempmi.rn<<"\t"<<tempmi.x1<<"\t"<<tempmi.x2<<"\tnCNV-NR\t"<<tempmi.qn<<"\t"<<tempmi.y1<<"\t"<<tempmi.y2<<"\t"<<setfill('0')<<setw(10)<<id++<<"\t"<<tempmi.x2-tempmi.x1<<"\t"<<vd[0]<<"\t"<<vd[1]<<endl;
 					}
 					if(tempmi.c == 'q')
 					{
-						fout<<tempmi.rn<<"\t"<<tempmi.x1<<"\t"<<tempmi.x2<<"\tnCNV-NQ\t"<<tempmi.qn<<"\t"<<tempmi.y1<<"\t"<<tempmi.y2<<"\t"<<setfill('0')<<setw(10)<<id++<<"\t"<<tempmi.x2-tempmi.x1<<"\t"<<nearestInt(vd[0])<<"\t"<<nearestInt(vd[1])<<endl;
+						fout<<tempmi.rn<<"\t"<<tempmi.x1<<"\t"<<tempmi.x2<<"\tnCNV-NQ\t"<<tempmi.qn<<"\t"<<tempmi.y1<<"\t"<<tempmi.y2<<"\t"<<setfill('0')<<setw(10)<<id++<<"\t"<<tempmi.x2-tempmi.x1<<"\t"<<vd[0]<<"\t"<<vd[1]<<endl;
 					}
 				}
 				else //coverage less than 2
 				{
 					if(tempmi.c == 'r')
 					{
-						fout<<tempmi.rn<<"\t"<<tempmi.x1<<"\t"<<tempmi.x2<<"\tCNV-NR\t"<<tempmi.qn<<"\t"<<tempmi.y1<<"\t"<<tempmi.y2<<"\t"<<setfill('0')<<setw(10)<<id++<<"\t"<<tempmi.x2-tempmi.x1<<"\t"<<nearestInt(vd[0])<<"\t"<<nearestInt(vd[1])<<endl;
+						fout<<tempmi.rn<<"\t"<<tempmi.x1<<"\t"<<tempmi.x2<<"\tCNV-NR\t"<<tempmi.qn<<"\t"<<tempmi.y1<<"\t"<<tempmi.y2<<"\t"<<setfill('0')<<setw(10)<<id++<<"\t"<<tempmi.x2-tempmi.x1<<"\t"<<vd[0]<<"\t"<<vd[1]<<endl;
 					}
 					if(tempmi.c == 'q')
 					{
-						fout<<tempmi.rn<<"\t"<<tempmi.x1<<"\t"<<tempmi.x2<<"\tCNV-NQ\t"<<tempmi.qn<<"\t"<<tempmi.y1<<"\t"<<tempmi.y2<<"\t"<<setfill('0')<<setw(10)<<id++<<"\t"<<tempmi.x2-tempmi.x1<<"\t"<<nearestInt(vd[0])<<"\t"<<nearestInt(vd[1])<<endl;
+						fout<<tempmi.rn<<"\t"<<tempmi.x1<<"\t"<<tempmi.x2<<"\tCNV-NQ\t"<<tempmi.qn<<"\t"<<tempmi.y1<<"\t"<<tempmi.y2<<"\t"<<setfill('0')<<setw(10)<<id++<<"\t"<<tempmi.x2-tempmi.x1<<"\t"<<vd[0]<<"\t"<<vd[1]<<endl;
 					}
 				}
 				cnv.push_back(tempmi);
@@ -243,13 +250,14 @@ void findCnvOverlap(mI & gapmi,vector<mI> ncm, vector<mI> & cnv, ccov & masterRe
 			}//end of cnv present or absent condition
 			else//cnv present
 			{
-				cout<<"CNV\t"<<tempmi.rn<<'\t'<<tempmi.x1<<'\t'<<tempmi.x2<<'\t'<<tempmi.qn<<'\t'<<tempmi.y1<<'\t'<<tempmi.y2<<endl;
+		//		cout<<"CNV\t"<<tempmi.rn<<'\t'<<tempmi.x1<<'\t'<<tempmi.x2<<'\t'<<tempmi.qn<<'\t'<<tempmi.y1<<'\t'<<tempmi.y2<<endl;
 				gapmi.x1 = gapmi.x2;//this will not be used for reporting indels
 				gapmi.y1 = gapmi.y2;//this will not be used for reporting indels
 			}
 		}//end of smum size condition
 		else//if no ncm is found then it is a gap in the reference or query
 		{
+//cout<<"GAP\t"<<gapmi.rn<<'\t'<<gapmi.x1<<'\t'<<gapmi.x2<<'\t'<<gapmi.qn<<'\t'<<gapmi.y1<<'\t'<<gapmi.y2<<endl;
 			vd = getCoverage(gapmi,masterRef,masterQ);
 			if((gapmi.y2 - gapmi.y1) > (gapmi.x2-gapmi.x1))//insertion
 			{
@@ -367,5 +375,6 @@ mI findDupQ(mI & m1,mI & m2)//m1 is thismi and m2 is nextmi
 			tempmi.y2 = m1.y1;
 		}
 	}
+//cout<<tempmi.rn<<'\t'<<tempmi.x1<<'\t'<<tempmi.x2<<'\t'<<tempmi.qn<<'\t'<<tempmi.y1<<'\t'<<tempmi.y2<<endl;
 	return tempmi;
 }	
