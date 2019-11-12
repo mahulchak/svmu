@@ -38,10 +38,8 @@ void findInnie(vector<mI> & mums,mI & mi)
 	int i = 0;
 	while((mi.x2 > mums[i].x1) && (i<mums.size()))
 	{
-//cout<<"debug\t"<<mi.rn<<'\t'<<mi.x1<<'\t'<<mi.x2<<'\t'<<mums[i].rn<<'\t'<<mums[i].x1<<'\t'<<mums[i].x2<<endl;
 		if((mi.x1 > (mums[i].x1-1)) && (mi.x2 < (mums[i].x2+1)))
 		{
-//cout<<"debug\t"<<mi.rn<<'\t'<<mi.x1<<'\t'<<mi.x2<<'\t'<<mums[i].rn<<'\t'<<mums[i].x1<<'\t'<<mums[i].x2<<endl;
 			if(!(mi == mums[i]))
 			{
 //cout<<"debug\t"<<mi.rn<<'\t'<<mi.x1<<'\t'<<mi.x2<<'\t'<<mums[i].rn<<'\t'<<mums[i].x1<<'\t'<<mums[i].x2<<endl;
@@ -53,6 +51,20 @@ void findInnie(vector<mI> & mums,mI & mi)
 				else
 				{
 					mi.c = 'r';
+				}
+			}
+		}
+		if((min(mums[i].y1,mums[i].y2) > (min(mi.y1,mi.y2)-1)) && (max(mums[i].y2,mums[i].y1) < (max(mi.y2,mi.y1)+1)))
+		{
+			if(!(mi == mums[i]))
+			{
+				if(mums[i].c == 'r')
+				{
+					mums[i].c = 'd';
+				}
+				else
+				{
+					mums[i].c = 'q';
 				}
 			}
 		}
@@ -268,6 +280,7 @@ mI findClosest(mI & mi, vector<mI> & mums)
 	map<double,mI> storeDist;
 	map<double,mI>::iterator it;
 	double d1 =0, d2 =0, d = 0,Dist= 0,rd2=0,rd=0;
+	int refOvl = 0, qOvl =0;
 	mI invmi;//store the swapped gapmi
 	sort(mums.begin(),mums.end(),lsort);//sort the mums by length
 	//Dist = sqrt(pow(abs(mi.x2-mi.x1),2)+pow(abs(mi.y1-mi.y2),2));
@@ -278,31 +291,36 @@ mI findClosest(mI & mi, vector<mI> & mums)
 	{
 		if((mums[j].rn == mi.rn) && (mums[j].qn == mi.qn))
 		{
-			d1 = pow(abs(mi.x1 - max(mums[j].x1,mi.x1)),2);//if start of mum preceeds the gap start then effective mum start is the gap start. will do it for query too.
-			d2 = pow(abs(mi.y1 - mums[j].y1),2);
-			d = abs(sqrt(d1+d2));
-			rd2 = pow(abs(invmi.y1 - mums[j].y1),2);
-			rd = abs(sqrt(d1 + rd2));
-			if(d < rd) // if forward orientation is closer
-			{
-				storeDist[d] = mums[j];
-			}
-			else
-			{
-				storeDist[rd] = mums[j];
-			}
+			refOvl = min(mums[j].x2,mi.x2) - max(mums[j].x1,mi.x1);//get the total overlap between the ref gap and ref part of mI
+			qOvl = min(max(mums[j].y1,mums[j].y2),mi.y2) - max(min(mums[j].y1,mums[j].y2),mi.y1);
+			mums[j].l = int(0.5*(refOvl + qOvl)); 
 		}
-//cout<<"dist\t"<<d<<'\t'<<rd<<'\t'<<mums[j].rn<<'\t'<<mums[j].x1<<'\t'<<mums[j].x2<<'\t'<<mums[j].qn<<'\t'<<mums[j].y1<<'\t'<<mums[j].y2<<endl;
+//cout<<"DIST\t"<<d<<'\t'<<rd<<'\t'<<mums[j].rn<<'\t'<<mums[j].x1<<'\t'<<mums[j].x2<<'\t'<<mums[j].qn<<'\t'<<mums[j].y1<<'\t'<<mums[j].y2<<'\t'<<mums[j].l<<endl;
+	}
+	sort(mums.begin(),mums.end(),lsort);
+	refOvl = mums[0].l;//longest length
+	unsigned int i = 0;
+	while((mums[i].l == refOvl) && (i<mums.size()))//as long as it is the top candidate
+	{
+		d1 = pow(abs(mi.x1 - max(mums[i].x1,mi.x1)),2);//if start of mum preceeds the gap start then effective mum start is the gap start. will do it for query too.
+		d2 = pow(abs(mi.y1 - mums[i].y1),2);
+		d = abs(sqrt(d1+d2));
+		rd2 = pow(abs(invmi.y1 - mums[i].y1),2);
+		rd = abs(sqrt(d1 + rd2));
+		if(d < rd) // if forward orientation is closer
+		{
+			storeDist[d] = mums[i];
+		}
+		else
+		{
+			storeDist[rd] = mums[i];
+		}
+//cout<<"dist\t"<<d<<'\t'<<rd<<'\t'<<mums[i].rn<<'\t'<<mums[i].x1<<'\t'<<mums[i].x2<<'\t'<<mums[i].qn<<'\t'<<mums[i].y1<<'\t'<<mums[i].y2<<'\t'<<mums[i].l<<endl;
+		i++;
 	}
 	it = storeDist.begin();
-	if((mums.size()>1)&& (mums[0].l == mums[1].l))//if both lengths are same, get the closest
-	{
-		return it->second;
-	}
-	else
-	{
-		return mums[0];//return the longest mum
-	}
+	return it->second;
+	//return mums[0];
 }
 ////////////////////////////////////////////////////
 void gapCloser(mI & mi, vector<mI> ncm, vector<mI> & cm)
@@ -311,11 +329,15 @@ void gapCloser(mI & mi, vector<mI> ncm, vector<mI> & cm)
 	mI gapRight,gapLeft;//two sides of the new split gap
 	vector<mI> smum; //selected mums that overlap with the gap.
 	int refOvl =0, qOvl =0;
+	unsigned int i = 0;//index for ncm
 	double refProp, qProp;
+	int index = 0;
+	//i = lastIndex;//it will set index at 0
 	if((mi.x2 > mi.x1) && (mi.y2 > mi.y1)) //gaps in both ref and query exist, and in forward strand. inverted coordinates are converted to forward coordinates. so gaps are always in forward direction
 	{
 //cout<<"GAPS\t"<<mi.rn<<'\t'<<mi.x1<<'\t'<<mi.x2<<'\t'<<mi.qn<<'\t'<<mi.y1<<'\t'<<mi.y2<<endl;
-		for(unsigned int i = 0;i<ncm.size();i++)
+		//for(unsigned int i = 0;i<ncm.size();i++)
+		while((!(max(mi.x1,mi.x2) < ncm[i].x1)) && (i<ncm.size()))
 		{
 			//if((!(ncm[i].x2 < mi.x1)) && (!(max(ncm[i].y1,ncm[i].y2)<min(mi.y1,mi.y2))) && (!(ncm[i].x1>mi.x2)) && (!(min(ncm[i].y1,ncm[i].y2)>max(mi.y2,mi.y1)))) //ncm mum does not fall outside
 			if((!(ncm[i].x2 < mi.x1)) && (!(ncm[i].x1 > mi.x2)) && (mi.rn == ncm[i].rn) && (mi.qn == ncm[i].qn))
@@ -325,15 +347,19 @@ void gapCloser(mI & mi, vector<mI> ncm, vector<mI> & cm)
 					refOvl = min(ncm[i].x2,mi.x2) - max(ncm[i].x1,mi.x1);
 					refProp = double(refOvl)/double(ncm[i].x2-ncm[i].x1);
 					qOvl = min(max(ncm[i].y1,ncm[i].y2),mi.y2) - max(min(ncm[i].y1,ncm[i].y2),mi.y1);
+//cout<<mi.rn<<'\t'<<mi.x1<<'\t'<<mi.x2<<'\t'<<mi.qn<<'\t'<<mi.y1<<'\t'<<mi.y2<<'\t'<<ncm[i].rn<<'\t'<<ncm[i].x1<<'\t'<<ncm[i].x2<<'\t'<<ncm[i].qn<<'\t'<<'\t'<<ncm[i].y1<<'\t'<<ncm[i].y2<<'\t'<<refOvl<<'\t'<<qOvl<<endl;
 					qProp = double(qOvl)/double(abs(ncm[i].y2-ncm[i].y1));
-					if((refProp>0.5) && (qProp>0.5))
+//cout<<mi.rn<<'\t'<<mi.x1<<'\t'<<mi.x2<<'\t'<<mi.qn<<'\t'<<mi.y1<<'\t'<<mi.y2<<'\t'<<ncm[i].rn<<'\t'<<ncm[i].x1<<'\t'<<ncm[i].x2<<'\t'<<ncm[i].qn<<'\t'<<'\t'<<ncm[i].y1<<'\t'<<ncm[i].y2<<'\t'<<refProp<<'\t'<<qProp<<endl;
+					if((refProp>0.3) && (qProp>0.3))
 					{				
 						smum.push_back(ncm[i]);
 //cout<<mi.rn<<'\t'<<mi.x1<<'\t'<<mi.x2<<'\t'<<mi.qn<<'\t'<<mi.y1<<'\t'<<mi.y2<<'\t'<<ncm[i].rn<<'\t'<<ncm[i].x1<<'\t'<<ncm[i].x2<<'\t'<<ncm[i].qn<<'\t'<<'\t'<<ncm[i].y1<<'\t'<<ncm[i].y2<<endl;
 					}
 				}
 			}
+			i++;
 		}
+		//index = max(i,lastIndex);//assign the bigger number to lastIndex
 		if(smum.size()>0)
 		{	
 			tempmi = findClosest(mi,smum); //find the closest mum from the ncm pool
@@ -348,7 +374,6 @@ void gapCloser(mI & mi, vector<mI> ncm, vector<mI> & cm)
 				gapLeft.x2 = max(tempmi.x1,mi.x1);
 				gapLeft.rn = mi.rn;
 				gapLeft.qn = mi.qn;
-
 				if(tempmi.y1 < tempmi.y2)//forward oriented
 				{
 					gapRight.y1 = min(max(tempmi.y2+1,tempmi.y1),mi.y2); //adjust the gap coordinates
@@ -358,11 +383,12 @@ void gapCloser(mI & mi, vector<mI> ncm, vector<mI> & cm)
 				}
 				if(tempmi.y1 > tempmi.y2)//reverse oriented
 				{
-					gapRight.y1 = min(max(tempmi.y1 +1,tempmi.y2),mi.y2);
-					gapRight.y2 = mi.y2;
 					gapLeft.y1 = mi.y1;
-					gapLeft.y2 = max(min(tempmi.y2,tempmi.y1+1),mi.y1);	
+					gapLeft.y2 = max(min(tempmi.y1 +1,tempmi.y2),mi.y1);
+					gapRight.y1 = min(max(tempmi.y2,tempmi.y1+1),mi.y2);
+					gapRight.y2 = mi.y2;	
 				}
+				sort(smum.begin(),smum.end());
 //cout<<"tempmi\t"<<tempmi.rn<<'\t'<<tempmi.x1<<'\t'<<tempmi.x2<<'\t'<<tempmi.qn<<'\t'<<tempmi.y1<<'\t'<<tempmi.y2<<endl;
 //cout<<"Right\t"<<gapRight.rn<<'\t'<<gapRight.x1<<'\t'<<gapRight.x2<<'\t'<<gapRight.qn<<'\t'<<gapRight.y1<<'\t'<<gapRight.y2<<endl;
 //cout<<"Left\t"<<gapLeft.rn<<'\t'<<gapLeft.x1<<'\t'<<gapLeft.x2<<'\t'<<gapLeft.qn<<'\t'<<gapLeft.y1<<'\t'<<gapLeft.y2<<endl;
@@ -509,3 +535,36 @@ void xtracTrans(map<int,vq> & mRef,vector<mI> & cm, ofstream & ftest)
 		}
 	}
 }
+//////////////////////////////////////////////////////////////////////////////////////////
+mI readLast(string str)//str contains individual lines from the file
+{
+	size_t pos1 =0,pos2=0;
+	mI lastmi;//mi read from last
+        
+	pos1 = str.find('\t');//the file has to be tab delimited; extract the ref name
+	lastmi.rn = str.substr(pos2,pos1-pos2);//refname
+//cout<<str.substr(pos2,pos1-pos2)<<endl;
+	pos2 = str.find('\t',pos1+1);//this one needs to be skipped for orientation
+//cout<<str.substr(pos1+1,pos2-pos1)<<endl;
+	pos1 = str.find('\t',pos2+1);
+//cout<<str.substr(pos2+1,pos1-pos2)<<endl;
+	lastmi.x1 = stoi(str.substr(pos2+1,pos1-pos2));//extract the ref start
+	pos2 = str.find('\t',pos1+1);
+//cout<<str.substr(pos1+1,pos2-pos1)<<endl;
+	lastmi.x2 = stoi(str.substr(pos1+1,pos2-pos1));//extract the ref end
+	pos1 = str.find('\t',pos2+1);
+//cout<<str.substr(pos2+1,pos1-pos2)<<endl;
+	lastmi.qn = str.substr(pos2+1,pos1-pos2-1);//extract the query chromosome
+	pos2 = str.find('\t',pos1+1);
+//cout<<str.substr(pos1+1,pos2-pos1)<<endl;
+	pos1 = str.find('\t',pos2+1);
+//cout<<str.substr(pos2+1,pos1-pos2)<<endl;
+	lastmi.y1 = stoi(str.substr(pos2+1,pos1-pos2));//extract the query start
+	pos2 = str.find('\t',pos1+1);
+//cout<<str.substr(pos1+1,pos2-pos1)<<endl;
+	lastmi.y2 = stoi(str.substr(pos1+1,pos2-pos1));//extract the query end
+//cout<<lastmi.rn<<'\t'<<lastmi.x1<<'\t'<<lastmi.x2<<'\t'<<lastmi.qn<<'\t'<<lastmi.y1<<'\t'<<lastmi.y2<<endl;
+	return lastmi;
+}
+/////////////////////////find the coords of minimum distance between two MUMs//////////
+	
