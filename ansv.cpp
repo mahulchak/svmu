@@ -28,8 +28,12 @@ void annotGaps(vector<mI> & cm, ccov & masterRef, ccov & masterQ, ccov & chromDe
 	sort(tempVmi.begin(),tempVmi.end(),qusort);//sort it by Q cords for resolving for-rev junctions
 	for(unsigned int i=0; i<cm.size()-1;i++)
 	{
-cout<<"prev-this\t"<<thismi.rn<<'\t'<<thismi.x1<<'\t'<<thismi.x2<<'\t'<<thismi.qn<<'\t'<<thismi.y1<<'\t'<<thismi.y2<<endl;		
-cout<<"this\t"<<cm[i].rn<<'\t'<<cm[i].x1<<'\t'<<cm[i].x2<<'\t'<<cm[i].qn<<'\t'<<cm[i].y1<<'\t'<<cm[i].y2<<endl;
+//cout<<"prev-this\t"<<thismi.rn<<'\t'<<thismi.x1<<'\t'<<thismi.x2<<'\t'<<thismi.qn<<'\t'<<thismi.y1<<'\t'<<thismi.y2<<endl;		
+//cout<<"this\t"<<cm[i].rn<<'\t'<<cm[i].x1<<'\t'<<cm[i].x2<<'\t'<<cm[i].qn<<'\t'<<cm[i].y1<<'\t'<<cm[i].y2<<endl;
+		if((cm[i].y1 >cm[i].y2) && (thismi.y1 <thismi.y2))//if last was forward and this is inverted
+		{
+			fout<<thismi.rn<<"\t"<<thismi.x2<<"\t"<<thismi.x2<<"\tINV\t"<<thismi.qn<<"\t"<<thismi.y2<<"\t"<<cm[i].y1<<"\t"<<setfill('0')<<setw(10)<<id++<<"\t"<<cm[i].y1-thismi.y2<<"\t"<<nearestInt(cov[0])<<"\t"<<nearestInt(cov[1])<<endl;
+		}
 		thismi = cm[i];
 		nextmi = cm[i+1];
 		gapmi.rn = thismi.rn;//should be same chromosomes
@@ -339,17 +343,23 @@ mI findDupRef(mI & mi1, mI & mi2)//Ref is duplicated in query.mi1 is upstream MU
 			tempmi.x2 = min(mi1.x2,mi2.x2); //smallest of the two
 			if(mi2.y1 <mi2.y2) //forward oriented
 			{
-				sharedAln = (mi1.x2 - mi1.x1) - max((mi1.y2-mi1.y1),0);
-				tempmi.x1 = mi2.x1 + sharedAln;
-				tempmi.y1 = mi2.y1 + sharedAln;
-				tempmi.y2 = mi2.y1 + (mi1.x2 - mi2.x1);
+				sharedAln = max((mi1.y2 - mi2.y1),0);//if q doesn't overlap,the second would be <0
+				if(mi2.x1 + sharedAln < mi1.x2)//if dup in query and not ref
+				{
+					tempmi.x1 = mi2.x1 + sharedAln;
+					tempmi.y1 = mi2.y1 + sharedAln;
+					tempmi.y2 = mi2.y1 + (mi1.x2 - mi2.x1);
+				}
 			}
 			if(mi2.y1 > mi2.y2)//reverse oriented
 			{
-				sharedAln = (mi1.x2 - mi1.x1) - max(( mi2.y1 -mi1.y2),0);
-				tempmi.x1 = mi2.x1 + sharedAln;
-				tempmi.y2 = mi2.y1 - sharedAln;//second
-				tempmi.y1 = mi2.y1 - (mi1.x2 - mi2.x1);
+				sharedAln = max(( mi2.y1 -mi1.y2),0);
+				if(mi2.x1 + sharedAln < mi1.x2)//if dup in query and not ref
+				{
+					tempmi.x1 = mi2.x1 + sharedAln;
+					tempmi.y2 = mi2.y1 - sharedAln;//second
+					tempmi.y1 = mi2.y1 - (mi1.x2 - mi2.x1);
+				}
 			}
 //cout<<"cnv "<<tempmi.rn<<" "<<tempmi.x1<<" "<<tempmi.x2<<" "<<tempmi.qn<<" "<<tempmi.y1<<" "<<tempmi.y2<<endl;
 		}
@@ -361,15 +371,21 @@ mI findDupRef(mI & mi1, mI & mi2)//Ref is duplicated in query.mi1 is upstream MU
 			tempmi.y2 = mi2.y2;
 			if(mi2.y1 <mi2.y2) //forward oriented
 			{
-				sharedAln = max((mi1.y2-mi1.y1),0);
-				tempmi.x1 = mi2.x1 + sharedAln;
-				tempmi.y1 = mi2.y1 + sharedAln;
+				sharedAln = max((mi1.y2-mi2.y1),0);
+				if(mi2.x1 + sharedAln < mi1.x2)
+				{
+					tempmi.x1 = mi2.x1 + sharedAln;
+					tempmi.y1 = mi2.y1 + sharedAln;
+				}
 			}
 			if(mi2.y1 > mi2.y2)//reverse oriented
 			{
 				sharedAln = max(( mi2.y1 -mi1.y2),0);
-				tempmi.x1 = mi2.x1 + sharedAln;
-				tempmi.y1 = mi2.y1 - sharedAln;
+				if(mi2.x1 + sharedAln < mi1.x2)
+				{
+					tempmi.x1 = mi2.x1 + sharedAln;
+					tempmi.y1 = mi2.y1 - sharedAln;
+				}
 			}
 //cout<<"cnv "<<tempmi.rn<<" "<<tempmi.x1<<" "<<tempmi.x2<<" "<<tempmi.qn<<" "<<tempmi.y1<<" "<<tempmi.y2<<endl;
 		}

@@ -53,6 +53,7 @@ class chromPair {
 	vector<mI> cm; //conserved mems
 	vector<mI> ncm; //conserved mems from reverse side
 	vector<mI> gap;
+	vector<mI> last;
 };
 
 bool qusort(mI mi1, mI mi2); //to sort the mI based on query coordinates
@@ -76,10 +77,11 @@ int nearestInt(double d);
 void annotGaps(vector<mI> & cm,vector<int> & masterRef, vector<int> & masterQ,vector<int> & chromDensityRef, vector<int> & chromDensityQ,vector<mI> & cnv,map<int,vector<qord> > & umRef, string & refseq, string & qseq,vector<int> & seqlen,ofstream & fout, ofstream & fsmall,int & id);
 void readUniq(ifstream & fin,vector<mI> & cm, map<int,vector<qord> > & umRef,vector<int> & masterHQ);
 void callSmall(mI & mi,map<int,vector<qord> > & umRef, string & refseq, string & qseq,vector<int> & seqlen,ofstream & fsmall);
-void findCnvOverlap(mI & gapmi,vector<mI> ncm, vector<mI> & cnv, vector<int> & masterRef, vector<int> & masterQ,vector<int> & chromDensityRef,vector<int> & chromDensityQ,ofstream & fout, int & id);
+void findCnvOverlap(mI & gapmi,vector<mI> ncm, vector<mI> & cnv, vector<mI> & indels,vector<int> & masterRef, vector<int> & masterQ,vector<int> & chromDensityRef,vector<int> & chromDensityQ,ofstream & fout, int & id);
 mI findDupRef(mI & mi1, mI & mi2);
 mI findDupQ(mI & m1, mI & m2);
 char comp(char & N);
 void findInnie(vector<mI> & mums,mI & mi);
-
+mI readLast(string str);
+bool chkIndel(mI & gapmi,vector <mI> & indels);
 #endif
