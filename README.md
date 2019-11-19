@@ -1,11 +1,12 @@
 # svmu
 
-SVMU (Structural Variants from MUmmer) 0.3 is a revised version of SVMU 0.2. SVMU attempts to identify comprehensive sequence variants via alignment of two  contiguous genome assemblies. It calls duplicates, large indels, inversions, small indels, SNPs from whole genome alignments using MUMmer. 
-<b>It is still under active development. We are incorporating new features and fixing bugs. One experimental feature we have added is processing of LASTZ output in svmu</b>. If you encounter an issue, feel free to email me at mchakrab@uci.edu. SVMU works with both MUMmer v3.23 and MUMmer v4.x. Support for LASTZ is experimental.
+SVMU (Structural Variants from MUmmer) attempts to identify comprehensive sequence variants via alignment of two  contiguous genome assemblies. It combines the strengths of two powerful aligners MUMmer and LASTZ to annotate duplicates, large indels, inversions, small indels, SNPs from whole genome alignments.
+ 
+<b>It is still under active development. We are incorporating new features and fixing bugs. One experimental feature we have added is processing of LASTZ output in svmu</b>. If you encounter an issue, feel free to email me at mchakrab@uci.edu. SVMU works with both MUMmer v3 and MUMmer v4. Support for LASTZ is experimental.
 
-NOTE: Feel free to try the newest version but be cautious with the results. If you have an idea or suggestion (including collaboration ideas), write to me. However, if you are coming here looking for the svmu versions used in the A4 and DSPR papers, see below:
+NOTE: Feel free to try the latest version but be cautious with the results. If you have an idea or suggestion (including collaboration ideas), write to me. However, if you are coming here looking for the svmu versions used in the A4 and DSPR papers, see below:
 
-If you publish results obtained with this pipeline, please cite SVMU as described here https://www.nature.com/articles/s41588-017-0010-y. the version used in this paper can be found here : https://github.com/mahulchak/svmu/releases/tag/v0.1beta. If you looking for the version that was used in the DSPR paper, please download the commits prior to March 6,2018.
+If you publish results obtained with this pipeline, please cite SVMU as described here https://www.nature.com/articles/s41467-019-12884-1. The version used in the paper are available through commits prior to March 6,2018.
 
 1. Download and compile the programs -
 
@@ -31,7 +32,8 @@ If you publish results obtained with this pipeline, please cite SVMU as describe
 	svmu sam2ref.mm.delta ref.fasta sample.fasta snp_mode sam_lastz.txt prefix 
 
  ```
- <b>snp_mode</b> should be 'h' or 'l'. h = report SNPs; l = no SNPs. currently, this option has been turned off [will be activated soon].
+ <b>snp_mode</b> should be 'h' or 'l'. h = report SNPs; l = no SNPs. currently, this option is turned off [will be activated soon].
+
  <b>prefix</b> provides a prefix that will be added to the output files. 
 
 	sv.txt: A tab delimited file that summarizes structural mutations (indels, CNVs, inversions) in the sample genome with respect to the reference genome.  
