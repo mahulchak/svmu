@@ -1,3 +1,4 @@
+
 #include<iostream>
 #include "sv.h"
 #include "seqIO.h"
@@ -40,11 +41,12 @@ int main(int argc, char *argv[])
 	string foo = string(argv[1]);
 	string line, chromName,refName,qName,indexAln,fileName;
 	int refStart = 0, refEnd = 0, qStart = 0, qEnd = 0, refLen =0, qLen =0, count = -1,qGap =0, indelPos =0, refChromCount=0, qChromCount = 0;
+	//double avgDensity = 0;
 	unsigned int index = 0;
 	
 	vector<double> vd(2),vn(2);
 	vector<int> vi;
-	vector<mI> vmi,tempVmi,vm,qvm,gapmi,mastermi,transmi;//mastermi holds all mums in a delta file
+	vector<mI> vmi,tempVmi,vm,qvm,gapmi,mastermi,transmi,invmi;//mastermi holds all mums in a delta file
 	size_t pos1,pos2,namePos;
 	
 	ifstream fin, refFasta, qFasta,flast;//flast for opening lastz output
@@ -122,115 +124,95 @@ int main(int argc, char *argv[])
 	fcm.open(fileName);
 	fileName = "cnv_all."+ string(argv[6]) + ".txt";
 	fcnv.open(fileName);
-	flast.open(argv[5]);
+	//flast.open(argv[5]);
 	//it takes 1min and 17s for dros genome to finish this 
 /////////////////////LASTZ input//////////////////////
-	while(getline(flast,line))//test
-	{
-		if(line[0] != '#')//it is not the header line
-		{
-			tempmi = readLast(line);
-			tempmi.c = 'l';
-		}
-		vd = getCoverage(tempmi,masterRef[tempmi.rn],masterQ[tempmi.qn],0.3);
-		if(vd[0] == 0 || vd[1] == 0)
-		{
-			indexAln = tempmi.rn + tempmi.qn;
-			//allChrom[indexAln].mums.push_back(tempmi);
-			allChrom[indexAln].last.push_back(tempmi);
-			//cout<<tempmi.rn<<'\t'<<tempmi.x1<<'\t'<<tempmi.x2<<'\t'<<tempmi.qn<<'\t'<<tempmi.y1<<'\t'<<tempmi.y2<<'\t'<<vd[0]<<'\t'<<vd[1]<<'\t'<<indexAln<<'\t'<<allChrom[indexAln].mums.size()<<endl;
-	//		storeCords(masterRef[tempmi.rn],masterQ[tempmi.qn],tempmi);
-		}
-	}
+	//while(getline(flast,line))//test
+	//{
+	//	if(line[0] != '#')//it is not the header line
+	//	{
+	//		tempmi = readLast(line);
+	//		tempmi.c = 'l';
+	//	}
+	//		indexAln = tempmi.rn + tempmi.qn;
+	//		allChrom[indexAln].last.push_back(tempmi);
+//cout<<tempmi.rn<<'\t'<<tempmi.x1<<'\t'<<tempmi.x2<<'\t'<<tempmi.qn<<'\t'<<tempmi.y1<<'\t'<<tempmi.y2<<endl;			
+	//}
 /////////////////////////////////////////////////////////////
-	flast.close();//finished reading the lastz output
+	//flast.close();//finished reading the lastz output
 	for(chroms::iterator it = allChrom.begin();it!= allChrom.end();it++)
 	{
-		vm.clear();
-		qvm.clear();
-		tempVmi.clear();
 		indexAln = it->first;
 		count = 0;
+		vm = allChrom[indexAln].mums;
+		sort(vm.begin(),vm.end(),qusort);
 		sort(allChrom[indexAln].mums.begin(),allChrom[indexAln].mums.end());
-		if(allChrom[indexAln].mums.size() >2)
+		if(allChrom[indexAln].mums.size() >1)
 		{
 			for(unsigned int i = 0; i<allChrom[indexAln].mums.size();i++)
 			{
 				tempmi = allChrom[indexAln].mums[i];
+//cout<<"ncm\t"<<tempmi.rn<<'\t'<<tempmi.x1<<'\t'<<tempmi.x2<<'\t'<<tempmi.qn<<'\t'<<tempmi.y1<<'\t'<<tempmi.y2<<'\t'<<qvm.size()<<endl;
 				findInnie(allChrom[indexAln].mums,tempmi);
+				findInnieQ(vm,tempmi);
 				vn = getChromCount(tempmi,chromDensityRef[tempmi.rn],chromDensityQ[tempmi.qn]);
 				if(tempmi.c != 'r' && tempmi.c != 'q' && tempmi.c != 'd')
 				{
-					if(vn[0] <0.5 && vn[1] <0.5)
+					if(vn[0] <0.8 && vn[1] <0.8)
 					{
 						transmi.push_back(tempmi);
+//cout<<"ncm\t"<<tempmi.rn<<'\t'<<tempmi.x1<<'\t'<<tempmi.x2<<'\t'<<tempmi.qn<<'\t'<<tempmi.y1<<'\t'<<tempmi.y2<<'\t'<<vn[0]<<'\t'<<vn[1]<<endl;					
+
 					}
 					else
 					{
 						allChrom[indexAln].ncm.push_back(tempmi);
 					}
-					//tempmi.c = 'u';//noshadow
-//cout<<"unique\t"<<tempmi.rn<<'\t'<<tempmi.x1<<'\t'<<tempmi.x2<<'\t'<<tempmi.qn<<'\t'<<tempmi.y1<<'\t'<<tempmi.y2<<'\t'<<endl;
 				}
 				else
 				{
 					allChrom[indexAln].ncm.push_back(tempmi);
 //cout<<"ncm\t"<<tempmi.rn<<'\t'<<tempmi.x1<<'\t'<<tempmi.x2<<'\t'<<tempmi.qn<<'\t'<<tempmi.y1<<'\t'<<tempmi.y2<<'\t'<<qvm.size()<<endl;					
 				}
+//				findInnieLast(allChrom[indexAln].last,tempmi);
+//				{
+//					if(tempmi.c == 'i')
+//					{
+//						cout<<tempmi.rn<<'\t'<<tempmi.x1<<'\t'<<tempmi.x2<<'\t'<<tempmi.qn<<'\t'<<tempmi.y1<<'\t'<<tempmi.y2<<'\t'<<'r'<<'\t'<<vn[0]<<'\t'<<vn[1]<<endl;
+//					}
+//				}
 				fcords<<tempmi.rn<<'\t'<<tempmi.x1<<'\t'<<tempmi.x2<<'\t'<<tempmi.qn<<'\t'<<tempmi.y1<<'\t'<<tempmi.y2<<'\t'<<tempmi.c<<'\t'<<vn[0]<<'\t'<<vn[1]<<endl;
-				vd = getCoverage(tempmi,masterRef[tempmi.rn],masterQ[tempmi.qn],0.3);
-				if((vd[0] >1) || (vd[1]>1))
-				{
-					if(vd[0] != vd[1])//spit out all MUMs with coverage difference
-					{
-						fcnv<<tempmi.rn<<'\t'<<tempmi.x1<<'\t'<<tempmi.x2<<'\t'<<tempmi.qn<<'\t'<<tempmi.y1<<'\t'<<tempmi.y2<<'\t'<<vd[0]<<'\t'<<vd[1]<<'\t'<<vn[0]<<'\t'<<vn[1]<<endl;
-					}
-				}
+//				vd = getCoverage(tempmi,masterRef[tempmi.rn],masterQ[tempmi.qn],0.3);
+//				if((vd[0] >1) || (vd[1]>1))
+//				{
+//					if(vd[0] != vd[1])//spit out all MUMs with coverage difference
+//					{
+//						fcnv<<tempmi.rn<<'\t'<<tempmi.x1<<'\t'<<tempmi.x2<<'\t'<<tempmi.qn<<'\t'<<tempmi.y1<<'\t'<<tempmi.y2<<'\t'<<vd[0]<<'\t'<<vd[1]<<'\t'<<vn[0]<<'\t'<<vn[1]<<endl;
+//					}
+//				}
 			}
 //######################filtered all shadowed mums#########################//
+			vm.clear();
 			sort(allChrom[indexAln].ncm.begin(),allChrom[indexAln].ncm.end());
 ///////////////////////////////testing this part/////////////////////////		
 			tempVmi = transmi;
 			sort(tempVmi.begin(),tempVmi.end(),qusort);
-			qvm.clear();//experimental
-			for(unsigned int i = 0; i<transmi.size();i++)
-			{
-//cout<<transmi[i].rn<<'\t'<<transmi[i].x1<<'\t'<<transmi[i].x2<<'\t'<<transmi[i].qn<<'\t'<<transmi[i].y1<<'\t'<<transmi[i].y2<<'\t'<<transmi.size()<<'\t'<<i<<endl;
-				tempmi = transmi[i];
-				nextmi = returnMumByQ1(tempmi.y1,tempVmi);//or nextmi
-				prevmi = returnMumByQ2(tempmi.y1,tempVmi);//or prevmi
-				if((i>0) && (tempmi.y1 < tempmi.y2 && nextmi.y1 < nextmi.y2) && (nextmi == transmi[i+1]) && (i!= transmi.size()-1) && (prevmi == transmi[i-1]))
-				{
-					qvm.push_back(tempmi);
-//cout<<"this-cm\t"<<tempmi.rn<<'\t'<<tempmi.x1<<'\t'<<tempmi.x2<<'\t'<<tempmi.qn<<'\t'<<tempmi.y1<<'\t'<<tempmi.y2<<'\t'<<endl;
-				}
-				if((i>0) && (i!= transmi.size()-1) && (tempmi.y1 > tempmi.y2 && prevmi.y1 >prevmi.y2) && (prevmi == transmi[i+1]) && (nextmi == transmi[i-1]))
-				{
-					qvm.push_back(tempmi);
-				}
-				else
-				{
-					allChrom[indexAln].ncm.push_back(tempmi);
-				}
-//cout<<"prev\t"<<prevmi.rn<<'\t'<<prevmi.x1<<'\t'<<prevmi.x2<<'\t'<<prevmi.qn<<'\t'<<prevmi.y1<<'\t'<<prevmi.y2<<'\t'<<endl;
-//cout<<"this\t"<<tempmi.rn<<'\t'<<tempmi.x1<<'\t'<<tempmi.x2<<'\t'<<tempmi.qn<<'\t'<<tempmi.y1<<'\t'<<tempmi.y2<<'\t'<<qvm.size()<<endl;
-//cout<<"next\t"<<nextmi.rn<<'\t'<<nextmi.x1<<'\t'<<nextmi.x2<<'\t'<<nextmi.qn<<'\t'<<nextmi.y1<<'\t'<<nextmi.y2<<'\t'<<endl;
-			}
+			sort(transmi.begin(),transmi.end());
+			qvm = transmi;
+			indelPos = 0;
 			transmi.clear();
 ///////////////////////////////end of test//////////////////////////////
-			tempVmi = qvm;
 			if(qvm.size()>1)
 			{
-				sort(allChrom[indexAln].ncm.begin(),allChrom[indexAln].ncm.end());
-				sort(tempVmi.begin(),tempVmi.end(),qusort);
 				sort(qvm.begin(),qvm.end());
 				for(unsigned int i = 0;i<qvm.size()-1;i++)
 				{
+//					prevmi=findClosestCm(qvm[i],qvm,i);
+//cout<<qvm[i].rn<<'\t'<<qvm[i].x1<<'\t'<<qvm[i].x2<<'\t'<<qvm[i].qn<<'\t'<<qvm[i].y1<<'\t'<<qvm[i].y2<<'\t';
+//cout<<prevmi.rn<<'\t'<<prevmi.x1<<'\t'<<prevmi.x2<<'\t'<<prevmi.qn<<'\t'<<prevmi.y1<<'\t'<<prevmi.y2<<endl;					
+					allChrom[indexAln].cm.push_back(qvm[i]);
 					prevmi = qvm[i];
 					temprmi = qvm[i+1];
-//cout<<tempVmi[i].rn<<'\t'<<tempVmi[i].x1<<'\t'<<tempVmi[i].x2<<'\t'<<tempVmi[i].qn<<'\t'<<tempVmi[i].y1<<'\t'<<tempVmi[i].y2<<endl;
-					//tempmi = returnMumByQ2(prevmi.y1,tempVmi);
-					allChrom[indexAln].cm.push_back(qvm[i]);
 					if(temprmi.x1 - prevmi.x2 > 100)
 					{
 						if((prevmi.y1 > prevmi.y2) && (temprmi.y1 > temprmi.y2) && \
@@ -242,7 +224,6 @@ int main(int argc, char *argv[])
 							tempmi2.qn = prevmi.qn;
 							tempmi2.y1 = temprmi.y1;//maintain the forward strand style
 							tempmi2.y2 = prevmi.y2;
-							tempmi2.c = 'i';
 						}
 						if((prevmi.y1 < prevmi.y2) && (temprmi.y1 < temprmi.y2) && \
 						(temprmi.y1 - prevmi.y2 > 100)) //both forward
@@ -282,16 +263,16 @@ int main(int argc, char *argv[])
 							tempmi2.y1 = max(tempmi.y1,tempmi.y2);
 							tempmi2.y2 = prevmi.y1;
 						}
-					}	
+					}
 					if(tempmi2.x1 != 0)
 					{
 //cout<<"GAP\t"<<tempmi2.rn<<"\t"<<tempmi2.x1<<"\t"<<tempmi2.x2<<"\t"<<tempmi2.qn<<"\t"<<tempmi2.y1<<"\t"<<tempmi2.y2<<endl;
 						gapmi.push_back(tempmi2);
 						tempmi2.x1 = 0; // reset it
-					}				
+					}			
 				}//this is for the for loop
 				allChrom[indexAln].cm.push_back(qvm[qvm.size()-1]);//add the last element
-				if(allChrom[indexAln].cm.size() > 0)
+				if((allChrom[indexAln].cm.size() > 0) && (allChrom[indexAln].ncm.size()>0))
 				{
 					for(unsigned int i =0;i<gapmi.size();i++)
 					{	
@@ -299,28 +280,9 @@ int main(int argc, char *argv[])
 						gapCloser(tempmi,allChrom[indexAln].ncm,allChrom[indexAln].cm);
 						//gapCloser(tempmi,transmi,allChrom[indexAln].cm);
 					}
-					//hcp[allChrom[indexAln].cm[0].rn].push_back(indexAln);//homologous alignment
-					sort(allChrom[indexAln].cm.begin(),allChrom[indexAln].cm.end());//sorting by length
-					//the gapCloser misses inverted segments at the junction of inversion so..
-					for(unsigned int i = 0;i<allChrom[indexAln].cm.size()-1;i++)
-					{
-						prevmi = allChrom[indexAln].cm[i];
-						temprmi = allChrom[indexAln].cm[i+1];
-						if((prevmi.y1 < prevmi.y2) && (temprmi.y1 > temprmi.y2))
-						{
-							nextmi = returnMumByQ1(allChrom[indexAln].cm[i+1].y1,allChrom[indexAln].cm);
-							tempmi2.rn = prevmi.rn;
-							tempmi2.x1 = prevmi.x2;
-							tempmi2.x2 = temprmi.x1;
-							tempmi2.qn = prevmi.qn;
-							tempmi2.y1 = temprmi.y1;
-							tempmi.y2 = nextmi.y1;
-							gapCloser(tempmi2,allChrom[indexAln].ncm,allChrom[indexAln].cm);
-						}
-					}
 					sort(allChrom[indexAln].cm.begin(),allChrom[indexAln].cm.end());//sorting by length
 					//add the lastz alignments to the ncm vector
-					allChrom[indexAln].ncm.insert(allChrom[indexAln].ncm.end(),allChrom[indexAln].last.begin(),allChrom[indexAln].last.end());
+//					allChrom[indexAln].ncm.insert(allChrom[indexAln].ncm.end(),allChrom[indexAln].last.begin(),allChrom[indexAln].last.end());
 					transmi.clear();
 					vm = allChrom[indexAln].cm;
 					sort(vm.begin(),vm.end(),qusort);
@@ -332,15 +294,15 @@ int main(int argc, char *argv[])
 						{
 							qGap = qGap + abs(max(vm[i-1].y1,vm[i-1].y2) - min(vm[i].y1,vm[i].y2));
 						}
-						//fcm<<tempmi.rn<<"\t"<<tempmi.x1<<"\t"<<tempmi.x2<<"\t"<<tempmi.qn<<"\t"<<tempmi.y1<<"\t"<<tempmi.y2<<endl;
+					//	cout<<tempmi.rn<<"\t"<<tempmi.x1<<"\t"<<tempmi.x2<<"\t"<<tempmi.qn<<"\t"<<tempmi.y1<<"\t"<<tempmi.y2<<'\t'<<avgDensity<<endl;
 					}
-					//cout<<indexAln<<'\t'<<count<<'\t'<<qGap<<'\t'<<double(count)/double(qGap)<<endl;
-					if((double(count)/double(qGap) > 1) && (allChrom[indexAln].cm.size()>1))//if more than 1 element is present then use it for variant calling
+					//cout<<indexAln<<'\t'<<count<<'\t'<<qGap<<'\t'<<log2(double(count)/double(qGap))<<endl;
+					if((double(count)/double(qGap) >1) && (allChrom[indexAln].cm.size()>1))//if more than 1 element is present then use it for variant calling
 					{
 						for(unsigned int i = 0;i<allChrom[indexAln].cm.size();i++)
 						{
 							tempmi = allChrom[indexAln].cm[i];
-							fcm<<tempmi.rn<<"\t"<<tempmi.x1<<"\t"<<tempmi.x2<<"\t"<<tempmi.qn<<"\t"<<tempmi.y1<<"\t"<<tempmi.y2<<endl;
+							fcm<<tempmi.rn<<"\t"<<tempmi.x1<<"\t"<<tempmi.x2<<"\t"<<tempmi.qn<<"\t"<<tempmi.y1<<"\t"<<tempmi.y2<<'\t'<<endl;
 						}
 						hcp[allChrom[indexAln].cm[0].rn].push_back(indexAln);//homologous alignment
 					}
@@ -349,6 +311,8 @@ int main(int argc, char *argv[])
 			}//qvm.size()>0
 			qvm.clear();
 			tempVmi.clear();
+			gapmi.clear();
+			vm.clear();
 		}//vm.size()>2
 		count = 0; //reset count for the next alignment
 		qGap = 0;

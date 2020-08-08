@@ -86,6 +86,63 @@ void findInnie(vector<mI> & mums,mI & mi)
 		++i;
 	}
 }
+//////////////////////////////////////////////////////////////////////
+void findInnieQ(vector<mI> & mums,mI & mi)
+{
+	int i = 0;
+	while((mi.y2 > min(mums[i].y1,mums[i].y2)) && (i<mums.size()))
+	{
+		if((min(mums[i].y1,mums[i].y2) > (min(mi.y1,mi.y2)-1)) && (max(mums[i].y2,mums[i].y1) < (max(mi.y2,mi.y1)+1)))
+		{
+			if(!(mi == mums[i]))
+			{
+				if(mums[i].c == 'r')
+				{
+					mums[i].c = 'd';
+					break;
+				}
+				else
+				{
+					mums[i].c = 'q';
+				}
+			}
+		}
+		if((min(mi.y1,mi.y2) > (min(mums[i].y1,mums[i].y2)-1)) && (max(mi.y2,mi.y1) <(max(mums[i].y2,mums[i].y1)+1)))
+		{
+			if(!(mi == mums[i]))
+			{
+				if(mi.c == 'r')
+				{
+					mi.c = 'd';
+					break;
+				}
+				else
+				{
+					mi.c = 'q';
+				}
+			}
+		}
+		++i;
+	}
+}
+/////////////////////////////////////////////////////////////////////
+void findInnieLast(vector<mI> & mums,mI & mi)//find overlaps between lastz and nucmer alignments
+{
+	int i =0;
+	while((mi.x2 > mums[i].x1) && (i<mums.size()))
+	{
+		if((mi.x1 > (mums[i].x1-1)) && (mi.x2 < (mums[i].x2+1)))
+		{
+			if(!(mi==mums[i]) && (mi.y1>mi.y2))
+			{
+				mi.c = 'i';//inverted	
+cout<<"last\t"<<mums[i].rn<<'\t'<<mums[i].x1<<'\t'<<mums[i].x2<<'\t'<<mums[i].qn<<'\t'<<mums[i].y1<<'\t'<<mums[i].y2<<endl;				
+				break;
+			}
+		}
+		++i;
+	}	
+}
 ////////////////////////////////////////////////////////////////////
 void storeCords(ccov & masterRef,ccov & masterQ, mI & mi)
 {
@@ -323,77 +380,128 @@ mI findClosest(mI & mi, vector<mI> & mums)
 	//return mums[0];
 }
 ////////////////////////////////////////////////////
+mI findClosestCm(mI & mi, vector<mI> & mums, unsigned int k)
+{
+	map<double,mI> storeDist;
+	map<double,mI>::iterator it;
+	double d1 =0, d2 =0, d = 0,Dist= 0,rd2=0,rd=0;
+	mI invmi;//store the swapped gapmi
+	//Dist = sqrt(pow(abs(mi.x2-mi.x1),2)+pow(abs(mi.y1-mi.y2),2));
+	invmi = mi;
+	invmi.y1 = mi.y2;//invmi is reverse complement of gapmi
+	invmi.y2 = mi.y1;
+	unsigned int i = k;
+	while(i<mums.size())//as long as it is the top candidate
+	{
+		d1 = pow(abs(mi.x1 - max(mums[i].x1,mi.x1)),2);//if start of mum preceeds the gap start then effective mum start is the gap start. will do it for query too.
+		d2 = pow(abs(mi.y1 - mums[i].y1),2);
+		d = abs(sqrt(d1+d2));
+		rd2 = pow(abs(invmi.y1 - mums[i].y1),2);
+		rd = abs(sqrt(d1 + rd2));
+		if(!(mi==mums[i]))
+		{
+			if(d < rd) // if forward orientation is closer
+			{
+				storeDist[d] = mums[i];
+			}
+			else
+			{
+				storeDist[rd] = mums[i];
+			}
+		}
+//cout<<"dist\t"<<d<<'\t'<<rd<<'\t'<<mums[i].rn<<'\t'<<mums[i].x1<<'\t'<<mums[i].x2<<'\t'<<mums[i].qn<<'\t'<<mums[i].y1<<'\t'<<mums[i].y2<<'\t'<<mums[i].l<<endl;
+		i++;
+	}
+	it = storeDist.begin();
+	return it->second;
+	//return mums[0];
+}
+////////////////////////////////////////////////////
 void gapCloser(mI & mi, vector<mI> ncm, vector<mI> & cm)
 {
 	mI tempmi;
-	mI gapRight,gapLeft;//two sides of the new split gap
 	vector<mI> smum; //selected mums that overlap with the gap.
-	int refOvl =0, qOvl =0;
+	//int refOvl =0, qOvl =0;
 	unsigned int i = 0;//index for ncm
-	double refProp, qProp;
+	//double refProp, qProp;
 	int index = 0;
-	//i = lastIndex;//it will set index at 0
 	if((mi.x2 > mi.x1) && (mi.y2 > mi.y1)) //gaps in both ref and query exist, and in forward strand. inverted coordinates are converted to forward coordinates. so gaps are always in forward direction
 	{
-//cout<<"GAPS\t"<<mi.rn<<'\t'<<mi.x1<<'\t'<<mi.x2<<'\t'<<mi.qn<<'\t'<<mi.y1<<'\t'<<mi.y2<<endl;
+//cout<<"GAPS\t"<<mi.rn<<'\t'<<mi.x1<<'\t'<<mi.x2<<'\t'<<mi.qn<<'\t'<<mi.y1<<'\t'<<mi.y2<<'\t'<<ncm.size()<<endl;
 		//for(unsigned int i = 0;i<ncm.size();i++)
 		while((!(max(mi.x1,mi.x2) < ncm[i].x1)) && (i<ncm.size()))
 		{
-			//if((!(ncm[i].x2 < mi.x1)) && (!(max(ncm[i].y1,ncm[i].y2)<min(mi.y1,mi.y2))) && (!(ncm[i].x1>mi.x2)) && (!(min(ncm[i].y1,ncm[i].y2)>max(mi.y2,mi.y1)))) //ncm mum does not fall outside
-			if((!(ncm[i].x2 < mi.x1)) && (!(ncm[i].x1 > mi.x2)) && (mi.rn == ncm[i].rn) && (mi.qn == ncm[i].qn))
+			if((!(ncm[i].x2 < mi.x1)) && (!(max(ncm[i].y1,ncm[i].y2)<min(mi.y1,mi.y2))) && (!(ncm[i].x1>mi.x2)) && (!(min(ncm[i].y1,ncm[i].y2)>max(mi.y2,mi.y1)))) //ncm mum does not fall outside
 			{
-				if((!(max(ncm[i].y2,ncm[i].y1) < mi.y1)) && (!(min(ncm[i].y1,ncm[i].y2) > mi.y2)))
-				{
-					refOvl = min(ncm[i].x2,mi.x2) - max(ncm[i].x1,mi.x1);
-					refProp = double(refOvl)/double(ncm[i].x2-ncm[i].x1);
-					qOvl = min(max(ncm[i].y1,ncm[i].y2),mi.y2) - max(min(ncm[i].y1,ncm[i].y2),mi.y1);
-//cout<<mi.rn<<'\t'<<mi.x1<<'\t'<<mi.x2<<'\t'<<mi.qn<<'\t'<<mi.y1<<'\t'<<mi.y2<<'\t'<<ncm[i].rn<<'\t'<<ncm[i].x1<<'\t'<<ncm[i].x2<<'\t'<<ncm[i].qn<<'\t'<<'\t'<<ncm[i].y1<<'\t'<<ncm[i].y2<<'\t'<<refOvl<<'\t'<<qOvl<<endl;
-					qProp = double(qOvl)/double(abs(ncm[i].y2-ncm[i].y1));
-//cout<<mi.rn<<'\t'<<mi.x1<<'\t'<<mi.x2<<'\t'<<mi.qn<<'\t'<<mi.y1<<'\t'<<mi.y2<<'\t'<<ncm[i].rn<<'\t'<<ncm[i].x1<<'\t'<<ncm[i].x2<<'\t'<<ncm[i].qn<<'\t'<<'\t'<<ncm[i].y1<<'\t'<<ncm[i].y2<<'\t'<<refProp<<'\t'<<qProp<<endl;
-					if((refProp>0.3) && (qProp>0.3))
-					{				
-						smum.push_back(ncm[i]);
-//cout<<mi.rn<<'\t'<<mi.x1<<'\t'<<mi.x2<<'\t'<<mi.qn<<'\t'<<mi.y1<<'\t'<<mi.y2<<'\t'<<ncm[i].rn<<'\t'<<ncm[i].x1<<'\t'<<ncm[i].x2<<'\t'<<ncm[i].qn<<'\t'<<'\t'<<ncm[i].y1<<'\t'<<ncm[i].y2<<endl;
-					}
-				}
+				smum.push_back(ncm[i]);
 			}
+			//if((!(ncm[i].x2 < mi.x1)) && (!(max(ncm[i].y1,ncm[i].y2)<min(mi.y1,mi.y2))) && (!(ncm[i].x1>mi.x2)) && (!(min(ncm[i].y1,ncm[i].y2)>max(mi.y2,mi.y1)))) //ncm mum does not fall outside
+//			if((!(ncm[i].x2 < mi.x1)) && (!(ncm[i].x1 > mi.x2)) && (mi.rn == ncm[i].rn) && (mi.qn == ncm[i].qn))
+//			{
+//				if((!(max(ncm[i].y2,ncm[i].y1) < mi.y1)) && (!(min(ncm[i].y1,ncm[i].y2) > mi.y2)))
+//				{
+//					refOvl = min(ncm[i].x2,mi.x2) - max(ncm[i].x1,mi.x1);
+//					refProp = double(refOvl)/double(ncm[i].x2-ncm[i].x1);
+//					qOvl = min(max(ncm[i].y1,ncm[i].y2),mi.y2) - max(min(ncm[i].y1,ncm[i].y2),mi.y1);
+//cout<<mi.rn<<'\t'<<mi.x1<<'\t'<<mi.x2<<'\t'<<mi.qn<<'\t'<<mi.y1<<'\t'<<mi.y2<<'\t'<<ncm[i].rn<<'\t'<<ncm[i].x1<<'\t'<<ncm[i].x2<<'\t'<<ncm[i].qn<<'\t'<<'\t'<<ncm[i].y1<<'\t'<<ncm[i].y2<<'\t'<<refOvl<<'\t'<<qOvl<<endl;
+//					qProp = double(qOvl)/double(abs(ncm[i].y2-ncm[i].y1));
+//cout<<mi.rn<<'\t'<<mi.x1<<'\t'<<mi.x2<<'\t'<<mi.qn<<'\t'<<mi.y1<<'\t'<<mi.y2<<'\t'<<ncm[i].rn<<'\t'<<ncm[i].x1<<'\t'<<ncm[i].x2<<'\t'<<ncm[i].qn<<'\t'<<'\t'<<ncm[i].y1<<'\t'<<ncm[i].y2<<'\t'<<refProp<<'\t'<<qProp<<endl;
+//					if((refProp>0.3) && (qProp>0.3))
+//					{				
+//						smum.push_back(ncm[i]);
+//cout<<mi.rn<<'\t'<<mi.x1<<'\t'<<mi.x2<<'\t'<<mi.qn<<'\t'<<mi.y1<<'\t'<<mi.y2<<'\t'<<ncm[i].rn<<'\t'<<ncm[i].x1<<'\t'<<ncm[i].x2<<'\t'<<ncm[i].qn<<'\t'<<'\t'<<ncm[i].y1<<'\t'<<ncm[i].y2<<endl;
+//					}
+//				}
+//			}
 			i++;
 		}
 		//index = max(i,lastIndex);//assign the bigger number to lastIndex
 		if(smum.size()>0)
 		{	
-			tempmi = findClosest(mi,smum); //find the closest mum from the ncm pool
+			tempmi = findClosestCm(mi,smum,0); //find the closest mum from the ncm pool
 			if(tempmi.y1 != 0) // add the condition that when it is forward this happens
 			{
+				tempmi.c == 'c';//it cannot be t anymore 
 				cm.push_back(tempmi);
-				gapRight.rn = mi.rn;
-				gapRight.qn = mi.qn;
-				gapRight.x1 = min(tempmi.x2+1,mi.x2); //adjust the gap coordinates
-				gapRight.x2 = mi.x2;
-				gapLeft.x1 = mi.x1;
-				gapLeft.x2 = max(tempmi.x1,mi.x1);
-				gapLeft.rn = mi.rn;
-				gapLeft.qn = mi.qn;
+				mi.x1 = tempmi.x2+1; //adjust the gap coordinates
+				//gapRight.rn = mi.rn;
+				//gapRight.qn = mi.qn;
+				//gapRight.x1 = min(tempmi.x2+1,mi.x2); //adjust the gap coordinates
+				//gapRight.x2 = mi.x2;
+				//gapLeft.x1 = mi.x1;
+				//gapLeft.x2 = max(tempmi.x1,mi.x1);
+				//gapLeft.rn = mi.rn;
+				//gapLeft.qn = mi.qn;
 				if(tempmi.y1 < tempmi.y2)//forward oriented
 				{
-					gapRight.y1 = min(max(tempmi.y2+1,tempmi.y1),mi.y2); //adjust the gap coordinates
-					gapRight.y2 = mi.y2;
-					gapLeft.y1 = mi.y1;
-					gapLeft.y2 = max(min(tempmi.y1,tempmi.y2+1),mi.y1);
+					mi.y1 = tempmi.y2+1; //adjust the gap coordinates
+					//gapRight.y1 = min(max(tempmi.y2+1,tempmi.y1),mi.y2); //adjust the gap coordinates
+					//gapRight.y2 = mi.y2;
+					//gapLeft.y1 = mi.y1;
+					//gapLeft.y2 = max(min(tempmi.y1,tempmi.y2+1),mi.y1);
 				}
 				if(tempmi.y1 > tempmi.y2)//reverse oriented
 				{
-					gapLeft.y1 = mi.y1;
-					gapLeft.y2 = max(min(tempmi.y1 +1,tempmi.y2),mi.y1);
-					gapRight.y1 = min(max(tempmi.y2,tempmi.y1+1),mi.y2);
-					gapRight.y2 = mi.y2;	
+					if(abs(mi.y1-tempmi.y1) < abs(mi.y2 - tempmi.y2))//if tempmi is closer to the leftgap end
+					{
+						mi.y1 = tempmi.y1 +1;
+					}
+					if(abs(mi.y1-tempmi.y1) > abs(mi.y2 - tempmi.y2))
+					{
+						mi.y2 = tempmi.y2 -1;
+					}
+					//gapLeft.y1 = mi.y1;
+					//gapLeft.y2 = max(min(tempmi.y1 +1,tempmi.y2),mi.y1);
+					//gapRight.y1 = min(max(tempmi.y2,tempmi.y1+1),mi.y2);
+					//gapRight.y2 = mi.y2;	
 				}
-				sort(smum.begin(),smum.end());
+				//sort(smum.begin(),smum.end());
 //cout<<"tempmi\t"<<tempmi.rn<<'\t'<<tempmi.x1<<'\t'<<tempmi.x2<<'\t'<<tempmi.qn<<'\t'<<tempmi.y1<<'\t'<<tempmi.y2<<endl;
 //cout<<"Right\t"<<gapRight.rn<<'\t'<<gapRight.x1<<'\t'<<gapRight.x2<<'\t'<<gapRight.qn<<'\t'<<gapRight.y1<<'\t'<<gapRight.y2<<endl;
 //cout<<"Left\t"<<gapLeft.rn<<'\t'<<gapLeft.x1<<'\t'<<gapLeft.x2<<'\t'<<gapLeft.qn<<'\t'<<gapLeft.y1<<'\t'<<gapLeft.y2<<endl;
-				gapCloser(gapRight,smum,cm);//need to make it dependent on the size of ncm if ncm size does not change, that mean no more solution is there
-				gapCloser(gapLeft,smum,cm);
+				//gapCloser(gapRight,smum,cm);//need to make it dependent on the size of ncm if ncm size does not change, that mean no more solution is there
+				//gapCloser(gapLeft,smum,cm);
+				gapCloser(mi,smum,cm);
 			}
 					
 		}
@@ -567,4 +675,14 @@ mI readLast(string str)//str contains individual lines from the file
 	return lastmi;
 }
 /////////////////////////find the coords of minimum distance between two MUMs//////////
-	
+int findTrans(vector<mI> & mums, mI & m)
+{
+	int i = 0;
+	while(mums[i].y1 != m.y1) 
+	{
+		i++;
+	}
+	return i;
+}
+
+

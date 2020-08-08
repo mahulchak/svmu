@@ -66,6 +66,7 @@ void storeNameCount(vector<int> & chromDensityRef,vector<int> & chromDensityQ,ma
 void storeCords(map<int,vector<qord> > & mRef, mI & mi, ofstream & fout); //overloaded
 void storeCordsCm(map<int,vector<qord>> & mRef, mI & mi);
 mI findClosest(mI & mi, vector<mI> & mums);//overloaded function
+mI findClosestCm(mI & mi, vector<mI> & mums,unsigned int k);
 vector<double> getCoverage(mI & mi, vector<int> & masterRef,vector<int> & masterQ);
 vector<double> getCoverage(mI & mi, vector<int> & masterRef,vector<int> & masterQ,float p);
 vector<double> getChromCount(mI & mi, vector<int> & chromDensityRef, vector<int> & chromDensityQ);
@@ -82,6 +83,9 @@ mI findDupRef(mI & mi1, mI & mi2);
 mI findDupQ(mI & m1, mI & m2);
 char comp(char & N);
 void findInnie(vector<mI> & mums,mI & mi);
+void findInnieQ(vector<mI> & mums,mI & mi);
+void findInnieLast(vector<mI> & mums,mI & mi);
 mI readLast(string str);
 bool chkIndel(mI & gapmi,vector <mI> & indels);
+int findTrans(vector<mI> & mums, mI & m);
 #endif
