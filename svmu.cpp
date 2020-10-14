@@ -181,7 +181,8 @@ int main(int argc, char *argv[])
 //						cout<<tempmi.rn<<'\t'<<tempmi.x1<<'\t'<<tempmi.x2<<'\t'<<tempmi.qn<<'\t'<<tempmi.y1<<'\t'<<tempmi.y2<<'\t'<<'r'<<'\t'<<vn[0]<<'\t'<<vn[1]<<endl;
 //					}
 //				}
-				fcords<<tempmi.rn<<'\t'<<tempmi.x1<<'\t'<<tempmi.x2<<'\t'<<tempmi.qn<<'\t'<<tempmi.y1<<'\t'<<tempmi.y2<<'\t'<<tempmi.c<<'\t'<<vn[0]<<'\t'<<vn[1]<<endl;
+				vd = getCoverage(tempmi,masterRef[tempmi.rn],masterQ[tempmi.qn],0.3);
+				fcords<<tempmi.rn<<'\t'<<tempmi.x1<<'\t'<<tempmi.x2<<'\t'<<tempmi.qn<<'\t'<<tempmi.y1<<'\t'<<tempmi.y2<<'\t'<<tempmi.c<<'\t'<<vn[0]<<'\t'<<vn[1]<<"\t"<<vd[0]<<"\t"<<vd[1]<<endl;
 //				vd = getCoverage(tempmi,masterRef[tempmi.rn],masterQ[tempmi.qn],0.3);
 //				if((vd[0] >1) || (vd[1]>1))
 //				{
