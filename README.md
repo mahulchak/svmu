@@ -2,9 +2,9 @@
 
 SVMU (Structural Variants from MUmmer) attempts to identify comprehensive sequence variants via the alignment of two  contiguous genome assemblies. Its goal is to combine the strengths of different aligners to annotate duplicates, large indels, inversions, small indels, and SNPs from whole genome alignments.
  
-<b>SVMU is being re-developed by the Chakraborty Lab at Texas A&M. We are incorporating new features (e.g., a VCF output). We'll make sure to announce here when the new version is available. Feel free to continue using the existing version until then. If you encounter an issue, send an email to mahul@tamu.edu. SVMU currently works with MUMmer (both versions 3 and 4 are supported).
+<b>SVMU is being re-developed by the Chakraborty Lab at Texas A&M. We are incorporating new features (e.g., a VCF output). We'll make sure to announce here when the new version is available</b>. Feel free to continue using the existing version until then. If you encounter an issue, send an email to mahul@tamu.edu. SVMU currently works with MUMmer; both versions 3 and 4 are supported.
 
-NOTE: If you have an idea or suggestion (including collaboration ideas), please email us at the address above. However, if you are interested in the svmu versions used in the 2018 Nature Genetics (A4) and 2019 Nature Communications (DSPR) papers, see below:
+NOTE: If you have an idea or suggestion, including collaboration ideas, please email us at the address above. However, if you are interested in the svmu versions used in the 2018 Nature Genetics (A4) and 2019 Nature Communications (DSPR) papers, see below:
 
 If you publish results obtained with this pipeline, please cite SVMU as described here https://www.nature.com/articles/s41467-019-12884-1. The version used in the paper is available through commits made before March 6, 2018.
 
